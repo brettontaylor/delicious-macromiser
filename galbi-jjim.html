@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Korean Galbi Jjim</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Josefin+Sans:wght@300;400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #1a1510;
+    --burgundy: #6b1f2a;
+    --sienna: #8c4a2f;
+    --cream: #f5f0e8;
+    --tan: #d4c4a8;
+    --rule: #b8a88a;
+    --muted: #6b5f52;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #e8e0d4;
+    font-family: 'Libre Baskerville', Georgia, serif;
+    color: var(--ink);
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .page {
+    width: 8.5in;
+    min-height: 11in;
+    margin: 0.4in auto;
+    background: var(--cream);
+    padding: 0.55in 0.65in;
+    position: relative;
+    box-shadow: 0 4px 40px rgba(0,0,0,0.18);
+  }
+
+  .page::before {
+    content: '';
+    position: absolute;
+    inset: 0.22in;
+    border: 1px solid var(--rule);
+    pointer-events: none;
+  }
+  .page::after {
+    content: '';
+    position: absolute;
+    inset: 0.28in;
+    border: 2.5px solid var(--burgundy);
+    pointer-events: none;
+  }
+
+  /* ── HEADER ── */
+  .header {
+    text-align: center;
+    padding: 0 0.3in 0.18in;
+    border-bottom: 1px solid var(--rule);
+    margin-bottom: 0.22in;
+  }
+  .label {
+    font-family: 'Josefin Sans', sans-serif;
+    font-size: 8.5pt;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--sienna);
+    margin-bottom: 0.08in;
+  }
+  h1 {
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 300;
+    font-size: 34pt;
+    line-height: 1.1;
+    color: var(--burgundy);
+    letter-spacing: -0.01em;
+  }
+  h1 em { font-style: italic; font-weight: 300; }
+  .subtitle {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 11pt;
+    color: var(--muted);
+    margin-top: 0.06in;
+  }
+  .meta-row {
+    display: flex;
+    justify-content: center;
+    gap: 0.3in;
+    margin-top: 0.14in;
+  }
+  .meta-item { text-align: center; }
+  .meta-item .val {
+    font-family: 'Josefin Sans', sans-serif;
+    font-size: 10pt;
+    font-weight: 600;
+    color: var(--burgundy);
+    letter-spacing: 0.05em;
+  }
+  .meta-item .key {
+    font-family: 'Josefin Sans', sans-serif;
+    font-size: 7pt;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .meta-dot { color: var(--rule); font-size: 14pt; line-height: 2; }
+
+  /* ── TWO-COLUMN BODY ── */
+  .body-cols {
+    display: grid;
+    grid-template-columns: 2.2in 1fr;
+    gap: 0.28in;
+  }
+
+  .section-title {
+    font-family: 'Josefin Sans', sans-serif;
+    font-size: 7.5pt;
+    font-weight: 600;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--sienna);
+    border-bottom: 1px solid var(--rule);
+    padding-bottom: 0.04in;
+    margin-bottom: 0.1in;
+  }
+
+  .ingredient-list { list-style: none; }
+  .ingredient-list li {
+    display: flex;
+    gap: 0.08in;
+    padding: 3px 0;
+    border-bottom: 1px dotted #d4c4a8;
+    font-size: 8pt;
+    line-height: 1.4;
+  }
+  .ingredient-list li:last-child { border-bottom: none; }
+  .qty {
+    font-family: 'Josefin Sans', sans-serif;
+    font-size: 7.5pt;
+    font-weight: 600;
+    color: var(--burgundy);
+    min-width: 0.55in;
+    flex-shrink: 0;
+  }
+  .ingr-name { color: var(--ink); }
+
+  .divider-ornament {
+    text-align: center;
+    color: var(--rule);
+    font-size: 11pt;
+    margin: 0.1in 0 0.07in;
+    letter-spacing: 0.15em;
+  }
+
+  .steps-list { list-style: none; }
+  .steps-list li {
+    display: flex;
+    gap: 0.1in;
+    margin-bottom: 0.1in;
+  }
+  .step-num {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 17pt;
+    font-weight: 600;
+    color: var(--tan);
+    line-height: 1;
+    min-width: 0.22in;
+    flex-shrink: 0;
+    margin-top: -2px;
+  }
+  .step-content {}
+  .step-title {
+    font-family: 'Josefin Sans', sans-serif;
+    font-size: 7.5pt;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink);
+    margin-bottom: 1px;
+  }
+  .step-text {
+    font-size: 7.8pt;
+    line-height: 1.5;
+    color: #3a2f26;
+  }
+
+  .notes-banner {
+    background: var(--burgundy);
+    color: #f5eee6;
+    padding: 0.1in 0.18in;
+    margin-top: 0.18in;
+    display: flex;
+    gap: 0.25in;
+    align-items: flex-start;
+  }
+  .notes-banner .nb-label {
+    font-family: 'Josefin Sans', sans-serif;
+    font-size: 7pt;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    opacity: 0.75;
+    margin-top: 1px;
+    flex-shrink: 0;
+  }
+  .notes-banner .nb-text {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 9pt;
+    line-height: 1.5;
+  }
+
+  /* ════════ PAGE 2 ════════ */
+  .page2 .p2-header {
+    display: flex;
+    align-items: center;
+    gap: 0.2in;
+    padding-bottom: 0.15in;
+    border-bottom: 1px solid var(--rule);
+    margin-bottom: 0.2in;
+  }
+  .page2 .p2-header-left h2 {
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 300;
+    font-size: 26pt;
+    color: var(--burgundy);
+    line-height: 1.1;
+  }
+  .page2 .p2-header-left .label { margin-bottom: 0.05in; }
+  .page2 .p2-header-left .subtitle { margin-top: 0.04in; font-family: 'Cormorant Garamond', serif; font-style: italic; font-size: 11pt; color: var(--muted); }
+  .page2 .header-rule {
+    flex: 1;
+    height: 1px;
+    background: var(--rule);
+  }
+
+  .sides-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.25in;
+  }
+
+  .side-box {
+    border-top: 2px solid var(--burgundy);
+    padding-top: 0.1in;
+  }
+
+  .plating-box {
+    border: 1px solid var(--rule);
+    padding: 0.12in 0.15in;
+    margin-top: 0.2in;
+  }
+  .plating-box .pb-title {
+    font-family: 'Josefin Sans', sans-serif;
+    font-size: 7pt;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--sienna);
+    margin-bottom: 0.06in;
+  }
+  .plating-box .pb-body {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 9.5pt;
+    line-height: 1.6;
+    color: var(--ink);
+  }
+  .plating-box .pb-body strong {
+    font-weight: 700;
+    color: var(--burgundy);
+  }
+
+  .extras-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.2in;
+    margin-top: 0.2in;
+  }
+  .extra-box {
+    border-top: 2px solid var(--burgundy);
+    padding-top: 0.1in;
+  }
+
+  .footer {
+    position: absolute;
+    bottom: 0.45in;
+    left: 0.65in;
+    right: 0.65in;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 1px solid var(--rule);
+    padding-top: 0.07in;
+  }
+  .footer span {
+    font-family: 'Josefin Sans', sans-serif;
+    font-size: 7pt;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--rule);
+  }
+
+  @media print {
+    @page { size: letter; margin: 0; }
+    body { background: none; }
+    .page {
+      width: 100%;
+      min-height: 100vh;
+      margin: 0;
+      padding: 0.5in 0.6in;
+      box-shadow: none;
+      page-break-after: always;
+    }
+    .page:last-child { page-break-after: avoid; }
+    .print-btn { display: none !important; }
+  }
+
+  .print-btn {
+    display: block;
+    text-align: center;
+    margin: 0.2in auto 0.5in;
+    width: 8.5in;
+  }
+  .print-btn button {
+    font-family: 'Josefin Sans', sans-serif;
+    font-size: 9pt;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    background: var(--burgundy);
+    color: #f5eee6;
+    border: none;
+    padding: 0.1in 0.3in;
+    cursor: pointer;
+  }
+  .print-btn button:hover { background: var(--sienna); }
+</style>
+</head>
+<body>
+
+<!-- ══════════════ PAGE 1 — GALBI JJIM ══════════════ -->
+<div class="page">
+
+  <div class="header">
+    <div class="label">Korean Braise</div>
+    <h1><em>Galbi Jjim</em><br>Braised Beef Short Ribs</h1>
+    <div class="subtitle">Bone-In · Asian Pear Marinade · Daikon · Chestnuts · Egg Jidan</div>
+    <div class="meta-row">
+      <div class="meta-item"><div class="val">Overnight</div><div class="key">Marinate</div></div>
+      <div class="meta-dot">·</div>
+      <div class="meta-item"><div class="val">45 min</div><div class="key">Active</div></div>
+      <div class="meta-dot">·</div>
+      <div class="meta-item"><div class="val">300°F</div><div class="key">Oven</div></div>
+      <div class="meta-dot">·</div>
+      <div class="meta-item"><div class="val">~4 hrs</div><div class="key">Total</div></div>
+      <div class="meta-dot">·</div>
+      <div class="meta-item"><div class="val">2</div><div class="key">Serves</div></div>
+    </div>
+  </div>
+
+  <div class="body-cols">
+
+    <!-- LEFT: INGREDIENTS -->
+    <div class="ingredients-col">
+      <div class="section-title">Ribs &amp; Marinade</div>
+      <ul class="ingredient-list">
+        <li><span class="qty">1 lb</span><span class="ingr-name">Bone-in beef short ribs</span></li>
+        <li><span class="qty">¼ cup</span><span class="ingr-name">Soy sauce, low-sodium</span></li>
+        <li><span class="qty">2 tbsp</span><span class="ingr-name">Mirin</span></li>
+        <li><span class="qty">1 tbsp</span><span class="ingr-name">Rice wine / sake</span></li>
+        <li><span class="qty">½ tbsp</span><span class="ingr-name">Brown sugar or honey</span></li>
+        <li><span class="qty">½ tbsp</span><span class="ingr-name">Sesame oil</span></li>
+        <li><span class="qty">½</span><span class="ingr-name">Asian pear, grated</span></li>
+        <li><span class="qty">½ small</span><span class="ingr-name">Kiwi, grated</span></li>
+        <li><span class="qty">3 cloves</span><span class="ingr-name">Garlic, grated</span></li>
+        <li><span class="qty">½ tbsp</span><span class="ingr-name">Fresh ginger, grated</span></li>
+        <li><span class="qty">½ tsp</span><span class="ingr-name">Black pepper</span></li>
+      </ul>
+
+      <div class="divider-ornament">— Braise Day —</div>
+      <ul class="ingredient-list">
+        <li><span class="qty">1 cup</span><span class="ingr-name">Beef stock</span></li>
+        <li><span class="qty">3 oz</span><span class="ingr-name">Daikon, cut in 1½" rounds</span></li>
+        <li><span class="qty">1 medium</span><span class="ingr-name">Carrot, cut in 1½" pieces</span></li>
+        <li><span class="qty">4–6</span><span class="ingr-name">Chestnuts, vacuum-packed</span></li>
+        <li><span class="qty">2</span><span class="ingr-name">Shiitake mushrooms, quartered</span></li>
+        <li><span class="qty">1 knot</span><span class="ingr-name">Scallion (remove before serving)</span></li>
+      </ul>
+
+      <div class="divider-ornament">— Garnish —</div>
+      <ul class="ingredient-list">
+        <li><span class="qty">1</span><span class="ingr-name">Egg (for jidan threads)</span></li>
+        <li><span class="qty">Pinch</span><span class="ingr-name">Toasted sesame seeds</span></li>
+        <li><span class="qty">Pinch</span><span class="ingr-name">Pine nuts, toasted</span></li>
+        <li><span class="qty">2</span><span class="ingr-name">Scallions, julienned &amp; curled in ice water</span></li>
+      </ul>
+    </div>
+
+    <!-- RIGHT: METHOD -->
+    <div class="steps-col">
+      <div class="section-title">Night Before</div>
+      <ol class="steps-list">
+        <li>
+          <span class="step-num">1</span>
+          <div class="step-content">
+            <div class="step-title">Soak</div>
+            <div class="step-text">Place 1 lb short ribs in a bowl, cover with cold water. Soak 1–2 hrs, changing water once to draw out blood for a cleaner braise. Drain.</div>
+          </div>
+        </li>
+        <li>
+          <span class="step-num">2</span>
+          <div class="step-content">
+            <div class="step-title">Blanch</div>
+            <div class="step-text">Transfer ribs to boiling water, blanch 5 minutes. Drain, rinse under cold water, pat completely dry.</div>
+          </div>
+        </li>
+        <li>
+          <span class="step-num">3</span>
+          <div class="step-content">
+            <div class="step-title">Marinade</div>
+            <div class="step-text">Whisk together ¼ cup soy sauce, 2 tbsp mirin, 1 tbsp rice wine, ½ tbsp brown sugar, ½ tbsp sesame oil, ½ grated pear, ½ grated kiwi, 3 cloves grated garlic, ½ tbsp ginger, and ½ tsp black pepper.</div>
+          </div>
+        </li>
+        <li>
+          <span class="step-num">4</span>
+          <div class="step-content">
+            <div class="step-title">Marinate</div>
+            <div class="step-text">Add ribs, turn to coat. Transfer to a zip-lock bag, press out air, and refrigerate overnight — minimum 8 hrs, up to 24.</div>
+          </div>
+        </li>
+      </ol>
+
+      <div class="section-title" style="margin-top:0.1in;">Braise Day</div>
+      <ol class="steps-list">
+        <li>
+          <span class="step-num">5</span>
+          <div class="step-content">
+            <div class="step-title">Temper &amp; Sear</div>
+            <div class="step-text">Remove ribs from fridge 30 min before cooking. Preheat oven to 300°F. Heat neutral oil in a Dutch oven over high heat until smoking. Sear ribs on all sides until deep mahogany — 3–4 min per side. Do not rush.</div>
+          </div>
+        </li>
+        <li>
+          <span class="step-num">6</span>
+          <div class="step-content">
+            <div class="step-title">Braise — First Stage</div>
+            <div class="step-text">Add reserved marinade, 1 cup beef stock, and the scallion knot. Liquid should reach ¾ up the ribs. Bring to a simmer, cover, and transfer to oven. Braise covered for 2 hours.</div>
+          </div>
+        </li>
+        <li>
+          <span class="step-num">7</span>
+          <div class="step-content">
+            <div class="step-title">Add Veg — Second Stage</div>
+            <div class="step-text">Uncover and add 3 oz daikon, 1 carrot, 4–6 chestnuts, and 2 quartered shiitakes. Continue braising uncovered 45–60 min until ribs are tender and sauce is glossy. Skim fat. Remove scallion knot.</div>
+          </div>
+        </li>
+        <li>
+          <span class="step-num">8</span>
+          <div class="step-content">
+            <div class="step-title">Finish</div>
+            <div class="step-text">Taste and adjust — a pinch of sugar or a few drops of sesame oil will round the sauce if needed. The sauce should be deeply savory, glossy, and cling to the ribs.</div>
+          </div>
+        </li>
+      </ol>
+    </div>
+
+  </div>
+
+  <div class="notes-banner">
+    <div class="nb-label">Chef's Note</div>
+    <div class="nb-text">The Asian pear is non-negotiable — its enzymes tenderize the meat and balance the soy. Bosc pear works as a backup but is less effective. This dish is better the next day: reheat gently with a splash of stock, the sauce deepens beautifully overnight.</div>
+  </div>
+
+  <div class="footer">
+    <span>Korean Galbi Jjim — Braised Beef Short Ribs</span>
+    <span>Page 1 of 2</span>
+  </div>
+</div>
+
+
+<!-- ══════════════ PAGE 2 — SIDES, PLATING, GARNISH ══════════════ -->
+<div class="page page2">
+
+  <div class="p2-header">
+    <div class="p2-header-left">
+      <div class="label">Sides &amp; Finishing</div>
+      <h2>Rice · Bok Choy · Plating &amp; Garnish</h2>
+      <div class="subtitle">Complete the bowl — every element earns its place</div>
+    </div>
+    <div class="header-rule"></div>
+  </div>
+
+  <div class="sides-grid">
+
+    <!-- RICE -->
+    <div class="side-box">
+      <div class="section-title">Steamed Short-Grain Rice</div>
+      <ul class="ingredient-list" style="margin-bottom:0.1in;">
+        <li><span class="qty">1 cup</span><span class="ingr-name">Short-grain white rice</span></li>
+        <li><span class="qty">1¼ cups</span><span class="ingr-name">Cold water</span></li>
+      </ul>
+      <ol class="steps-list">
+        <li>
+          <span class="step-num">1</span>
+          <div class="step-content">
+            <div class="step-title">Rinse</div>
+            <div class="step-text">Rinse 1 cup rice under cold water, swirling with your hand, until water runs nearly clear — about 3–4 changes. Drain well.</div>
+          </div>
+        </li>
+        <li>
+          <span class="step-num">2</span>
+          <div class="step-content">
+            <div class="step-title">Cook</div>
+            <div class="step-text">Combine rice and 1¼ cups cold water in a saucepan. Bring to a boil uncovered. Cover tightly, reduce to the lowest possible heat, and cook 12 minutes. Do not lift the lid.</div>
+          </div>
+        </li>
+        <li>
+          <span class="step-num">3</span>
+          <div class="step-content">
+            <div class="step-title">Steam &amp; Fluff</div>
+            <div class="step-text">Remove from heat, still covered, and rest 10 minutes. Uncover and fluff gently with a rice paddle or fork before serving.</div>
+          </div>
+        </li>
+      </ol>
+    </div>
+
+    <!-- BOK CHOY -->
+    <div class="side-box">
+      <div class="section-title">Garlic Sesame Bok Choy</div>
+      <ul class="ingredient-list" style="margin-bottom:0.1in;">
+        <li><span class="qty">2</span><span class="ingr-name">Baby bok choy, halved lengthwise</span></li>
+        <li><span class="qty">2 cloves</span><span class="ingr-name">Garlic, thinly sliced</span></li>
+        <li><span class="qty">1 tsp</span><span class="ingr-name">Soy sauce</span></li>
+        <li><span class="qty">½ tsp</span><span class="ingr-name">Sesame oil</span></li>
+        <li><span class="qty">—</span><span class="ingr-name">Neutral oil, for the pan</span></li>
+      </ul>
+      <ol class="steps-list">
+        <li>
+          <span class="step-num">1</span>
+          <div class="step-content">
+            <div class="step-title">Blanch</div>
+            <div class="step-text">Halve 2 baby bok choy lengthwise. Blanch in salted boiling water 60–90 seconds until just wilted and bright green. Drain and pat completely dry.</div>
+          </div>
+        </li>
+        <li>
+          <span class="step-num">2</span>
+          <div class="step-content">
+            <div class="step-title">Sauté &amp; Finish</div>
+            <div class="step-text">Heat a thin layer of neutral oil in a pan over medium-high. Sauté 2 cloves sliced garlic for 30 seconds until fragrant. Add bok choy cut-side down, sear 1 minute until lightly caramelized. Add 1 tsp soy sauce and ½ tsp sesame oil, toss to coat, and serve immediately.</div>
+          </div>
+        </li>
+      </ol>
+    </div>
+
+  </div>
+
+  <!-- EGG JIDAN -->
+  <div class="extras-row">
+    <div class="extra-box">
+      <div class="section-title">Egg Jidan — Garnish Threads</div>
+      <div class="step-text" style="font-size:7.8pt; line-height:1.55;">Separate 1 egg. Season yolk and white each with a pinch of salt. Cook each separately as a thin crepe in a lightly oiled pan over very low heat — no color. Roll each crepe tightly and slice into fine julienne threads. Drape over the finished bowl.</div>
+    </div>
+    <div class="extra-box">
+      <div class="section-title">Scallion Garnish</div>
+      <div class="step-text" style="font-size:7.8pt; line-height:1.55;">Julienne 2 scallions into fine 2-inch lengths. Submerge in a bowl of ice water for 10–15 minutes — they will curl into elegant ringlets. Drain and pat dry before plating. Combined with toasted sesame seeds and pine nuts, these garnishes transform a home braise into a composed dish.</div>
+    </div>
+  </div>
+
+  <!-- PLATING -->
+  <div class="plating-box">
+    <div class="pb-title">To Plate</div>
+    <div class="pb-body">Place <strong>1–2 ribs</strong> in a wide, shallow bowl with daikon rounds, carrot pieces, and chestnuts alongside. Ladle the braising sauce <strong>generously</strong> over everything — the glossy sauce is the centerpiece. Add a scoop of rice on the side or beneath the ribs. Place the bok choy at the edge of the bowl. Finish with jidan threads draped over the top, a scatter of <strong>toasted pine nuts and sesame seeds</strong>, and a nest of curled scallion julienne. Serve immediately.</div>
+  </div>
+
+  <!-- NOTES ROW -->
+  <div class="extras-row">
+    <div class="extra-box">
+      <div class="section-title">Make Ahead</div>
+      <div class="step-text" style="font-size:7.8pt; line-height:1.55;">Galbi jjim is significantly better the next day. Refrigerate overnight, skim the solidified fat cleanly from the top, and reheat gently on the stovetop with a splash of beef stock. The sauce deepens and the meat relaxes further into its braising liquid.</div>
+    </div>
+    <div class="extra-box">
+      <div class="section-title">Key Notes</div>
+      <div class="step-text" style="font-size:7.8pt; line-height:1.55;"><strong style="color:var(--burgundy);">Bone-in timing:</strong> Adds gelatin — don't rush the uncovered final stage. <strong style="color:var(--burgundy);">Asian pear:</strong> Essential; enzymes tenderize and balance the soy. Do not skip the fruit. <strong style="color:var(--burgundy);">Chestnuts:</strong> Vacuum-packed are traditional — find them at any Asian grocery.</div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <span>Korean Galbi Jjim — Sides, Plating &amp; Garnish</span>
+    <span>Page 2 of 2</span>
+  </div>
+</div>
+
+<div class="print-btn">
+  <button onclick="window.print()">⬡ &nbsp; Print Recipe &nbsp; ⬡</button>
+</div>
+
+</body>
+</html>

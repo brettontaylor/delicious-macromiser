@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Spicy Heritage Chicken Ragù</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Josefin+Sans:wght@300;400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink:      #1a1510;
+    --burgundy: #6b1f2a;
+    --sienna:   #8c4a2f;
+    --cream:    #f5f0e8;
+    --tan:      #d4c4a8;
+    --rule:     #b8a88a;
+    --muted:    #6b5f52;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #e8e0d4;
+    font-family: 'Libre Baskerville', Georgia, serif;
+    color: var(--ink);
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .page {
+    width: 8.5in;
+    min-height: 11in;
+    margin: 0.4in auto;
+    background: var(--cream);
+    padding: 0.55in 0.65in;
+    position: relative;
+    box-shadow: 0 4px 40px rgba(0,0,0,0.18);
+  }
+  .page::before {
+    content: '';
+    position: absolute;
+    inset: 0.22in;
+    border: 1px solid var(--rule);
+    pointer-events: none;
+  }
+  .page::after {
+    content: '';
+    position: absolute;
+    inset: 0.28in;
+    border: 2.5px solid var(--burgundy);
+    pointer-events: none;
+  }
+
+  .header {
+    text-align: center;
+    padding: 0 0.3in 0.18in;
+    border-bottom: 1px solid var(--rule);
+    margin-bottom: 0.22in;
+  }
+  .label {
+    font-family: 'Josefin Sans', sans-serif;
+    font-size: 8.5pt;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--sienna);
+    margin-bottom: 0.08in;
+  }
+  h1 {
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 300;
+    font-size: 34pt;
+    line-height: 1.1;
+    color: var(--burgundy);
+  }
+  h1 em { font-style: italic; font-weight: 300; }
+  .subtitle {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 11pt;
+    color: var(--muted);
+    margin-top: 0.06in;
+  }
+  .meta-row {
+    display: flex;
+    justify-content: center;
+    gap: 0.3in;
+    margin-top: 0.14in;
+  }
+  .meta-item { text-align: center; }
+  .meta-item .val {
+    font-family: 'Josefin Sans', sans-serif;
+    font-size: 10pt;
+    font-weight: 600;
+    color: var(--burgundy);
+    letter-spacing: 0.05em;
+  }
+  .meta-item .key {
+    font-family: 'Josefin Sans', sans-serif;
+    font-size: 7pt;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .meta-dot { color: var(--rule); font-size: 14pt; line-height: 2; }
+
+  .body-cols {
+    display: grid;
+    grid-template-columns: 2.2in 1fr;
+    gap: 0.28in;
+  }
+
+  .section-title {
+    font-family: 'Josefin Sans', sans-serif;
+    font-size: 7.5pt;
+    font-weight: 600;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--sienna);
+    border-bottom: 1px solid var(--rule);
+    padding-bottom: 0.04in;
+    margin-bottom: 0.1in;
+  }
+
+  .ingredient-list { list-style: none; }
+  .ingredient-list li {
+    display: flex;
+    gap: 0.08in;
+    padding: 3px 0;
+    border-bottom: 1px dotted var(--tan);
+    font-size: 7.8pt;
+    line-height: 1.4;
+  }
+  .ingredient-list li:last-child { border-bottom: none; }
+  .qty {
+    font-family: 'Josefin Sans', sans-serif;
+    font-size: 7.5pt;
+    font-weight: 600;
+    color: var(--burgundy);
+    min-width: 0.55in;
+    flex-shrink: 0;
+  }
+
+  .divider-ornament {
+    text-align: center;
+    color: var(--rule);
+    font-size: 10pt;
+    margin: 0.08in 0 0.06in;
+    letter-spacing: 0.12em;
+  }
+
+  .steps-list { list-style: none; }
+  .steps-list li {
+    display: flex;
+    gap: 0.1in;
+    margin-bottom: 0.09in;
+  }
+  .step-num {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 17pt;
+    font-weight: 600;
+    color: var(--tan);
+    line-height: 1;
+    min-width: 0.22in;
+    flex-shrink: 0;
+    margin-top: -2px;
+  }
+  .step-title {
+    font-family: 'Josefin Sans', sans-serif;
+    font-size: 7.5pt;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink);
+    margin-bottom: 1px;
+  }
+  .step-text {
+    font-size: 7.8pt;
+    line-height: 1.5;
+    color: #3a2f26;
+  }
+
+  .notes-banner {
+    background: var(--burgundy);
+    color: #f5eee6;
+    padding: 0.1in 0.18in;
+    margin-top: 0.16in;
+    display: flex;
+    gap: 0.25in;
+    align-items: flex-start;
+  }
+  .nb-label {
+    font-family: 'Josefin Sans', sans-serif;
+    font-size: 7pt;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    opacity: 0.75;
+    margin-top: 1px;
+    flex-shrink: 0;
+  }
+  .nb-text {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 9pt;
+    line-height: 1.5;
+  }
+
+  .p2-header {
+    display: flex;
+    align-items: center;
+    gap: 0.2in;
+    padding-bottom: 0.15in;
+    border-bottom: 1px solid var(--rule);
+    margin-bottom: 0.2in;
+  }
+  .p2-header h2 {
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 300;
+    font-size: 26pt;
+    color: var(--burgundy);
+    line-height: 1.1;
+  }
+  .header-rule { flex: 1; height: 1px; background: var(--rule); }
+
+  .sides-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.25in;
+  }
+  .side-box {
+    border-top: 2px solid var(--burgundy);
+    padding-top: 0.1in;
+  }
+
+  .plating-box {
+    border: 1px solid var(--rule);
+    padding: 0.12in 0.15in;
+    margin-top: 0.2in;
+  }
+  .plating-box .pb-title {
+    font-family: 'Josefin Sans', sans-serif;
+    font-size: 7pt;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--sienna);
+    margin-bottom: 0.06in;
+  }
+  .plating-box .pb-body {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 9.5pt;
+    line-height: 1.6;
+  }
+  .plating-box .pb-body strong { color: var(--burgundy); }
+
+  .extras-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.2in;
+    margin-top: 0.2in;
+  }
+  .extra-box {
+    border-top: 2px solid var(--burgundy);
+    padding-top: 0.1in;
+  }
+
+  .footer {
+    position: absolute;
+    bottom: 0.45in;
+    left: 0.65in;
+    right: 0.65in;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 1px solid var(--rule);
+    padding-top: 0.07in;
+  }
+  .footer span {
+    font-family: 'Josefin Sans', sans-serif;
+    font-size: 7pt;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--rule);
+  }
+
+  @media print {
+    @page { size: letter; margin: 0; }
+    body { background: none; }
+    .page {
+      width: 100%;
+      min-height: 100vh;
+      margin: 0;
+      padding: 0.5in 0.6in;
+      box-shadow: none;
+      page-break-after: always;
+    }
+    .page:last-child { page-break-after: avoid; }
+    .print-btn { display: none !important; }
+  }
+
+  .print-btn {
+    display: block;
+    text-align: center;
+    margin: 0.2in auto 0.5in;
+    width: 8.5in;
+  }
+  .print-btn button {
+    font-family: 'Josefin Sans', sans-serif;
+    font-size: 9pt;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    background: var(--burgundy);
+    color: #f5eee6;
+    border: none;
+    padding: 0.1in 0.3in;
+    cursor: pointer;
+  }
+  .print-btn button:hover { background: var(--sienna); }
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════
+     PAGE 1 — MAIN DISH
+══════════════════════════════════════════ -->
+<div class="page">
+
+  <div class="header">
+    <div class="label">French-Italian · Weeknight</div>
+    <h1><em>Spicy</em> Heritage Chicken Ragù</h1>
+    <div class="subtitle">Soffritto · White Wine & Vermouth · Calabrian Heat · Wilted Greens</div>
+    <div class="meta-row">
+      <div class="meta-item"><div class="val">15 Min</div><div class="key">Prep</div></div>
+      <div class="meta-dot">·</div>
+      <div class="meta-item"><div class="val">35 Min</div><div class="key">Cook</div></div>
+      <div class="meta-dot">·</div>
+      <div class="meta-item"><div class="val">—</div><div class="key">Oven</div></div>
+      <div class="meta-dot">·</div>
+      <div class="meta-item"><div class="val">2–3</div><div class="key">Serves</div></div>
+    </div>
+  </div>
+
+  <div class="body-cols">
+
+    <!-- ── INGREDIENTS ── -->
+    <div>
+      <div class="section-title">Ingredients</div>
+
+      <ul class="ingredient-list">
+        <li><span class="qty">2 tbsp</span><span>olive oil, extra virgin</span></li>
+        <li><span class="qty">1 medium</span><span>yellow onion, fine dice</span></li>
+        <li><span class="qty">2 stalks</span><span>celery, fine dice</span></li>
+        <li><span class="qty">2 medium</span><span>carrots, fine dice</span></li>
+        <li><span class="qty">5 cloves</span><span>garlic, minced</span></li>
+      </ul>
+
+      <div class="divider-ornament">— Protein & Spice —</div>
+      <ul class="ingredient-list">
+        <li><span class="qty">1 lb</span><span>ground heritage chicken</span></li>
+        <li><span class="qty">1½ tsp</span><span>red pepper flakes</span></li>
+        <li><span class="qty">1 tsp</span><span>fennel seed</span></li>
+        <li><span class="qty">½ tsp</span><span>smoked paprika</span></li>
+        <li><span class="qty">1 tsp</span><span>kosher salt, divided</span></li>
+        <li><span class="qty">½ tsp</span><span>black pepper, fresh ground</span></li>
+      </ul>
+
+      <div class="divider-ornament">— Braise —</div>
+      <ul class="ingredient-list">
+        <li><span class="qty">¼ cup</span><span>dry white wine</span></li>
+        <li><span class="qty">¼ cup</span><span>dry vermouth</span></li>
+        <li><span class="qty">1 cup</span><span>chicken bouillon (1 cube + water)</span></li>
+        <li><span class="qty">3 sprigs</span><span>fresh thyme</span></li>
+        <li><span class="qty">1 sprig</span><span>fresh rosemary</span></li>
+        <li><span class="qty">3 leaves</span><span>fresh sage</span></li>
+      </ul>
+
+      <div class="divider-ornament">— Greens & Finish —</div>
+      <ul class="ingredient-list">
+        <li><span class="qty">1 medium</span><span>green zucchini, ½" half-moons</span></li>
+        <li><span class="qty">1 bunch</span><span>lacinato kale, stems removed, rough chop</span></li>
+        <li><span class="qty">3 cups</span><span>baby spinach</span></li>
+        <li><span class="qty">2 tbsp</span><span>unsalted butter</span></li>
+        <li><span class="qty">¼ cup</span><span>flat-leaf parsley, torn, to finish</span></li>
+      </ul>
+    </div>
+
+    <!-- ── METHOD ── -->
+    <div>
+      <div class="section-title">Method</div>
+      <ol class="steps-list">
+        <li>
+          <span class="step-num">1</span>
+          <div>
+            <div class="step-title">Build the Soffritto</div>
+            <div class="step-text">Heat olive oil in a wide Dutch oven over medium. Add onion, celery, and carrot with a pinch of salt. Cook 8–10 minutes, stirring occasionally, until completely soft and just beginning to caramelize at the edges. Do not rush — this is the flavor foundation.</div>
+          </div>
+        </li>
+        <li>
+          <span class="step-num">2</span>
+          <div>
+            <div class="step-title">Bloom Spice & Garlic</div>
+            <div class="step-text">Push soffritto to the edges. Add garlic, red pepper flakes, fennel seed, and smoked paprika to the center. Cook 60 seconds, stirring constantly, until intensely fragrant. Fold into the vegetables.</div>
+          </div>
+        </li>
+        <li>
+          <span class="step-num">3</span>
+          <div>
+            <div class="step-title">Sear the Chicken</div>
+            <div class="step-text">Add ground chicken in a single even layer. Let it sit undisturbed 2 minutes to develop color and build fond. Break into rough pieces and cook through, 3–4 minutes more. Season with remaining salt and black pepper.</div>
+          </div>
+        </li>
+        <li>
+          <span class="step-num">4</span>
+          <div>
+            <div class="step-title">Deglaze — Wine & Vermouth</div>
+            <div class="step-text">Pour in white wine and vermouth together. Scrape every bit of fond from the pan bottom. Let reduce by half, about 2 minutes, until the sharp alcohol edge softens into something round and fragrant.</div>
+          </div>
+        </li>
+        <li>
+          <span class="step-num">5</span>
+          <div>
+            <div class="step-title">Braise & Reduce</div>
+            <div class="step-text">Add bouillon, thyme, rosemary, and sage sprigs. Bring to a bare simmer and cook uncovered 12–15 minutes until liquid reduces to a loose, glossy sauce that coats the chicken. Discard herb sprigs.</div>
+          </div>
+        </li>
+        <li>
+          <span class="step-num">6</span>
+          <div>
+            <div class="step-title">Greens — Two Stages</div>
+            <div class="step-text">Add zucchini and kale, stir to coat, cover 3 minutes until kale is wilted and zucchini is barely tender. Uncover, add spinach, stir just until collapsed — about 60 seconds. Do not overcook.</div>
+          </div>
+        </li>
+        <li>
+          <span class="step-num">7</span>
+          <div>
+            <div class="step-title">Mount & Finish</div>
+            <div class="step-text">Pull from heat. Add butter and torn parsley, stirring until butter is fully melted and emulsified. Taste and adjust salt. The ragù should be spicy, herbal, and loose enough to pool slightly around the rice.</div>
+          </div>
+        </li>
+      </ol>
+    </div>
+
+  </div>
+
+  <div class="notes-banner">
+    <div class="nb-label">Chef's Note</div>
+    <div class="nb-text">Heritage chicken is leaner than commodity birds — crowd the pan in Step 3 and it will steam, not sear, and you will never build the fond. Use the widest pan you have and give it those two full minutes undisturbed. The fond is the entire ragù.</div>
+  </div>
+
+  <div class="footer">
+    <span>Spicy Heritage Chicken Ragù</span>
+    <span>Page 1 of 2</span>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════
+     PAGE 2 — SIDES, PLATING & NOTES
+══════════════════════════════════════════ -->
+<div class="page">
+
+  <div class="p2-header">
+    <div>
+      <div class="label">Sides & Plating</div>
+      <h2>Rice, Herb Oil & Service</h2>
+      <div class="subtitle" style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:11pt;color:var(--muted);margin-top:0.04in;">Jasmine already cooked · Steam to revive · Finish with parsley oil</div>
+    </div>
+    <div class="header-rule"></div>
+  </div>
+
+  <div class="sides-grid">
+
+    <div class="side-box">
+      <div class="section-title">Steamed Jasmine Rice — Reheat</div>
+      <ul class="ingredient-list">
+        <li><span class="qty">2–3 cups</span><span>cooked jasmine rice</span></li>
+        <li><span class="qty">3 tbsp</span><span>water</span></li>
+        <li><span class="qty">1 tbsp</span><span>unsalted butter (optional)</span></li>
+        <li><span class="qty">pinch</span><span>kosher salt</span></li>
+      </ul>
+      <ol class="steps-list" style="margin-top:0.1in;">
+        <li>
+          <span class="step-num">1</span>
+          <div>
+            <div class="step-title">Steam to Revive</div>
+            <div class="step-text">Add rice and water to a small saucepan. Cover tightly. Heat over low 4–5 minutes until steam lifts the grains apart. Do not stir or uncover early.</div>
+          </div>
+        </li>
+        <li>
+          <span class="step-num">2</span>
+          <div>
+            <div class="step-title">Fluff & Hold</div>
+            <div class="step-text">Remove from heat. Add butter and salt, fluff gently with a fork. Keep covered until plating — the carry-heat will keep it warm for 8–10 minutes.</div>
+          </div>
+        </li>
+      </ol>
+    </div>
+
+    <div class="side-box">
+      <div class="section-title">Parsley Herb Finishing Oil</div>
+      <ul class="ingredient-list">
+        <li><span class="qty">⅓ cup</span><span>flat-leaf parsley, very finely chopped</span></li>
+        <li><span class="qty">1 clove</span><span>garlic, grated on microplane</span></li>
+        <li><span class="qty">3 tbsp</span><span>olive oil, extra virgin</span></li>
+        <li><span class="qty">¼ tsp</span><span>red pepper flakes</span></li>
+        <li><span class="qty">pinch</span><span>flaky sea salt</span></li>
+      </ul>
+      <ol class="steps-list" style="margin-top:0.1in;">
+        <li>
+          <span class="step-num">1</span>
+          <div>
+            <div class="step-title">Combine & Rest</div>
+            <div class="step-text">Stir all ingredients in a small bowl. Let sit at least 5 minutes for the garlic to mellow and the herbs to bleed into the oil. Do not heat — this is a raw condiment.</div>
+          </div>
+        </li>
+        <li>
+          <span class="step-num">2</span>
+          <div>
+            <div class="step-title">Taste & Time</div>
+            <div class="step-text">Adjust salt. The oil should taste bright, grassy, with a back hum of heat. Spoon on at the very last moment — it wilts if it sits on hot ragù too long.</div>
+          </div>
+        </li>
+      </ol>
+    </div>
+
+  </div>
+
+  <div class="plating-box">
+    <div class="pb-title">To Plate</div>
+    <div class="pb-body">Pack rice firmly into a small bowl or ring mold and invert at the center of a wide, shallow bowl — <strong>the mound gives the ragù something to lean against.</strong> Spoon ragù generously around and partly over the base, letting the greens drape naturally over the rice. Finish with a slow, deliberate spoonful of herb oil across the top and a confident crack of black pepper. Serve immediately — this dish does not wait once plated.</div>
+  </div>
+
+  <div class="extras-row">
+    <div class="extra-box">
+      <div class="section-title">Make Ahead</div>
+      <div class="step-text" style="font-size:7.8pt;line-height:1.55;">Ragù keeps 3 days refrigerated. Cook through Step 5 (after the braise), cool, and store. When reheating over medium-low with a splash of water, add the zucchini and kale fresh — they only need those 3 minutes. Spinach should never be stored in the ragù; always wilt it in at the last moment or it turns grey and loses all texture.</div>
+    </div>
+    <div class="extra-box">
+      <div class="section-title">Wine Pairing</div>
+      <div class="step-text" style="font-size:7.8pt;line-height:1.55;">The spice and richness here want a wine with body and real tension. Reach for a Côtes du Rhône blanc, a Grüner Veltliner with some weight, or an Alsatian Pinot Gris. For red, a cool-climate Gamay — Beaujolais-Villages or Mâcon — has the freshness to cut through the fennel and butter. The dry vermouth you cooked with is also excellent served very cold alongside.</div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <span>Spicy Heritage Chicken Ragù</span>
+    <span>Page 2 of 2</span>
+  </div>
+</div>
+
+<div class="print-btn">
+  <button onclick="window.print()">⬡ &nbsp; Print Recipe &nbsp; ⬡</button>
+</div>
+
+</body>
+</html>

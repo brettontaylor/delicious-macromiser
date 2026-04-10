@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{RECIPE_TITLE}}</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Josefin+Sans:wght@300;400;600&display=swap" rel="stylesheet">
+<style>
+  /* ─────────────────────────────────────────
+     CSS VARIABLES — do not change these
+  ───────────────────────────────────────── */
+  :root {
+    --ink:      #1a1510;
+    --burgundy: #6b1f2a;
+    --sienna:   #8c4a2f;
+    --cream:    #f5f0e8;
+    --tan:      #d4c4a8;
+    --rule:     #b8a88a;
+    --muted:    #6b5f52;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #e8e0d4;
+    font-family: 'Libre Baskerville', Georgia, serif;
+    color: var(--ink);
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* ─── PAGE SHELL ─── */
+  .page {
+    width: 8.5in;
+    min-height: 11in;
+    margin: 0.4in auto;
+    background: var(--cream);
+    padding: 0.55in 0.65in;
+    position: relative;
+    box-shadow: 0 4px 40px rgba(0,0,0,0.18);
+  }
+  /* Double-border frame */
+  .page::before {
+    content: '';
+    position: absolute;
+    inset: 0.22in;
+    border: 1px solid var(--rule);
+    pointer-events: none;
+  }
+  .page::after {
+    content: '';
+    position: absolute;
+    inset: 0.28in;
+    border: 2.5px solid var(--burgundy);
+    pointer-events: none;
+  }
+
+  /* ─── PAGE 1 HEADER ─── */
+  .header {
+    text-align: center;
+    padding: 0 0.3in 0.18in;
+    border-bottom: 1px solid var(--rule);
+    margin-bottom: 0.22in;
+  }
+  .label {
+    font-family: 'Josefin Sans', sans-serif;
+    font-size: 8.5pt;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--sienna);
+    margin-bottom: 0.08in;
+  }
+  h1 {
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 300;
+    font-size: 34pt;
+    line-height: 1.1;
+    color: var(--burgundy);
+  }
+  h1 em { font-style: italic; font-weight: 300; }
+  .subtitle {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 11pt;
+    color: var(--muted);
+    margin-top: 0.06in;
+  }
+  .meta-row {
+    display: flex;
+    justify-content: center;
+    gap: 0.3in;
+    margin-top: 0.14in;
+  }
+  .meta-item { text-align: center; }
+  .meta-item .val {
+    font-family: 'Josefin Sans', sans-serif;
+    font-size: 10pt;
+    font-weight: 600;
+    color: var(--burgundy);
+    letter-spacing: 0.05em;
+  }
+  .meta-item .key {
+    font-family: 'Josefin Sans', sans-serif;
+    font-size: 7pt;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .meta-dot { color: var(--rule); font-size: 14pt; line-height: 2; }
+
+  /* ─── TWO-COLUMN BODY ─── */
+  .body-cols {
+    display: grid;
+    grid-template-columns: 2.2in 1fr;
+    gap: 0.28in;
+  }
+
+  /* ─── SECTION TITLE ─── */
+  .section-title {
+    font-family: 'Josefin Sans', sans-serif;
+    font-size: 7.5pt;
+    font-weight: 600;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--sienna);
+    border-bottom: 1px solid var(--rule);
+    padding-bottom: 0.04in;
+    margin-bottom: 0.1in;
+  }
+
+  /* ─── INGREDIENT LIST ─── */
+  .ingredient-list { list-style: none; }
+  .ingredient-list li {
+    display: flex;
+    gap: 0.08in;
+    padding: 3px 0;
+    border-bottom: 1px dotted var(--tan);
+    font-size: 8pt;
+    line-height: 1.4;
+  }
+  .ingredient-list li:last-child { border-bottom: none; }
+  .qty {
+    font-family: 'Josefin Sans', sans-serif;
+    font-size: 7.5pt;
+    font-weight: 600;
+    color: var(--burgundy);
+    min-width: 0.55in;
+    flex-shrink: 0;
+  }
+
+  /* ─── INGREDIENT GROUP DIVIDER ─── */
+  .divider-ornament {
+    text-align: center;
+    color: var(--rule);
+    font-size: 11pt;
+    margin: 0.1in 0 0.07in;
+    letter-spacing: 0.15em;
+  }
+
+  /* ─── STEP LIST ─── */
+  .steps-list { list-style: none; }
+  .steps-list li {
+    display: flex;
+    gap: 0.1in;
+    margin-bottom: 0.1in;
+  }
+  .step-num {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 17pt;
+    font-weight: 600;
+    color: var(--tan);
+    line-height: 1;
+    min-width: 0.22in;
+    flex-shrink: 0;
+    margin-top: -2px;
+  }
+  .step-title {
+    font-family: 'Josefin Sans', sans-serif;
+    font-size: 7.5pt;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink);
+    margin-bottom: 1px;
+  }
+  .step-text {
+    font-size: 7.8pt;
+    line-height: 1.5;
+    color: #3a2f26;
+  }
+
+  /* ─── CHEF'S NOTE BANNER ─── */
+  .notes-banner {
+    background: var(--burgundy);
+    color: #f5eee6;
+    padding: 0.1in 0.18in;
+    margin-top: 0.18in;
+    display: flex;
+    gap: 0.25in;
+    align-items: flex-start;
+  }
+  .nb-label {
+    font-family: 'Josefin Sans', sans-serif;
+    font-size: 7pt;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    opacity: 0.75;
+    margin-top: 1px;
+    flex-shrink: 0;
+  }
+  .nb-text {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 9pt;
+    line-height: 1.5;
+  }
+
+  /* ─── PAGE 2 HEADER ─── */
+  .p2-header {
+    display: flex;
+    align-items: center;
+    gap: 0.2in;
+    padding-bottom: 0.15in;
+    border-bottom: 1px solid var(--rule);
+    margin-bottom: 0.2in;
+  }
+  .p2-header h2 {
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 300;
+    font-size: 26pt;
+    color: var(--burgundy);
+    line-height: 1.1;
+  }
+  .header-rule { flex: 1; height: 1px; background: var(--rule); }
+
+  /* ─── SIDES GRID ─── */
+  .sides-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.25in;
+  }
+  .side-box {
+    border-top: 2px solid var(--burgundy);
+    padding-top: 0.1in;
+  }
+
+  /* ─── PLATING BOX ─── */
+  .plating-box {
+    border: 1px solid var(--rule);
+    padding: 0.12in 0.15in;
+    margin-top: 0.2in;
+  }
+  .plating-box .pb-title {
+    font-family: 'Josefin Sans', sans-serif;
+    font-size: 7pt;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--sienna);
+    margin-bottom: 0.06in;
+  }
+  .plating-box .pb-body {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 9.5pt;
+    line-height: 1.6;
+  }
+  .plating-box .pb-body strong { color: var(--burgundy); }
+
+  /* ─── EXTRAS ROW ─── */
+  .extras-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.2in;
+    margin-top: 0.2in;
+  }
+  .extra-box {
+    border-top: 2px solid var(--burgundy);
+    padding-top: 0.1in;
+  }
+
+  /* ─── PAGE FOOTER ─── */
+  .footer {
+    position: absolute;
+    bottom: 0.45in;
+    left: 0.65in;
+    right: 0.65in;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 1px solid var(--rule);
+    padding-top: 0.07in;
+  }
+  .footer span {
+    font-family: 'Josefin Sans', sans-serif;
+    font-size: 7pt;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--rule);
+  }
+
+  /* ─── PRINT ─── */
+  @media print {
+    @page { size: letter; margin: 0; }
+    body { background: none; }
+    .page {
+      width: 100%;
+      min-height: 100vh;
+      margin: 0;
+      padding: 0.5in 0.6in;
+      box-shadow: none;
+      page-break-after: always;
+    }
+    .page:last-child { page-break-after: avoid; }
+    .print-btn { display: none !important; }
+  }
+
+  /* ─── PRINT BUTTON (screen only) ─── */
+  .print-btn {
+    display: block;
+    text-align: center;
+    margin: 0.2in auto 0.5in;
+    width: 8.5in;
+  }
+  .print-btn button {
+    font-family: 'Josefin Sans', sans-serif;
+    font-size: 9pt;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    background: var(--burgundy);
+    color: #f5eee6;
+    border: none;
+    padding: 0.1in 0.3in;
+    cursor: pointer;
+  }
+  .print-btn button:hover { background: var(--sienna); }
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════
+     PAGE 1 — MAIN DISH
+     Replace all {{PLACEHOLDERS}} with recipe content
+     See RECIPE_FORMAT.md for full spec
+════════════════════════════════════════════════ -->
+<div class="page">
+
+  <div class="header">
+    <div class="label">{{CUISINE_TYPE}}</div>
+    <h1><em>{{TITLE_ITALIC_PART}}</em> {{TITLE_REMAINDER}}</h1>
+    <div class="subtitle">{{SUBTITLE_DESCRIPTORS}}</div>
+    <div class="meta-row">
+      <div class="meta-item"><div class="val">{{PREP_TIME}}</div><div class="key">Prep</div></div>
+      <div class="meta-dot">·</div>
+      <div class="meta-item"><div class="val">{{COOK_TIME}}</div><div class="key">{{COOK_LABEL}}</div></div>
+      <div class="meta-dot">·</div>
+      <div class="meta-item"><div class="val">{{TEMP}}</div><div class="key">Oven</div></div>
+      <div class="meta-dot">·</div>
+      <div class="meta-item"><div class="val">{{SERVES}}</div><div class="key">Serves</div></div>
+    </div>
+  </div>
+
+  <div class="body-cols">
+
+    <!-- ── INGREDIENTS (left column) ── -->
+    <div>
+      <div class="section-title">Ingredients</div>
+      <ul class="ingredient-list">
+        <!-- <li><span class="qty">X unit</span><span>Ingredient name</span></li> -->
+      </ul>
+
+      <!-- Optional: ingredient group divider -->
+      <!-- <div class="divider-ornament">— Group Label —</div> -->
+      <!-- <ul class="ingredient-list"> ... </ul> -->
+    </div>
+
+    <!-- ── METHOD (right column) ── -->
+    <div>
+      <div class="section-title">Method</div>
+      <ol class="steps-list">
+        <!--
+        <li>
+          <span class="step-num">1</span>
+          <div>
+            <div class="step-title">Step Title</div>
+            <div class="step-text">Step instructions here.</div>
+          </div>
+        </li>
+        -->
+      </ol>
+    </div>
+
+  </div>
+
+  <!-- ── CHEF'S NOTE BANNER ── -->
+  <div class="notes-banner">
+    <div class="nb-label">Chef's Note</div>
+    <div class="nb-text">{{CHEFS_NOTE}}</div>
+  </div>
+
+  <div class="footer">
+    <span>{{FOOTER_DISH_NAME}}</span>
+    <span>Page 1 of 2</span>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════════
+     PAGE 2 — SIDES, PLATING & NOTES
+════════════════════════════════════════════════ -->
+<div class="page">
+
+  <div class="p2-header">
+    <div>
+      <div class="label">{{P2_LABEL}}</div>
+      <h2>{{P2_TITLE}}</h2>
+      <div class="subtitle" style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:11pt;color:var(--muted);margin-top:0.04in;">{{P2_SUBTITLE}}</div>
+    </div>
+    <div class="header-rule"></div>
+  </div>
+
+  <!-- ── SIDES (2-column grid) ── -->
+  <div class="sides-grid">
+    <div class="side-box">
+      <div class="section-title">{{SIDE_1_TITLE}}</div>
+      <ul class="ingredient-list">
+        <!-- side 1 ingredients -->
+      </ul>
+      <ol class="steps-list" style="margin-top:0.1in;">
+        <!-- side 1 steps -->
+      </ol>
+    </div>
+    <div class="side-box">
+      <div class="section-title">{{SIDE_2_TITLE}}</div>
+      <ul class="ingredient-list">
+        <!-- side 2 ingredients -->
+      </ul>
+      <ol class="steps-list" style="margin-top:0.1in;">
+        <!-- side 2 steps -->
+      </ol>
+    </div>
+  </div>
+
+  <!-- ── PLATING INSTRUCTIONS ── -->
+  <div class="plating-box">
+    <div class="pb-title">To Plate</div>
+    <div class="pb-body">{{PLATING_INSTRUCTIONS}}</div>
+  </div>
+
+  <!-- ── EXTRAS ROW ── -->
+  <div class="extras-row">
+    <div class="extra-box">
+      <div class="section-title">Make Ahead</div>
+      <div class="step-text" style="font-size:7.8pt;line-height:1.55;">{{MAKE_AHEAD_NOTE}}</div>
+    </div>
+    <div class="extra-box">
+      <div class="section-title">{{EXTRA_NOTE_TITLE}}</div>
+      <div class="step-text" style="font-size:7.8pt;line-height:1.55;">{{EXTRA_NOTE_BODY}}</div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <span>{{P2_FOOTER_LABEL}}</span>
+    <span>Page 2 of 2</span>
+  </div>
+</div>
+
+<div class="print-btn">
+  <button onclick="window.print()">⬡ &nbsp; Print Recipe &nbsp; ⬡</button>
+</div>
+
+</body>
+</html>

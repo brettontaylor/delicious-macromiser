@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Red Wine Braised Pork Shoulder</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Josefin+Sans:wght@300;400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #1a1510;
+    --burgundy: #6b1f2a;
+    --sienna: #8c4a2f;
+    --cream: #f5f0e8;
+    --tan: #d4c4a8;
+    --rule: #b8a88a;
+    --muted: #6b5f52;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #e8e0d4;
+    font-family: 'Libre Baskerville', Georgia, serif;
+    color: var(--ink);
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .page {
+    width: 8.5in;
+    min-height: 11in;
+    margin: 0.4in auto;
+    background: var(--cream);
+    padding: 0.55in 0.65in;
+    position: relative;
+    box-shadow: 0 4px 40px rgba(0,0,0,0.18);
+  }
+
+  /* ── BORDER FRAME ── */
+  .page::before {
+    content: '';
+    position: absolute;
+    inset: 0.22in;
+    border: 1px solid var(--rule);
+    pointer-events: none;
+  }
+  .page::after {
+    content: '';
+    position: absolute;
+    inset: 0.28in;
+    border: 2.5px solid var(--burgundy);
+    pointer-events: none;
+  }
+
+  /* ── PAGE 1 HEADER ── */
+  .header {
+    text-align: center;
+    padding: 0 0.3in 0.18in;
+    border-bottom: 1px solid var(--rule);
+    margin-bottom: 0.22in;
+  }
+  .label {
+    font-family: 'Josefin Sans', sans-serif;
+    font-size: 8.5pt;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--sienna);
+    margin-bottom: 0.08in;
+  }
+  h1 {
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 300;
+    font-size: 34pt;
+    line-height: 1.1;
+    color: var(--burgundy);
+    letter-spacing: -0.01em;
+  }
+  h1 em {
+    font-style: italic;
+    font-weight: 300;
+  }
+  .subtitle {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 11pt;
+    color: var(--muted);
+    margin-top: 0.06in;
+  }
+  .meta-row {
+    display: flex;
+    justify-content: center;
+    gap: 0.3in;
+    margin-top: 0.14in;
+  }
+  .meta-item {
+    text-align: center;
+  }
+  .meta-item .val {
+    font-family: 'Josefin Sans', sans-serif;
+    font-size: 10pt;
+    font-weight: 600;
+    color: var(--burgundy);
+    letter-spacing: 0.05em;
+  }
+  .meta-item .key {
+    font-family: 'Josefin Sans', sans-serif;
+    font-size: 7pt;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .meta-dot { color: var(--rule); font-size: 14pt; line-height: 2; }
+
+  /* ── TWO-COLUMN BODY ── */
+  .body-cols {
+    display: grid;
+    grid-template-columns: 2.2in 1fr;
+    gap: 0.28in;
+  }
+
+  /* ── SECTION TITLES ── */
+  .section-title {
+    font-family: 'Josefin Sans', sans-serif;
+    font-size: 7.5pt;
+    font-weight: 600;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--sienna);
+    border-bottom: 1px solid var(--rule);
+    padding-bottom: 0.04in;
+    margin-bottom: 0.1in;
+  }
+
+  /* ── INGREDIENTS ── */
+  .ingredients-col {}
+  .ingredient-list { list-style: none; }
+  .ingredient-list li {
+    display: flex;
+    gap: 0.08in;
+    padding: 3px 0;
+    border-bottom: 1px dotted #d4c4a8;
+    font-size: 8pt;
+    line-height: 1.4;
+  }
+  .ingredient-list li:last-child { border-bottom: none; }
+  .qty {
+    font-family: 'Josefin Sans', sans-serif;
+    font-size: 7.5pt;
+    font-weight: 600;
+    color: var(--burgundy);
+    min-width: 0.55in;
+    flex-shrink: 0;
+  }
+  .ingr-name { color: var(--ink); }
+
+  .divider-ornament {
+    text-align: center;
+    color: var(--rule);
+    font-size: 11pt;
+    margin: 0.1in 0 0.07in;
+    letter-spacing: 0.15em;
+  }
+
+  /* ── STEPS ── */
+  .steps-col {}
+  .steps-list { list-style: none; }
+  .steps-list li {
+    display: flex;
+    gap: 0.1in;
+    margin-bottom: 0.1in;
+  }
+  .step-num {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 17pt;
+    font-weight: 600;
+    color: var(--tan);
+    line-height: 1;
+    min-width: 0.22in;
+    flex-shrink: 0;
+    margin-top: -2px;
+  }
+  .step-content {}
+  .step-title {
+    font-family: 'Josefin Sans', sans-serif;
+    font-size: 7.5pt;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink);
+    margin-bottom: 1px;
+  }
+  .step-text {
+    font-size: 7.8pt;
+    line-height: 1.5;
+    color: #3a2f26;
+  }
+
+  /* ── NOTES BANNER ── */
+  .notes-banner {
+    background: var(--burgundy);
+    color: #f5eee6;
+    padding: 0.1in 0.18in;
+    margin-top: 0.18in;
+    display: flex;
+    gap: 0.25in;
+    align-items: flex-start;
+  }
+  .notes-banner .nb-label {
+    font-family: 'Josefin Sans', sans-serif;
+    font-size: 7pt;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    opacity: 0.75;
+    margin-top: 1px;
+    flex-shrink: 0;
+  }
+  .notes-banner .nb-text {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 9pt;
+    line-height: 1.5;
+  }
+
+  /* ════════ PAGE 2 ════════ */
+  .page2 {}
+  .page2 .header {
+    display: flex;
+    align-items: center;
+    gap: 0.2in;
+    padding-bottom: 0.15in;
+  }
+  .page2 .header-left h2 {
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 300;
+    font-size: 26pt;
+    color: var(--burgundy);
+    line-height: 1.1;
+  }
+  .page2 .header-left .label { margin-bottom: 0.05in; }
+  .page2 .header-left .subtitle { margin-top: 0.04in; }
+  .page2 .header-rule {
+    flex: 1;
+    height: 1px;
+    background: var(--rule);
+  }
+
+  .polenta-grid {
+    display: grid;
+    grid-template-columns: 2.2in 1fr;
+    gap: 0.28in;
+    margin-top: 0.18in;
+  }
+
+  /* ── PAIRING NOTE ── */
+  .pairing-note {
+    background: transparent;
+    border: 1px solid var(--rule);
+    padding: 0.12in 0.15in;
+    margin-top: 0.22in;
+  }
+  .pairing-note .pn-title {
+    font-family: 'Josefin Sans', sans-serif;
+    font-size: 7pt;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--sienna);
+    margin-bottom: 0.06in;
+  }
+  .pairing-note .pn-body {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 9.5pt;
+    line-height: 1.6;
+    color: var(--ink);
+  }
+  .pairing-note .pn-body strong {
+    font-weight: 700;
+    color: var(--burgundy);
+  }
+
+  /* ── GREMOLATA ── */
+  .extras-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.2in;
+    margin-top: 0.2in;
+  }
+  .extra-box {
+    border-top: 2px solid var(--burgundy);
+    padding-top: 0.1in;
+  }
+
+  /* ── FOOTER ── */
+  .footer {
+    position: absolute;
+    bottom: 0.45in;
+    left: 0.65in;
+    right: 0.65in;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 1px solid var(--rule);
+    padding-top: 0.07in;
+  }
+  .footer span {
+    font-family: 'Josefin Sans', sans-serif;
+    font-size: 7pt;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--rule);
+  }
+
+  /* ════════ PRINT STYLES ════════ */
+  @media print {
+    @page {
+      size: letter;
+      margin: 0;
+    }
+    body { background: none; }
+    .page {
+      width: 100%;
+      min-height: 100vh;
+      margin: 0;
+      padding: 0.5in 0.6in;
+      box-shadow: none;
+      page-break-after: always;
+    }
+    .page:last-child { page-break-after: avoid; }
+    .print-btn { display: none !important; }
+  }
+
+  /* ── PRINT BUTTON (screen only) ── */
+  .print-btn {
+    display: block;
+    text-align: center;
+    margin: 0.2in auto 0.5in;
+    width: 8.5in;
+  }
+  .print-btn button {
+    font-family: 'Josefin Sans', sans-serif;
+    font-size: 9pt;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    background: var(--burgundy);
+    color: #f5eee6;
+    border: none;
+    padding: 0.1in 0.3in;
+    cursor: pointer;
+  }
+  .print-btn button:hover { background: var(--sienna); }
+</style>
+</head>
+<body>
+
+<!-- ══════════════ PAGE 1 — PORK ══════════════ -->
+<div class="page">
+
+  <div class="header">
+    <div class="label">Braise</div>
+    <h1><em>Red Wine</em> Braised<br>Pork Shoulder</h1>
+    <div class="subtitle">Soffritto · San Marzano · Fresh Herbs · Finished with Butter</div>
+    <div class="meta-row">
+      <div class="meta-item"><div class="val">45 min</div><div class="key">Prep</div></div>
+      <div class="meta-dot">·</div>
+      <div class="meta-item"><div class="val">4 hrs</div><div class="key">Braise</div></div>
+      <div class="meta-dot">·</div>
+      <div class="meta-item"><div class="val">325°F</div><div class="key">Oven</div></div>
+      <div class="meta-dot">·</div>
+      <div class="meta-item"><div class="val">8</div><div class="key">Serves</div></div>
+    </div>
+  </div>
+
+  <div class="body-cols">
+
+    <!-- LEFT: INGREDIENTS -->
+    <div class="ingredients-col">
+      <div class="section-title">Ingredients</div>
+      <ul class="ingredient-list">
+        <li><span class="qty">5.5 lb</span><span class="ingr-name">Pork shoulder (Boston butt)</span></li>
+        <li><span class="qty">2 tbsp</span><span class="ingr-name">Kosher salt</span></li>
+        <li><span class="qty">1½ tsp</span><span class="ingr-name">Black pepper, cracked</span></li>
+        <li><span class="qty">3 tbsp</span><span class="ingr-name">Olive oil</span></li>
+        <li><span class="qty">2</span><span class="ingr-name">Yellow onions, roughly chopped</span></li>
+        <li><span class="qty">3</span><span class="ingr-name">Carrots, roughly chopped</span></li>
+        <li><span class="qty">3</span><span class="ingr-name">Celery stalks, roughly chopped</span></li>
+        <li><span class="qty">8 cloves</span><span class="ingr-name">Garlic, smashed</span></li>
+        <li><span class="qty">3 tbsp</span><span class="ingr-name">Tomato paste</span></li>
+        <li><span class="qty">1 tsp</span><span class="ingr-name">Smoked paprika</span></li>
+        <li><span class="qty">½ tsp</span><span class="ingr-name">Red pepper flakes</span></li>
+        <li><span class="qty">2 cups</span><span class="ingr-name">Dry red wine (Malbec / Rhône)</span></li>
+        <li><span class="qty">2 cups</span><span class="ingr-name">Chicken or pork stock, low-sodium</span></li>
+        <li><span class="qty">14 oz</span><span class="ingr-name">Canned San Marzano tomatoes, crushed</span></li>
+        <li><span class="qty">3 sprigs</span><span class="ingr-name">Fresh rosemary</span></li>
+        <li><span class="qty">5 sprigs</span><span class="ingr-name">Fresh thyme</span></li>
+        <li><span class="qty">3</span><span class="ingr-name">Bay leaves</span></li>
+      </ul>
+      <div class="divider-ornament">— To Finish —</div>
+      <ul class="ingredient-list">
+        <li><span class="qty">1 tbsp</span><span class="ingr-name">Balsamic vinegar</span></li>
+        <li><span class="qty">2 tbsp</span><span class="ingr-name">Cold unsalted butter</span></li>
+      </ul>
+    </div>
+
+    <!-- RIGHT: STEPS -->
+    <div class="steps-col">
+      <div class="section-title">Method</div>
+      <ol class="steps-list">
+        <li>
+          <span class="step-num">1</span>
+          <div class="step-content">
+            <div class="step-title">Season &amp; Rest</div>
+            <div class="step-text">Pat pork completely dry. Season all sides with 2 tbsp salt and 1½ tsp pepper. Rest at room temperature 45 min (or overnight uncovered in fridge).</div>
+          </div>
+        </li>
+        <li>
+          <span class="step-num">2</span>
+          <div class="step-content">
+            <div class="step-title">Preheat &amp; Sear</div>
+            <div class="step-text">Preheat oven to 325°F, rack in lower third. Heat 3 tbsp olive oil in a 7–8 qt Dutch oven over medium-high until smoking. Sear pork on all sides until deep mahogany, 4–5 min per side. Remove and set aside.</div>
+          </div>
+        </li>
+        <li>
+          <span class="step-num">3</span>
+          <div class="step-content">
+            <div class="step-title">Soffritto</div>
+            <div class="step-text">Reduce to medium. Add onions, carrots, and celery. Cook 8–10 min until softened. Add garlic, cook 2 more minutes.</div>
+          </div>
+        </li>
+        <li>
+          <span class="step-num">4</span>
+          <div class="step-content">
+            <div class="step-title">Build the Base</div>
+            <div class="step-text">Push veg to edges. Add 3 tbsp tomato paste to the center; cook stirring 2–3 min until it darkens. Add smoked paprika and pepper flakes. Stir everything together.</div>
+          </div>
+        </li>
+        <li>
+          <span class="step-num">5</span>
+          <div class="step-content">
+            <div class="step-title">Deglaze</div>
+            <div class="step-text">Pour in 2 cups wine. Scrape up all browned bits. Simmer and reduce by one-third, about 6 min.</div>
+          </div>
+        </li>
+        <li>
+          <span class="step-num">6</span>
+          <div class="step-content">
+            <div class="step-title">Braise</div>
+            <div class="step-text">Add 2 cups stock and 14 oz crushed tomatoes. Nestle in rosemary, thyme, and bay leaves. Return pork fat-cap UP. Liquid should reach halfway up the pork. Cover and braise 3.5–4 hrs, flipping once at the halfway point.</div>
+          </div>
+        </li>
+        <li>
+          <span class="step-num">7</span>
+          <div class="step-content">
+            <div class="step-title">Rest &amp; Finish Sauce</div>
+            <div class="step-text">Remove pork; tent with foil 20–30 min. Discard herb sprigs and bay leaves. Skim fat, then reduce sauce on stovetop 10–15 min. Off heat, stir in 1 tbsp balsamic and 2 tbsp cold butter. Shred pork and return to pot.</div>
+          </div>
+        </li>
+      </ol>
+    </div>
+
+  </div>
+
+  <div class="notes-banner">
+    <div class="nb-label">Chef's Note</div>
+    <div class="nb-text">Use a wine you'd drink — never cooking wine. Malbec, Côtes du Rhône, or Nero d'Avola are ideal. This braise is markedly better the next day: refrigerate overnight, lift off the solidified fat cap, and reheat gently.</div>
+  </div>
+
+  <div class="footer">
+    <span>Red Wine Braised Pork Shoulder</span>
+    <span>Page 1 of 2</span>
+  </div>
+</div>
+
+
+<!-- ══════════════ PAGE 2 — POLENTA ══════════════ -->
+<div class="page page2">
+
+  <div class="header">
+    <div class="header-left">
+      <div class="label">Classic Accompaniment</div>
+      <h2>Creamy Parmesan Polenta</h2>
+      <div class="subtitle">The natural pairing — rich, yielding, built to catch the sauce</div>
+    </div>
+    <div class="header-rule"></div>
+  </div>
+
+  <div class="polenta-grid">
+
+    <!-- LEFT: INGREDIENTS -->
+    <div class="ingredients-col">
+      <div class="section-title">Ingredients — Serves 8</div>
+      <ul class="ingredient-list">
+        <li><span class="qty">4 cups</span><span class="ingr-name">Whole milk</span></li>
+        <li><span class="qty">4 cups</span><span class="ingr-name">Water or light chicken stock</span></li>
+        <li><span class="qty">2 tsp</span><span class="ingr-name">Kosher salt</span></li>
+        <li><span class="qty">1½ cups</span><span class="ingr-name">Coarse-ground polenta (not instant)</span></li>
+        <li><span class="qty">4 tbsp</span><span class="ingr-name">Unsalted butter, cold-cubed</span></li>
+        <li><span class="qty">2 oz</span><span class="ingr-name">Mascarpone (optional, for extra richness)</span></li>
+        <li><span class="qty">3 oz</span><span class="ingr-name">Parmigiano-Reggiano, finely grated</span></li>
+        <li><span class="qty">½ tsp</span><span class="ingr-name">White pepper</span></li>
+      </ul>
+
+      <div class="divider-ornament">— Gremolata Garnish —</div>
+      <ul class="ingredient-list">
+        <li><span class="qty">1 bunch</span><span class="ingr-name">Flat-leaf parsley, finely chopped</span></li>
+        <li><span class="qty">2 cloves</span><span class="ingr-name">Garlic, microplaned</span></li>
+        <li><span class="qty">1</span><span class="ingr-name">Lemon, zested</span></li>
+        <li><span class="qty">Pinch</span><span class="ingr-name">Flaky sea salt (Maldon)</span></li>
+      </ul>
+    </div>
+
+    <!-- RIGHT: METHOD -->
+    <div class="steps-col">
+      <div class="section-title">Method</div>
+      <ol class="steps-list">
+        <li>
+          <span class="step-num">1</span>
+          <div class="step-content">
+            <div class="step-title">Heat the Liquid</div>
+            <div class="step-text">Combine 4 cups whole milk, 4 cups water (or stock), and 2 tsp salt in a heavy-bottomed saucepan. Bring to a gentle boil over medium heat, stirring occasionally to prevent scorching.</div>
+          </div>
+        </li>
+        <li>
+          <span class="step-num">2</span>
+          <div class="step-content">
+            <div class="step-title">Whisk in the Polenta</div>
+            <div class="step-text">Reduce heat to medium-low. Slowly pour in 1½ cups polenta in a thin, steady stream while whisking constantly to prevent lumps. Switch to a wooden spoon once incorporated.</div>
+          </div>
+        </li>
+        <li>
+          <span class="step-num">3</span>
+          <div class="step-content">
+            <div class="step-title">Cook Low &amp; Slow</div>
+            <div class="step-text">Cook on the lowest heat, stirring every 2–3 minutes, for 35–45 minutes. The polenta is ready when it pulls cleanly away from the sides of the pan and a spoon dragged through holds its line. Add a splash of milk or stock if it tightens too much.</div>
+          </div>
+        </li>
+        <li>
+          <span class="step-num">4</span>
+          <div class="step-content">
+            <div class="step-title">Finish &amp; Season</div>
+            <div class="step-text">Off heat, stir in 4 tbsp cold butter, 2 oz mascarpone (if using), and 3 oz grated Parmigiano. Season with ½ tsp white pepper. Taste and adjust salt. The texture should be pourable but not thin — it will set slightly on the plate.</div>
+          </div>
+        </li>
+        <li>
+          <span class="step-num">5</span>
+          <div class="step-content">
+            <div class="step-title">Make Gremolata</div>
+            <div class="step-text">Combine finely chopped parsley, microplaned garlic, and lemon zest. Mix well. Scatter over the finished plate just before serving — this bright, raw garnish cuts through the richness of both the pork and polenta beautifully.</div>
+          </div>
+        </li>
+      </ol>
+    </div>
+  </div>
+
+  <!-- PLATING NOTE -->
+  <div class="pairing-note">
+    <div class="pn-title">To Plate</div>
+    <div class="pn-body">Spoon a generous mound of polenta into a wide, shallow bowl. Nestle two or three large pieces of braised pork on top. Ladle <strong>plenty of sauce</strong> over everything — don't be shy, the sauce is the star. Finish with a pinch of gremolata and a crack of black pepper. Serve immediately; polenta waits for no one.</div>
+  </div>
+
+  <!-- EXTRAS -->
+  <div class="extras-row">
+    <div class="extra-box">
+      <div class="section-title">Make Ahead</div>
+      <div class="step-text" style="font-size:7.8pt; line-height:1.55;">Braise the pork a full day ahead — flavor improves overnight. Polenta is best made fresh, but can be reheated with a splash of milk over low heat, stirring vigorously.</div>
+    </div>
+    <div class="extra-box">
+      <div class="section-title">Wine at the Table</div>
+      <div class="step-text" style="font-size:7.8pt; line-height:1.55;">Mirror what's in the braise: Malbec, a Rhône Grenache blend, or a southern Italian red (Nero d'Avola, Primitivo). Avoid heavy tannic Cabernets — the dish needs fruit-forward, not grip.</div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <span>Creamy Parmesan Polenta</span>
+    <span>Page 2 of 2</span>
+  </div>
+</div>
+
+<div class="print-btn">
+  <button onclick="window.print()">⬡ &nbsp; Print Recipe &nbsp; ⬡</button>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sirloin Tagliata</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Josefin+Sans:wght@300;400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink:      #1a1510;
+    --burgundy: #6b1f2a;
+    --sienna:   #8c4a2f;
+    --cream:    #f5f0e8;
+    --tan:      #d4c4a8;
+    --rule:     #b8a88a;
+    --muted:    #6b5f52;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #e8e0d4;
+    font-family: 'Libre Baskerville', Georgia, serif;
+    color: var(--ink);
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .page {
+    width: 8.5in;
+    min-height: 11in;
+    margin: 0.4in auto;
+    background: var(--cream);
+    padding: 0.55in 0.65in;
+    position: relative;
+    box-shadow: 0 4px 40px rgba(0,0,0,0.18);
+  }
+  .page::before {
+    content: '';
+    position: absolute;
+    inset: 0.22in;
+    border: 1px solid var(--rule);
+    pointer-events: none;
+  }
+  .page::after {
+    content: '';
+    position: absolute;
+    inset: 0.28in;
+    border: 2.5px solid var(--burgundy);
+    pointer-events: none;
+  }
+
+  .header {
+    text-align: center;
+    padding: 0 0.3in 0.18in;
+    border-bottom: 1px solid var(--rule);
+    margin-bottom: 0.22in;
+  }
+  .label {
+    font-family: 'Josefin Sans', sans-serif;
+    font-size: 8.5pt;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--sienna);
+    margin-bottom: 0.08in;
+  }
+  h1 {
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 300;
+    font-size: 34pt;
+    line-height: 1.1;
+    color: var(--burgundy);
+  }
+  h1 em { font-style: italic; font-weight: 300; }
+  .subtitle {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 11pt;
+    color: var(--muted);
+    margin-top: 0.06in;
+  }
+  .meta-row {
+    display: flex;
+    justify-content: center;
+    gap: 0.3in;
+    margin-top: 0.14in;
+  }
+  .meta-item { text-align: center; }
+  .meta-item .val {
+    font-family: 'Josefin Sans', sans-serif;
+    font-size: 10pt;
+    font-weight: 600;
+    color: var(--burgundy);
+    letter-spacing: 0.05em;
+  }
+  .meta-item .key {
+    font-family: 'Josefin Sans', sans-serif;
+    font-size: 7pt;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .meta-dot { color: var(--rule); font-size: 14pt; line-height: 2; }
+
+  .body-cols {
+    display: grid;
+    grid-template-columns: 2.2in 1fr;
+    gap: 0.28in;
+  }
+
+  .section-title {
+    font-family: 'Josefin Sans', sans-serif;
+    font-size: 7.5pt;
+    font-weight: 600;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--sienna);
+    border-bottom: 1px solid var(--rule);
+    padding-bottom: 0.04in;
+    margin-bottom: 0.1in;
+  }
+
+  .ingredient-list { list-style: none; }
+  .ingredient-list li {
+    display: flex;
+    gap: 0.08in;
+    padding: 3px 0;
+    border-bottom: 1px dotted var(--tan);
+    font-size: 8pt;
+    line-height: 1.4;
+  }
+  .ingredient-list li:last-child { border-bottom: none; }
+  .qty {
+    font-family: 'Josefin Sans', sans-serif;
+    font-size: 7.5pt;
+    font-weight: 600;
+    color: var(--burgundy);
+    min-width: 0.55in;
+    flex-shrink: 0;
+  }
+
+  .divider-ornament {
+    text-align: center;
+    color: var(--rule);
+    font-size: 11pt;
+    margin: 0.1in 0 0.07in;
+    letter-spacing: 0.15em;
+  }
+
+  .steps-list { list-style: none; }
+  .steps-list li {
+    display: flex;
+    gap: 0.1in;
+    margin-bottom: 0.1in;
+  }
+  .step-num {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 17pt;
+    font-weight: 600;
+    color: var(--tan);
+    line-height: 1;
+    min-width: 0.22in;
+    flex-shrink: 0;
+    margin-top: -2px;
+  }
+  .step-title {
+    font-family: 'Josefin Sans', sans-serif;
+    font-size: 7.5pt;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink);
+    margin-bottom: 1px;
+  }
+  .step-text {
+    font-size: 7.8pt;
+    line-height: 1.5;
+    color: #3a2f26;
+  }
+
+  .notes-banner {
+    background: var(--burgundy);
+    color: #f5eee6;
+    padding: 0.1in 0.18in;
+    margin-top: 0.18in;
+    display: flex;
+    gap: 0.25in;
+    align-items: flex-start;
+  }
+  .nb-label {
+    font-family: 'Josefin Sans', sans-serif;
+    font-size: 7pt;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    opacity: 0.75;
+    margin-top: 1px;
+    flex-shrink: 0;
+  }
+  .nb-text {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 9pt;
+    line-height: 1.5;
+  }
+
+  .p2-header {
+    display: flex;
+    align-items: center;
+    gap: 0.2in;
+    padding-bottom: 0.15in;
+    border-bottom: 1px solid var(--rule);
+    margin-bottom: 0.2in;
+  }
+  .p2-header h2 {
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 300;
+    font-size: 26pt;
+    color: var(--burgundy);
+    line-height: 1.1;
+  }
+  .header-rule { flex: 1; height: 1px; background: var(--rule); }
+
+  .sides-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.25in;
+  }
+  .side-box {
+    border-top: 2px solid var(--burgundy);
+    padding-top: 0.1in;
+  }
+
+  .plating-box {
+    border: 1px solid var(--rule);
+    padding: 0.12in 0.15in;
+    margin-top: 0.2in;
+  }
+  .plating-box .pb-title {
+    font-family: 'Josefin Sans', sans-serif;
+    font-size: 7pt;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--sienna);
+    margin-bottom: 0.06in;
+  }
+  .plating-box .pb-body {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 9.5pt;
+    line-height: 1.6;
+  }
+  .plating-box .pb-body strong { color: var(--burgundy); }
+
+  .extras-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.2in;
+    margin-top: 0.2in;
+  }
+  .extra-box {
+    border-top: 2px solid var(--burgundy);
+    padding-top: 0.1in;
+  }
+
+  .footer {
+    position: absolute;
+    bottom: 0.45in;
+    left: 0.65in;
+    right: 0.65in;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 1px solid var(--rule);
+    padding-top: 0.07in;
+  }
+  .footer span {
+    font-family: 'Josefin Sans', sans-serif;
+    font-size: 7pt;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--rule);
+  }
+
+  @media print {
+    @page { size: letter; margin: 0; }
+    body { background: none; }
+    .page {
+      width: 100%;
+      min-height: 100vh;
+      margin: 0;
+      padding: 0.5in 0.6in;
+      box-shadow: none;
+      page-break-after: always;
+    }
+    .page:last-child { page-break-after: avoid; }
+    .print-btn { display: none !important; }
+  }
+
+  .print-btn {
+    display: block;
+    text-align: center;
+    margin: 0.2in auto 0.5in;
+    width: 8.5in;
+  }
+  .print-btn button {
+    font-family: 'Josefin Sans', sans-serif;
+    font-size: 9pt;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    background: var(--burgundy);
+    color: #f5eee6;
+    border: none;
+    padding: 0.1in 0.3in;
+    cursor: pointer;
+  }
+  .print-btn button:hover { background: var(--sienna); }
+</style>
+</head>
+<body>
+
+<!-- ══════════════ PAGE 1 — SIRLOIN TAGLIATA ══════════════ -->
+<div class="page">
+
+  <div class="header">
+    <div class="label">Quick Sear · Italian</div>
+    <h1><em>Sirloin</em> Tagliata</h1>
+    <div class="subtitle">Screaming Hot Sear · Butter Baste · Sliced Against the Grain</div>
+    <div class="meta-row">
+      <div class="meta-item"><div class="val">15 min</div><div class="key">Prep</div></div>
+      <div class="meta-dot">·</div>
+      <div class="meta-item"><div class="val">5 min</div><div class="key">Sear</div></div>
+      <div class="meta-dot">·</div>
+      <div class="meta-item"><div class="val">5 min</div><div class="key">Rest</div></div>
+      <div class="meta-dot">·</div>
+      <div class="meta-item"><div class="val">2</div><div class="key">Serves</div></div>
+    </div>
+  </div>
+
+  <div class="body-cols">
+
+    <!-- LEFT: INGREDIENTS -->
+    <div>
+      <div class="section-title">Ingredients</div>
+      <ul class="ingredient-list">
+        <li><span class="qty">1–1½ lb</span><span>Very thin-cut sirloin tip steak</span></li>
+        <li><span class="qty">1½ tsp</span><span>Kosher salt</span></li>
+        <li><span class="qty">½ tsp</span><span>Black pepper, cracked</span></li>
+        <li><span class="qty">1 tbsp</span><span>Avocado or grapeseed oil (high smoke)</span></li>
+        <li><span class="qty">2 tbsp</span><span>Unsalted butter</span></li>
+        <li><span class="qty">2 sprigs</span><span>Fresh thyme</span></li>
+        <li><span class="qty">1 clove</span><span>Garlic, smashed</span></li>
+      </ul>
+      <div class="divider-ornament">— Lemon-Dijon Vinaigrette —</div>
+      <ul class="ingredient-list">
+        <li><span class="qty">2 tbsp</span><span>Fresh lemon juice</span></li>
+        <li><span class="qty">1 tsp</span><span>Dijon mustard</span></li>
+        <li><span class="qty">½ tsp</span><span>Honey</span></li>
+        <li><span class="qty">4 tbsp</span><span>Extra-virgin olive oil</span></li>
+        <li><span class="qty">to taste</span><span>Salt and pepper</span></li>
+      </ul>
+    </div>
+
+    <!-- RIGHT: METHOD -->
+    <div>
+      <div class="section-title">Method</div>
+      <ol class="steps-list">
+        <li>
+          <span class="step-num">1</span>
+          <div>
+            <div class="step-title">Season &amp; Rest</div>
+            <div class="step-text">Pat steak completely dry — moisture is the enemy of crust. Season all sides with 1½ tsp kosher salt and ½ tsp cracked pepper. Rest at room temperature for 15 min.</div>
+          </div>
+        </li>
+        <li>
+          <span class="step-num">2</span>
+          <div>
+            <div class="step-title">Make the Vinaigrette</div>
+            <div class="step-text">Whisk together 2 tbsp lemon juice, 1 tsp Dijon, and ½ tsp honey. Slowly drizzle in 4 tbsp olive oil while whisking to emulsify. Season with salt and pepper. Set aside.</div>
+          </div>
+        </li>
+        <li>
+          <span class="step-num">3</span>
+          <div>
+            <div class="step-title">Get the Pan Screaming</div>
+            <div class="step-text">Heat a cast iron or heavy stainless skillet over high heat for 4–5 full minutes — it should just begin to smoke. Add 1 tbsp oil and swirl to coat. This step cannot be rushed.</div>
+          </div>
+        </li>
+        <li>
+          <span class="step-num">4</span>
+          <div>
+            <div class="step-title">Sear — One Flip Only</div>
+            <div class="step-text">Lay steak flat; do not touch or move it. For very thin cuts, sear 60–90 seconds per side. If you have multiple pieces, work in batches — never crowd the pan or the temperature drops and you'll steam instead of sear.</div>
+          </div>
+        </li>
+        <li>
+          <span class="step-num">5</span>
+          <div>
+            <div class="step-title">Butter Baste</div>
+            <div class="step-text">After flipping, add 2 tbsp butter, 2 sprigs thyme, and 1 smashed garlic clove. Tilt the pan toward you and continuously spoon the foaming butter over the steak for the remaining 60–90 seconds.</div>
+          </div>
+        </li>
+        <li>
+          <span class="step-num">6</span>
+          <div>
+            <div class="step-title">Rest &amp; Slice</div>
+            <div class="step-text">Transfer to a cutting board and tent loosely with foil. Rest 5 minutes — non-negotiable. Slice thinly against the grain at a slight diagonal. The slices should fan beautifully; this is the tagliata.</div>
+          </div>
+        </li>
+      </ol>
+    </div>
+
+  </div>
+
+  <div class="notes-banner">
+    <div class="nb-label">Chef's Note</div>
+    <div class="nb-text">The single most important step is the pan preheat — 4 to 5 full minutes, until it visibly smokes before the oil goes in. A warm pan gives you grey, steamed meat. A smoking pan gives you a mahogany crust in 90 seconds. With thin-cut steak there is no recovery from undercooking the pan.</div>
+  </div>
+
+  <div class="footer">
+    <span>Sirloin Tagliata</span>
+    <span>Page 1 of 2</span>
+  </div>
+</div>
+
+
+<!-- ══════════════ PAGE 2 — SIDES & PLATING ══════════════ -->
+<div class="page">
+
+  <div class="p2-header">
+    <div>
+      <div class="label">Sides &amp; Plating</div>
+      <h2>Smashed Potatoes &amp; Arugula Salad</h2>
+      <div class="subtitle" style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:11pt;color:var(--muted);margin-top:0.04in;">The natural companions — one crispy and earthy, one bright and bitter</div>
+    </div>
+    <div class="header-rule"></div>
+  </div>
+
+  <div class="sides-grid">
+
+    <!-- SIDE 1: SMASHED POTATOES -->
+    <div class="side-box">
+      <div class="section-title">Smashed Crispy Potatoes — Serves 2</div>
+      <ul class="ingredient-list">
+        <li><span class="qty">3</span><span>Medium Yukon Gold potatoes</span></li>
+        <li><span class="qty">3 tbsp</span><span>Olive oil</span></li>
+        <li><span class="qty">1 tsp</span><span>Kosher salt</span></li>
+        <li><span class="qty">½ tsp</span><span>Black pepper</span></li>
+        <li><span class="qty">3 cloves</span><span>Garlic, smashed</span></li>
+        <li><span class="qty">2 sprigs</span><span>Fresh rosemary or thyme</span></li>
+      </ul>
+      <ol class="steps-list" style="margin-top:0.1in;">
+        <li>
+          <span class="step-num">1</span>
+          <div>
+            <div class="step-title">Boil</div>
+            <div class="step-text">Preheat oven to 450°F. Boil potatoes whole in heavily salted water until completely fork-tender, 20–25 min. Drain and let steam dry on the pan for 5 min.</div>
+          </div>
+        </li>
+        <li>
+          <span class="step-num">2</span>
+          <div>
+            <div class="step-title">Smash &amp; Oil</div>
+            <div class="step-text">Transfer to an oiled baking sheet. Use a flat-bottomed glass to smash each potato to about ½ inch thick. Drizzle generously with 3 tbsp olive oil, making sure to coat the edges.</div>
+          </div>
+        </li>
+        <li>
+          <span class="step-num">3</span>
+          <div>
+            <div class="step-title">Roast Until Crackling</div>
+            <div class="step-text">Scatter garlic and rosemary around potatoes. Season with 1 tsp salt and ½ tsp pepper. Roast at 450°F for 25–30 min until the edges are deep golden and crackling. Do not disturb while roasting.</div>
+          </div>
+        </li>
+      </ol>
+    </div>
+
+    <!-- SIDE 2: ARUGULA SALAD -->
+    <div class="side-box">
+      <div class="section-title">Arugula Salad — Serves 2</div>
+      <ul class="ingredient-list">
+        <li><span class="qty">4 oz</span><span>Baby arugula</span></li>
+        <li><span class="qty">¼ cup</span><span>Walnuts, roughly chopped</span></li>
+        <li><span class="qty">3 tbsp</span><span>Dried cranberries</span></li>
+        <li><span class="qty">—</span><span>Lemon-Dijon vinaigrette (from pg. 1)</span></li>
+        <li><span class="qty">optional</span><span>Parmigiano-Reggiano, shaved</span></li>
+      </ul>
+      <ol class="steps-list" style="margin-top:0.1in;">
+        <li>
+          <span class="step-num">1</span>
+          <div>
+            <div class="step-title">Toast the Walnuts</div>
+            <div class="step-text">In a dry skillet over medium heat, toast ¼ cup walnuts for 3–4 min, tossing frequently, until fragrant and lightly golden. Tip onto a board and roughly chop when cool enough to handle.</div>
+          </div>
+        </li>
+        <li>
+          <span class="step-num">2</span>
+          <div>
+            <div class="step-title">Dress &amp; Toss</div>
+            <div class="step-text">Just before plating, add arugula to a large bowl. Drizzle with enough vinaigrette to lightly coat — start with half, add more to taste. Add 3 tbsp cranberries and the toasted walnuts. Toss once gently.</div>
+          </div>
+        </li>
+      </ol>
+    </div>
+
+  </div>
+
+  <div class="plating-box">
+    <div class="pb-title">To Plate</div>
+    <div class="pb-body">Build the plate in layers. Arrange a generous mound of dressed arugula as the base of a wide, shallow bowl or plate. Fan the sliced steak over the top — overlap the slices slightly so they cascade across the greens. Scatter any remaining walnuts and cranberries. Spoon <strong>a little extra vinaigrette directly over the beef</strong>. The residual heat from the steak will gently wilt the arugula at the edges — this is intentional and beautiful. Serve the smashed potatoes alongside, still crackling. Move fast; arugula waits for no one.</div>
+  </div>
+
+  <div class="extras-row">
+    <div class="extra-box">
+      <div class="section-title">Make Ahead</div>
+      <div class="step-text" style="font-size:7.8pt;line-height:1.55;">Potatoes can be boiled and smashed up to 2 hours ahead — hold at room temperature on the sheet pan and roast when you're ready to cook the steak. The vinaigrette keeps in a sealed jar for 3 days; shake well before using.</div>
+    </div>
+    <div class="extra-box">
+      <div class="section-title">Wine at the Table</div>
+      <div class="step-text" style="font-size:7.8pt;line-height:1.55;">A bright, medium-bodied red with good acidity is the move — Barbera d'Asti, Côtes du Rhône, or a lighter Grenache. The lemon vinaigrette needs fruit-forward, not grip. Avoid heavy tannic Cabernets, which will clash with the arugula's bitterness.</div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <span>Smashed Potatoes &amp; Arugula Salad</span>
+    <span>Page 2 of 2</span>
+  </div>
+</div>
+
+<div class="print-btn">
+  <button onclick="window.print()">⬡ &nbsp; Print Recipe &nbsp; ⬡</button>
+</div>
+
+</body>
+</html>
