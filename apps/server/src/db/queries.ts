@@ -152,7 +152,7 @@ export async function getSetsForExercise(
   const res = await ctx.db
     .prepare(
       `SELECT s.exercise, s.exercise_raw, s.set_no, s.reps, s.weight_lb, s.rpe,
-              s.completed, w.local_date, w.session_label
+              s.completed, w.local_date, w.session_label, w.id AS workout_id
          FROM sets s
          JOIN workouts w ON w.id = s.workout_id
         WHERE w.user_id = ? AND s.exercise = ? AND w.deleted_at IS NULL
@@ -462,6 +462,134 @@ export async function resolveCaptureRow(
     )
     .bind(state, opts.mealId ?? null, opts.reason ?? null,
           ctx.now.toISOString(), id, ctx.userId)
+    .run();
+  return (res.meta.changes ?? 0) > 0;
+}
+
+// ---------- workout corrections ----------
+
+export interface WorkoutDetail {
+  id: string;
+  local_date: string;
+  session_label: string | null;
+  notes: string | null;
+  sets: {
+    id: string; exercise: string; exercise_raw: string | null;
+    set_no: number; reps: number | null; weight_lb: number | null;
+    rpe: number | null; completed: number;
+  }[];
+}
+
+export async function getWorkoutById(ctx: Ctx, id: string): Promise<WorkoutDetail | null> {
+  const w = await ctx.db
+    .prepare(
+      `SELECT id, local_date, session_label, notes FROM workouts
+        WHERE id = ? AND user_id = ? AND deleted_at IS NULL`,
+    )
+    .bind(id, ctx.userId)
+    .first<{ id: string; local_date: string; session_label: string | null; notes: string | null }>();
+  if (!w) return null;
+
+  const res = await ctx.db
+    .prepare(
+      `SELECT id, exercise, exercise_raw, set_no, reps, weight_lb, rpe, completed
+         FROM sets WHERE workout_id = ? ORDER BY set_no ASC`,
+    )
+    .bind(id)
+    .all<WorkoutDetail['sets'][number]>();
+
+  return { ...w, sets: res.results ?? [] };
+}
+
+/** Most recent sessions, so a correction can be aimed without knowing an id. */
+export async function recentWorkoutIds(
+  ctx: Ctx,
+  limit = 10,
+): Promise<{ id: string; local_date: string; session_label: string | null; set_count: number }[]> {
+  const res = await ctx.db
+    .prepare(
+      `SELECT w.id, w.local_date, w.session_label, COUNT(s.id) AS set_count
+         FROM workouts w LEFT JOIN sets s ON s.workout_id = w.id
+        WHERE w.user_id = ? AND w.deleted_at IS NULL
+        GROUP BY w.id ORDER BY w.local_date DESC, w.created_at DESC LIMIT ?`,
+    )
+    .bind(ctx.userId, limit)
+    .all<{ id: string; local_date: string; session_label: string | null; set_count: number }>();
+  return res.results ?? [];
+}
+
+export interface SetPatch {
+  reps?: number | null;
+  weight_lb?: number | null;
+  rpe?: number | null;
+  completed?: boolean;
+}
+
+/** Patch one set of a workout, addressed by its position in the session. */
+export async function updateSet(
+  ctx: Ctx,
+  workoutId: string,
+  setNo: number,
+  patch: SetPatch,
+): Promise<boolean> {
+  const cols: string[] = [];
+  const vals: unknown[] = [];
+  for (const [k, v] of Object.entries(patch)) {
+    if (v === undefined) continue;
+    cols.push(`${k} = ?`);
+    vals.push(k === 'completed' ? (v ? 1 : 0) : v);
+  }
+  if (cols.length === 0) return false;
+  vals.push(workoutId, setNo);
+
+  const res = await ctx.db
+    .prepare(`UPDATE sets SET ${cols.join(', ')} WHERE workout_id = ? AND set_no = ?`)
+    .bind(...vals)
+    .run();
+  return (res.meta.changes ?? 0) > 0;
+}
+
+/**
+ * Hard delete — `sets` has no `deleted_at`, and a set removed because it never
+ * happened has no history worth keeping. The parent workout is still soft
+ * deleted, so a whole session remains recoverable.
+ */
+export async function deleteSet(ctx: Ctx, workoutId: string, setNo: number): Promise<boolean> {
+  const res = await ctx.db
+    .prepare(`DELETE FROM sets WHERE workout_id = ? AND set_no = ?`)
+    .bind(workoutId, setNo)
+    .run();
+  return (res.meta.changes ?? 0) > 0;
+}
+
+export async function updateWorkoutMeta(
+  ctx: Ctx,
+  id: string,
+  patch: { session_label?: string | null; notes?: string | null },
+): Promise<boolean> {
+  const cols: string[] = [];
+  const vals: unknown[] = [];
+  for (const [k, v] of Object.entries(patch)) {
+    if (v === undefined) continue;
+    cols.push(`${k} = ?`);
+    vals.push(v);
+  }
+  if (cols.length === 0) return false;
+  vals.push(id, ctx.userId);
+  const res = await ctx.db
+    .prepare(`UPDATE workouts SET ${cols.join(', ')} WHERE id = ? AND user_id = ? AND deleted_at IS NULL`)
+    .bind(...vals)
+    .run();
+  return (res.meta.changes ?? 0) > 0;
+}
+
+export async function softDeleteWorkout(ctx: Ctx, id: string): Promise<boolean> {
+  const res = await ctx.db
+    .prepare(
+      `UPDATE workouts SET deleted_at = ?
+        WHERE id = ? AND user_id = ? AND deleted_at IS NULL`,
+    )
+    .bind(ctx.now.toISOString(), id, ctx.userId)
     .run();
   return (res.meta.changes ?? 0) > 0;
 }

@@ -27,6 +27,11 @@ conversation context and silently skip the tools.
   permission; log it and state the estimate you used so they can correct it.
 - After the user describes a completed session, call `log_workout` with all
   sets. If loads are ambiguous, log what is known and flag the gap.
+- When the user corrects a logged SET, call `correct_workout` immediately.
+  This is more urgent than correcting a meal: `get_last_performance` reads the
+  set, and you propose the next load from that — so a wrong rep count keeps
+  producing a wrong recommendation until it is fixed. The `workout_id` is on
+  every session `get_last_performance` returns.
 - **At the start of a session, check `pending_captures` on `get_today`.** Above
   zero means the user typed something into the app that is still not a meal.
   Call `get_pending_captures` and offer to work through them before anything

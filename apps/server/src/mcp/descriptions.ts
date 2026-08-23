@@ -35,7 +35,7 @@ Returns: every meal logged today (each with its id, for correct_meal), the total
 
   get_last_performance: `Call this before recommending any weight for any exercise. Never propose a load from memory, from earlier in the conversation, or by inference from a different lift.
 
-Returns, for each exercise requested: the most recent session's sets with reps, load and RPE, plus the three prior sessions so progression can be judged. Also returns how many days ago each session was, how many sessions have been logged for that lift, whether every set was completed, and the movement pattern — the facts a progression rule needs.
+Returns, for each exercise requested: the most recent session's sets with reps, load and RPE, plus the three prior sessions so progression can be judged. Each session carries its workout_id, so a number the user says is wrong can be fixed with correct_workout without hunting for it. Also returns how many days ago each session was, how many sessions have been logged for that lift, whether every set was completed, and the movement pattern — the facts a progression rule needs.
 
 It returns data, not a recommendation. Apply your own progression rules to it. If sessions_logged is below 2, you do not yet have enough history to advance the load.`,
 
@@ -58,6 +58,16 @@ Do NOT use this for a capture you successfully logged: log_meal with capture_id 
 Returns the typical time for each meal slot, computed from the user's own logs, together with today's remaining calories and macros. It returns facts, not a suggestion — apply your own judgement about what to actually recommend, and use list_recipes if they want something from their own book.
 
 Only meals logged on the day they were eaten inform the timing; backfilled history carries the time it was written, not the time it was eaten. If unavailable_because is set, say plainly that there is not enough history yet rather than guessing a mealtime.`,
+
+  correct_workout: `Fix a logged training session — a mistyped load, a rep count that was wrong, a set that did not actually happen. Call this the moment the user corrects one, rather than logging a second session.
+
+This matters more than correcting a meal. A wrong meal number sits in an average; a wrong SET number propagates — get_last_performance reads it and the next session's load is proposed from it, so one bad rep count quietly drives a wrong recommendation until someone notices.
+
+Address sets by set_no within the session, which is how people refer to them ("the third set was only 3 reps"). Send remove: true for a set that never happened. Send null for a value that is genuinely unknown rather than guessing one. Get workout_id from get_last_performance or get_history.`,
+
+  delete_workout: `Remove a training session that should not have been logged — a duplicate, or one recorded against the wrong day. Prefer correct_workout when the session happened but the numbers are wrong; deleting and re-logging loses the correction.
+
+Soft-deleted and recoverable. Get workout_id from get_last_performance or get_history.`,
 
   correct_meal: `Fix a meal that was logged with the wrong numbers. Call this the moment the user corrects an estimate — "that was closer to 900 calories", "it was 8oz not 12" — rather than logging a second meal to compensate.
 

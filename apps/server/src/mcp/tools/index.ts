@@ -23,6 +23,7 @@ import { correctMeal, deleteMeal } from './correct_meal.ts';
 import { getNextMeal } from './get_next_meal.ts';
 import { spikeImage } from './spike_image.ts';
 import { getPendingCaptures, resolveCapture } from './captures.ts';
+import { correctWorkout, deleteWorkout } from './correct_workout.ts';
 
 export type ToolArgs = Record<string, unknown>;
 export type ToolHandler = (ctx: Ctx, args: ToolArgs) => Promise<unknown>;
@@ -412,6 +413,55 @@ export const TOOLS: ToolDef[] = [
       additionalProperties: false,
     },
     handler: resolveCapture,
+  },
+  {
+    name: 'correct_workout',
+    description: DESCRIPTIONS.correct_workout,
+    inputSchema: {
+      type: 'object',
+      properties: {
+        workout_id: str('From get_last_performance or get_history.'),
+        session_label: str('Corrected label, e.g. "Pull". Optional.'),
+        notes: str('Corrected notes. Optional.'),
+        sets: {
+          type: 'array',
+          description: 'Only the sets that are wrong. Others are left alone.',
+          items: {
+            type: 'object',
+            properties: {
+              set_no: num('Which set in the session, 1-based. Required.'),
+              reps: num('Corrected reps, or null if genuinely unknown.'),
+              weight_lb: num('Corrected load in pounds, or null if unknown.'),
+              rpe: num('Corrected RPE, 1-10, or null.'),
+              completed: {
+                type: 'boolean',
+                description: 'False when the set was attempted but the target was missed.',
+              },
+              remove: {
+                type: 'boolean',
+                description: 'True to delete a set that never happened.',
+              },
+            },
+            required: ['set_no'],
+            additionalProperties: false,
+          },
+        },
+      },
+      required: ['workout_id'],
+      additionalProperties: false,
+    },
+    handler: correctWorkout,
+  },
+  {
+    name: 'delete_workout',
+    description: DESCRIPTIONS.delete_workout,
+    inputSchema: {
+      type: 'object',
+      properties: { workout_id: str('From get_last_performance or get_history.') },
+      required: ['workout_id'],
+      additionalProperties: false,
+    },
+    handler: deleteWorkout,
   },
 ];
 

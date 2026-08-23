@@ -21,10 +21,14 @@ export interface SetRow {
   completed: number;
   local_date: string;
   session_label: string | null;
+  workout_id?: string;
 }
 
 export interface SessionPerformance {
   local_date: string;
+  /** Needed to reference this session in correct_workout or delete_workout —
+   *  a wrong number is noticed HERE, so the id has to be here too. */
+  workout_id: string | null;
   days_ago: number | null;
   session_label: string | null;
   sets: { set_no: number; reps: number | null; weight_lb: number | null; rpe: number | null; completed: boolean }[];
@@ -48,6 +52,7 @@ export interface ExerciseHistory {
 }
 
 function shapeSession(date: string, rows: SetRow[], today: string): SessionPerformance {
+  const workoutId = rows.find((r) => r.workout_id)?.workout_id ?? null;
   const sets = rows
     .slice()
     .sort((a, b) => a.set_no - b.set_no)
@@ -72,6 +77,7 @@ function shapeSession(date: string, rows: SetRow[], today: string): SessionPerfo
 
   return {
     local_date: date,
+    workout_id: workoutId,
     days_ago: daysBetween(date, today),
     session_label: rows[0]?.session_label ?? null,
     sets,

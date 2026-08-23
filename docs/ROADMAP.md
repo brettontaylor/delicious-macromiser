@@ -157,6 +157,28 @@ the same food.
 
 ---
 
+## Workout corrections — ✅ done 2026-08-23
+
+Not on the original roadmap. Found by asking which writable entities had an
+undo: meals had `correct_meal` and `delete_meal`; workouts had neither, despite
+`deleted_at` sitting unused in the schema since `0001_init.sql`.
+
+The asymmetry mattered more than it looked. A wrong meal number sits in an
+average. A wrong SET number propagates — `get_last_performance` reads it and the
+Skill proposes the next load from that, so a mistyped rep count keeps producing
+a wrong recommendation until someone notices, and training history is the thing
+this project exists to get right.
+
+- [x] `correct_workout` — sets addressed by `set_no` ("the third set was only 3
+      reps"), `remove: true` for a set that never happened, `null` for a value
+      genuinely unknown. Session label and notes too.
+- [x] `delete_workout` — soft delete, recoverable.
+- [x] `get_last_performance` now returns `workout_id` on every session. Without
+      it the correction tools were unreachable from the one place a wrong number
+      is actually noticed.
+
+---
+
 ## US-1 — Log a meal from the app (in progress)
 
 Planned in [plans/us-1-log-a-meal-in-the-app.md](plans/us-1-log-a-meal-in-the-app.md)
