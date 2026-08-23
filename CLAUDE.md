@@ -62,6 +62,19 @@ Output one self-contained `.html` into `content/recipes/`. Rules:
 4. Every card needs: ingredients, numbered steps, chef's note, meta row, footer
 5. Run `npm run recipes:check` before committing
 
+## Planning workflow
+
+Ported from D-I Wine and adapted for this stack. Plans live in `docs/plans/`.
+
+| Skill | Use |
+|---|---|
+| `/design-plan` | Writes an implementation-ready plan: user stories on every side (including **the model** as an actor), technical design layer by layer, phasing, risks, verification |
+| `/plan-review` | Critiques a plan before implementation. Does not edit code |
+| `/verify` | Proves a feature works against a running server. Evidence, not assertions |
+
+The model is a first-class actor in every user-story table. In an MCP product a
+tool description *is* the model's UI, so a bad one is a UX bug, not a docs bug.
+
 ## Where this is going
 
 The two halves join in Phase 2.5: recipes gain `schema.org/Recipe` JSON-LD with
