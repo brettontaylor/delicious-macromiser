@@ -83,16 +83,28 @@ cooked is the highest-confidence food entry that can exist: the portions are
 known, the ingredients are known, and you wrote them down. Every such meal
 logged as "roughly 700 calories" is a measurement thrown away.
 
-- [ ] Extend `RECIPE_FORMAT.md` + `BASE_TEMPLATE.html` with a
-      `schema.org/Recipe` JSON-LD block carrying `recipeYield` and
-      `NutritionInformation` (calories, protein, fat, carbohydrate, servingSize)
-- [ ] Backfill the existing recipes — `npm run recipes:check` already reports
-      which ones lack it (currently all of them)
+- [x] Extend `RECIPE_FORMAT.md` with a `schema.org/Recipe` JSON-LD spec —
+      `recipeYield`, `NutritionInformation`, and an `x-components` breakdown so
+      a serving eaten without the rice can still be logged accurately.
+      Six rules, including the one that matters: only count what the ingredient
+      list actually contains
+- [ ] **Backfill the existing recipes** — all six still lack nutrition, so the
+      catalog is empty and nothing is loggable yet. This is the remaining work
+      in this phase and it is content, not code: each card needs per-ingredient
+      macros summed and divided by its yield.
+
+      Two cards need their ingredients fixed first. `greek-beef-zucchini-bowl`
+      lists no beef despite the title, and several recipes mix main and side
+      ingredients into one list, so the component split has to be decided per
+      card. Format rule 4 applies — add the missing ingredients or leave the
+      card out; do not infer them
 - [ ] Flip `ENFORCE_NUTRITION` to `true` in `scripts/check-recipes.mjs` so CI
       keeps it true from then on
-- [ ] `scripts/build-recipe-catalog.mjs` — parse the cards into
+- [x] `scripts/build-recipe-catalog.mjs` — parses the cards into
       `apps/server/src/generated/recipes.json`, bundled into the Worker at
-      deploy. No D1 table, no sync step; recipes change at the speed of commits
+      deploy (wired into `deploy:prod`). No D1 table, no sync step. Rejects a
+      partial nutrition block rather than logging a missing macro as zero;
+      runs in CI. Parser verified against fixtures
 - [ ] Migration: `ALTER TABLE meals ADD COLUMN recipe_slug TEXT`, and extend the
       `source` enum with `'recipe'` alongside `estimate|corrected|barcode|import`
 - [ ] `log_meal` accepts `recipe_slug` + `servings` → exact macros, `confidence`

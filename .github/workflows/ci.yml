@@ -55,3 +55,6 @@ jobs:
       # No install needed — the checker is dependency-free by design, so a
       # recipe-only change never waits on an npm install.
       - run: node scripts/check-recipes.mjs
+      # Catches a malformed or half-filled nutrition block, which check-recipes
+      # only reports as advisory. Exits non-zero on a broken one.
+      - run: node scripts/build-recipe-catalog.mjs

@@ -130,6 +130,67 @@ Print button is always the last element in `<body>`, hidden on print.
 
 ---
 
+## Nutrition (schema.org/Recipe JSON-LD)
+
+Every card carries a machine-readable nutrition block. This is what lets the
+MCP server log a cooked dish at full confidence instead of re-estimating it —
+the portions were written down when it was cooked, so the numbers are evidence
+rather than a guess.
+
+Put a single `<script type="application/ld+json">` in the `<head>`:
+
+```html
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Recipe",
+  "name": "Red Wine Braised Pork Shoulder",
+  "recipeYield": "8 servings",
+  "nutrition": {
+    "@type": "NutritionInformation",
+    "servingSize": "1 plated serving",
+    "calories": "780 kcal",
+    "proteinContent": "52 g",
+    "fatContent": "44 g",
+    "carbohydrateContent": "38 g",
+    "fiberContent": "4 g"
+  },
+  "x-components": [
+    { "name": "Braised pork", "calories": "560 kcal", "proteinContent": "48 g",
+      "fatContent": "36 g", "carbohydrateContent": "6 g" },
+    { "name": "Polenta",      "calories": "220 kcal", "proteinContent": "4 g",
+      "fatContent": "8 g",  "carbohydrateContent": "32 g" }
+  ]
+}
+</script>
+```
+
+### Rules
+
+1. **`nutrition` describes one full plated serving — page 1 and page 2 together.**
+   That is what a person actually eats, and it is the number the log needs. A
+   main-dish-only figure silently under-reports every meal by the side dish.
+2. **`x-components` breaks that down per component**, so a serving eaten without
+   the rice or the polenta can still be logged accurately. Not part of
+   schema.org; the `x-` prefix marks it as ours.
+3. **Divide by the yield, not by the pan.** `recipeYield` must be a number the
+   totals were actually divided by. A range on the card ("2 – 3") must resolve to
+   one number here — pick the larger, so a serving is never overstated.
+4. **Only count what the ingredient list contains.** If a component's ingredients
+   are not written on the card, it does not get a number. Add the ingredients
+   first, or leave the recipe out of the catalog. An invented figure logged at
+   high confidence is worse than no recipe at all — it corrupts the trend data
+   the whole system exists to produce.
+5. **Units are explicit strings** (`"780 kcal"`, `"52 g"`) as schema.org
+   specifies. The build script parses the leading number.
+6. Alcohol that cooks off is not counted. A splash of wine in a braise
+   contributes its sugars, not its ethanol.
+
+Run `npm run recipes:check` before committing. It reports every card still
+missing this block.
+
+---
+
 ## Checklist Before Saving
 - [ ] Exactly 2 `.page` divs
 - [ ] Both pages have `.footer` with correct page numbers
