@@ -129,7 +129,32 @@ transport moves; do not build on it today.
 
 ## 5. Technical design
 
-### Phase 0 — spike (half a day, no schema)
+### Phase 0 — spike — RUN 2026-08-23, one step outstanding
+
+**Built and deployed.** `spike_image` returns a 3x3 grid of filled/empty cells
+as an MCP `image` content block. 512 arrangements, so a correct reading cannot
+be a guess.
+
+| Step | Result |
+|---|---|
+| Server can emit a non-text content block | **Yes.** `toolResult` gained a `RawContent` escape hatch; everything else keeps the text+structured shape |
+| Wire format is correct | **Yes.** Response carries `['text','image']`, `mimeType: image/png`, 1536 base64 chars |
+| The test image is legible and unambiguous | **Yes.** Read independently and matched the sealed answer exactly — `[0,0,1, 0,0,0, 0,1,1]` |
+| A connected client passes the image to the model | **Outstanding.** Needs a client that has reconnected since deploy |
+
+**Incidental finding, operationally relevant:** a newly added tool is invisible
+to an already-connected session. The client resolves the tool list at connect
+time and does not refresh, so any new tool needs the chat restarted before it
+appears. Worth knowing before shipping Phase 1 — the queue is useless if the
+model cannot see `get_pending_captures` until a reconnect.
+
+The answer key is `[0,0,1, 0,0,0, 0,1,1]` — top row empty/empty/filled, middle
+row all empty, bottom row empty/filled/filled. If a fresh chat reports that, the
+image path works and US-1.2 proceeds as designed. If it reports seeing no image,
+the fallback is a short-lived signed URL; if that also fails, US-1.2 becomes
+text-capture only and Phases 1 and 4 are unaffected.
+
+### Phase 0 — original spike definition
 
 Prove the client shows an image from a tool result before designing around it.
 Add a temporary tool returning a hard-coded small JPEG as an `image` content

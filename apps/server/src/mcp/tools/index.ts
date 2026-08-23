@@ -21,6 +21,7 @@ import { importDays } from './import_days.ts';
 import { listRecipes } from './list_recipes.ts';
 import { correctMeal, deleteMeal } from './correct_meal.ts';
 import { getNextMeal } from './get_next_meal.ts';
+import { spikeImage } from './spike_image.ts';
 
 export type ToolArgs = Record<string, unknown>;
 export type ToolHandler = (ctx: Ctx, args: ToolArgs) => Promise<unknown>;
@@ -359,6 +360,16 @@ export const TOOLS: ToolDef[] = [
       additionalProperties: false,
     },
     handler: getNextMeal,
+  },
+  {
+    // TEMPORARY — US-1 Phase 0. Remove once the finding is recorded.
+    name: 'spike_image',
+    description:
+      'Diagnostic. Returns a test image so we can find out whether this client ' +
+      'passes image content blocks through to the model. Describe exactly what ' +
+      'you see, and say plainly if you see nothing.',
+    inputSchema: { type: 'object', properties: {}, additionalProperties: false },
+    handler: spikeImage,
   },
 ];
 

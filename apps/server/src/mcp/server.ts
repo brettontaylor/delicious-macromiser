@@ -32,8 +32,34 @@ Call get_today before answering anything about remaining calories or macros. Cal
 
 When the user describes food they ate or a session they finished, log it without asking permission, then state the estimate you used so they can correct it.`;
 
-/** Result content for a tool call. Text-only, JSON-encoded payload. */
+/**
+ * Marker a handler returns when it needs to emit MCP content blocks directly
+ * rather than a JSON payload — an image, for instance. Everything else keeps
+ * the text-plus-structuredContent shape, which is what tools want by default.
+ */
+export interface RawContent {
+  __mcpContent: unknown[];
+  /** Text payload alongside the blocks, so a client that renders only text still says something useful. */
+  text?: string;
+}
+
+function isRawContent(v: unknown): v is RawContent {
+  return typeof v === 'object' && v !== null && Array.isArray((v as RawContent).__mcpContent);
+}
+
+/** Result content for a tool call. Text-and-structured by default; a handler
+ *  may return RawContent to emit blocks the protocol supports but tools here
+ *  do not otherwise need. */
 function toolResult(payload: unknown) {
+  if (isRawContent(payload)) {
+    return {
+      content: [
+        ...(payload.text ? [{ type: 'text', text: payload.text }] : []),
+        ...payload.__mcpContent,
+      ],
+      isError: false,
+    };
+  }
   return {
     content: [{ type: 'text', text: JSON.stringify(payload, null, 2) }],
     structuredContent: payload,
