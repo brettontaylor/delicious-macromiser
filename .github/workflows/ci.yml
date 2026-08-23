@@ -1,0 +1,57 @@
+name: CI
+
+# This repo is PUBLIC, so Actions minutes are unlimited and free — it does not
+# draw on the shared 2,000-min pool that the private repos (diwine, winegraph,
+# btcenter) compete for. See BTCENTER knowledge/github-actions-cost.md.
+# If this repo is ever flipped private, that stops being true.
+#
+# No deploy job by design: `wrangler deploy` is run by hand. The server holds a
+# live training/nutrition log, and the roadmap deliberately gates new code on
+# two weeks of real usage — a merge should not ship to it automatically.
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - '**/*.md'
+      - 'docs/**'
+      - '.github/**'
+  pull_request:
+    branches: [main]
+    paths-ignore:
+      - '**/*.md'
+      - 'docs/**'
+      - '.github/**'
+
+# Marathon sessions push commits in quick succession — only the newest commit
+# per ref should consume a runner.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  server:
+    name: Server — typecheck + unit tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - run: npm run typecheck
+      - run: npm test
+
+  recipes:
+    name: Recipes — format conformance
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      # No install needed — the checker is dependency-free by design, so a
+      # recipe-only change never waits on an npm install.
+      - run: node scripts/check-recipes.mjs

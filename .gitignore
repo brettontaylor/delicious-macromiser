@@ -1,0 +1,20 @@
+node_modules/
+.wrangler/
+dist/
+
+# Secrets — the path secret IS the credential for the authless v1 server.
+.dev.vars
+.env
+.env.local
+
+# D1 exports / local backups
+backup.sql
+backup-prod.sql
+*.sqlite
+*.sqlite3
+
+# Generated recipe catalog (built from content/recipes at deploy time)
+apps/server/src/generated/
+
+*.log
+.DS_Store

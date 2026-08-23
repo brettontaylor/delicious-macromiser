@@ -1,0 +1,31 @@
+name = "macromiser-dev"
+main = "src/index.ts"
+compatibility_date = "2026-08-01"
+
+# `local_date` is computed with Intl in the user's tz — Workers ships full ICU.
+
+[[d1_databases]]
+binding = "DB"
+database_name = "macromiser"
+database_id = "e0d98283-a88d-4035-a3a4-65a9f127c1d8"
+migrations_dir = "migrations"
+
+[vars]
+# Non-secret defaults. MCP_PATH_SECRET is a *secret* — set it with:
+#   npx wrangler secret put MCP_PATH_SECRET
+# For local dev, put it in .dev.vars (gitignored).
+DEFAULT_TZ = "America/New_York"
+OWNER_USER_ID = "owner"
+
+[env.prod]
+name = "macromiser-prod"
+
+[[env.prod.d1_databases]]
+binding = "DB"
+database_name = "macromiser-prod"
+database_id = "98ffd221-5d75-4701-baaa-3e85496f544b"
+migrations_dir = "migrations"
+
+[env.prod.vars]
+DEFAULT_TZ = "America/New_York"
+OWNER_USER_ID = "owner"

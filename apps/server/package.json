@@ -1,0 +1,27 @@
+{
+  "name": "@dm/server",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Macromiser MCP server \u2014 Cloudflare Worker over D1.",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "deploy:prod": "wrangler deploy --env prod",
+    "db:migrate:local": "wrangler d1 migrations apply macromiser --local",
+    "db:migrate": "wrangler d1 migrations apply macromiser --remote",
+    "db:migrate:prod": "wrangler d1 migrations apply macromiser-prod --remote --env prod",
+    "db:seed:local": "wrangler d1 execute macromiser --local --file=./seeds/dev_seed.sql",
+    "db:export": "wrangler d1 export macromiser --remote --output=./backup.sql",
+    "db:export:prod": "wrangler d1 export macromiser-prod --remote --env prod --output=./backup-prod.sql",
+    "test": "node --test \"test/**/*.test.ts\"",
+    "typecheck": "tsc --noEmit",
+    "smoke": "node scripts/smoke.mjs"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^5.20260820.1",
+    "@types/node": "^26.2.0",
+    "typescript": "^5.7.0",
+    "wrangler": "^4.125.0"
+  }
+}

@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Spicy Dry-Rubbed Baked Chicken</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Josefin+Sans:wght@300;400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink:      #1a1510;
+    --burgundy: #6b1f2a;
+    --sienna:   #8c4a2f;
+    --cream:    #f5f0e8;
+    --tan:      #d4c4a8;
+    --rule:     #b8a88a;
+    --muted:    #6b5f52;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #e8e0d4;
+    font-family: 'Libre Baskerville', Georgia, serif;
+    color: var(--ink);
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .page {
+    width: 8.5in;
+    min-height: 11in;
+    margin: 0.4in auto;
+    background: var(--cream);
+    padding: 0.55in 0.65in;
+    position: relative;
+    box-shadow: 0 4px 40px rgba(0,0,0,0.18);
+  }
+  .page::before {
+    content: '';
+    position: absolute;
+    inset: 0.22in;
+    border: 1px solid var(--rule);
+    pointer-events: none;
+  }
+  .page::after {
+    content: '';
+    position: absolute;
+    inset: 0.28in;
+    border: 2.5px solid var(--burgundy);
+    pointer-events: none;
+  }
+
+  .header {
+    text-align: center;
+    padding: 0 0.3in 0.18in;
+    border-bottom: 1px solid var(--rule);
+    margin-bottom: 0.22in;
+  }
+  .label {
+    font-family: 'Josefin Sans', sans-serif;
+    font-size: 8.5pt;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--sienna);
+    margin-bottom: 0.08in;
+  }
+  h1 {
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 300;
+    font-size: 34pt;
+    line-height: 1.1;
+    color: var(--burgundy);
+  }
+  h1 em { font-style: italic; font-weight: 300; }
+  .subtitle {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 11pt;
+    color: var(--muted);
+    margin-top: 0.06in;
+  }
+  .meta-row {
+    display: flex;
+    justify-content: center;
+    gap: 0.3in;
+    margin-top: 0.14in;
+  }
+  .meta-item { text-align: center; }
+  .meta-item .val {
+    font-family: 'Josefin Sans', sans-serif;
+    font-size: 10pt;
+    font-weight: 600;
+    color: var(--burgundy);
+    letter-spacing: 0.05em;
+  }
+  .meta-item .key {
+    font-family: 'Josefin Sans', sans-serif;
+    font-size: 7pt;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .meta-dot { color: var(--rule); font-size: 14pt; line-height: 2; }
+
+  .body-cols {
+    display: grid;
+    grid-template-columns: 2.2in 1fr;
+    gap: 0.28in;
+  }
+
+  .section-title {
+    font-family: 'Josefin Sans', sans-serif;
+    font-size: 7.5pt;
+    font-weight: 600;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--sienna);
+    border-bottom: 1px solid var(--rule);
+    padding-bottom: 0.04in;
+    margin-bottom: 0.1in;
+  }
+
+  .ingredient-list { list-style: none; }
+  .ingredient-list li {
+    display: flex;
+    gap: 0.08in;
+    padding: 3px 0;
+    border-bottom: 1px dotted var(--tan);
+    font-size: 8pt;
+    line-height: 1.4;
+  }
+  .ingredient-list li:last-child { border-bottom: none; }
+  .qty {
+    font-family: 'Josefin Sans', sans-serif;
+    font-size: 7.5pt;
+    font-weight: 600;
+    color: var(--burgundy);
+    min-width: 0.55in;
+    flex-shrink: 0;
+  }
+
+  .divider-ornament {
+    text-align: center;
+    color: var(--rule);
+    font-size: 11pt;
+    margin: 0.1in 0 0.07in;
+    letter-spacing: 0.15em;
+  }
+
+  .steps-list { list-style: none; }
+  .steps-list li {
+    display: flex;
+    gap: 0.1in;
+    margin-bottom: 0.1in;
+  }
+  .step-num {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 17pt;
+    font-weight: 600;
+    color: var(--tan);
+    line-height: 1;
+    min-width: 0.22in;
+    flex-shrink: 0;
+    margin-top: -2px;
+  }
+  .step-title {
+    font-family: 'Josefin Sans', sans-serif;
+    font-size: 7.5pt;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink);
+    margin-bottom: 1px;
+  }
+  .step-text {
+    font-size: 7.8pt;
+    line-height: 1.5;
+    color: #3a2f26;
+  }
+
+  .notes-banner {
+    background: var(--burgundy);
+    color: #f5eee6;
+    padding: 0.1in 0.18in;
+    margin-top: 0.18in;
+    display: flex;
+    gap: 0.25in;
+    align-items: flex-start;
+  }
+  .nb-label {
+    font-family: 'Josefin Sans', sans-serif;
+    font-size: 7pt;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    opacity: 0.75;
+    margin-top: 1px;
+    flex-shrink: 0;
+  }
+  .nb-text {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 9pt;
+    line-height: 1.5;
+  }
+
+  .p2-header {
+    display: flex;
+    align-items: center;
+    gap: 0.2in;
+    padding-bottom: 0.15in;
+    border-bottom: 1px solid var(--rule);
+    margin-bottom: 0.2in;
+  }
+  .p2-header h2 {
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 300;
+    font-size: 26pt;
+    color: var(--burgundy);
+    line-height: 1.1;
+  }
+  .header-rule { flex: 1; height: 1px; background: var(--rule); }
+
+  .sides-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.25in;
+  }
+  .side-box {
+    border-top: 2px solid var(--burgundy);
+    padding-top: 0.1in;
+  }
+
+  .plating-box {
+    border: 1px solid var(--rule);
+    padding: 0.12in 0.15in;
+    margin-top: 0.2in;
+  }
+  .plating-box .pb-title {
+    font-family: 'Josefin Sans', sans-serif;
+    font-size: 7pt;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--sienna);
+    margin-bottom: 0.06in;
+  }
+  .plating-box .pb-body {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 9.5pt;
+    line-height: 1.6;
+  }
+  .plating-box .pb-body strong { color: var(--burgundy); }
+
+  .extras-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.2in;
+    margin-top: 0.2in;
+  }
+  .extra-box {
+    border-top: 2px solid var(--burgundy);
+    padding-top: 0.1in;
+  }
+
+  .footer {
+    position: absolute;
+    bottom: 0.45in;
+    left: 0.65in;
+    right: 0.65in;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 1px solid var(--rule);
+    padding-top: 0.07in;
+  }
+  .footer span {
+    font-family: 'Josefin Sans', sans-serif;
+    font-size: 7pt;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--rule);
+  }
+
+  @media print {
+    @page { size: letter; margin: 0; }
+    body { background: none; }
+    .page {
+      width: 100%;
+      min-height: 100vh;
+      margin: 0;
+      padding: 0.5in 0.6in;
+      box-shadow: none;
+      page-break-after: always;
+    }
+    .page:last-child { page-break-after: avoid; }
+    .print-btn { display: none !important; }
+  }
+
+  .print-btn {
+    display: block;
+    text-align: center;
+    margin: 0.2in auto 0.5in;
+    width: 8.5in;
+  }
+  .print-btn button {
+    font-family: 'Josefin Sans', sans-serif;
+    font-size: 9pt;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    background: var(--burgundy);
+    color: #f5eee6;
+    border: none;
+    padding: 0.1in 0.3in;
+    cursor: pointer;
+  }
+  .print-btn button:hover { background: var(--sienna); }
+</style>
+</head>
+<body>
+
+<div class="page">
+
+  <div class="header">
+    <div class="label">American · Oven</div>
+    <h1><em>Spicy</em> Dry-Rubbed Baked Chicken</h1>
+    <div class="subtitle">Smoked Paprika · Cayenne · Garlic · Crispy Skin · High Heat</div>
+    <div class="meta-row">
+      <div class="meta-item"><div class="val">10 min</div><div class="key">Prep</div></div>
+      <div class="meta-dot">·</div>
+      <div class="meta-item"><div class="val">40–50 min</div><div class="key">Bake</div></div>
+      <div class="meta-dot">·</div>
+      <div class="meta-item"><div class="val">425°F</div><div class="key">Oven</div></div>
+      <div class="meta-dot">·</div>
+      <div class="meta-item"><div class="val">4–6</div><div class="key">Serves</div></div>
+    </div>
+  </div>
+
+  <div class="body-cols">
+
+    <div>
+      <div class="section-title">Ingredients</div>
+      <ul class="ingredient-list">
+        <li><span class="qty">4</span><span>bone-in, skin-on chicken thighs</span></li>
+        <li><span class="qty">2–4</span><span>bone-in, skin-on chicken breasts</span></li>
+        <li><span class="qty">2 tbsp</span><span>olive oil</span></li>
+      </ul>
+
+      <div class="divider-ornament">— Dry Rub —</div>
+
+      <ul class="ingredient-list">
+        <li><span class="qty">2 tsp</span><span>smoked paprika</span></li>
+        <li><span class="qty">1 tsp</span><span>cayenne pepper</span></li>
+        <li><span class="qty">1 tsp</span><span>garlic powder</span></li>
+        <li><span class="qty">1 tsp</span><span>onion powder</span></li>
+        <li><span class="qty">½ tsp</span><span>ground cumin</span></li>
+        <li><span class="qty">½ tsp</span><span>dried oregano</span></li>
+        <li><span class="qty">1 tsp</span><span>brown sugar</span></li>
+        <li><span class="qty">1 tbsp</span><span>kosher salt</span></li>
+        <li><span class="qty">1 tsp</span><span>black pepper, coarse</span></li>
+      </ul>
+    </div>
+
+    <div>
+      <div class="section-title">Method</div>
+      <ol class="steps-list">
+
+        <li>
+          <span class="step-num">1</span>
+          <div>
+            <div class="step-title">Preheat & Mix Rub</div>
+            <div class="step-text">Heat oven to 425°F with a rack in the upper-middle position. In a small bowl, combine 2 tsp smoked paprika, 1 tsp cayenne, 1 tsp garlic powder, 1 tsp onion powder, ½ tsp cumin, ½ tsp dried oregano, 1 tsp brown sugar, 1 tbsp kosher salt, and 1 tsp black pepper. Stir until evenly mixed.</div>
+          </div>
+        </li>
+
+        <li>
+          <span class="step-num">2</span>
+          <div>
+            <div class="step-title">Pat Dry & Oil</div>
+            <div class="step-text">Pat all chicken pieces completely dry with paper towels — wet skin is the enemy of crunch. Drizzle 2 tbsp olive oil over the chicken and rub it all over every surface, including under the skin where you can get your fingers in.</div>
+          </div>
+        </li>
+
+        <li>
+          <span class="step-num">3</span>
+          <div>
+            <div class="step-title">Coat with Rub</div>
+            <div class="step-text">Press the spice rub generously onto every surface of the chicken — top, bottom, sides, and under the skin. Don't be shy. If time allows, let the coated pieces sit uncovered at room temp for 20–30 minutes, or refrigerate uncovered up to 4 hours — the dry air further crisps the skin.</div>
+          </div>
+        </li>
+
+        <li>
+          <span class="step-num">4</span>
+          <div>
+            <div class="step-title">Bake — Skin Side Up</div>
+            <div class="step-text">Arrange chicken skin-side up on a wire rack set over a rimmed sheet pan. Never crowd the pieces. Breasts are done at 165°F internal, around 35–40 minutes. Thighs read better at 170–175°F for texture — about 45–50 minutes. Check with an instant-read thermometer, not the clock.</div>
+          </div>
+        </li>
+
+        <li>
+          <span class="step-num">5</span>
+          <div>
+            <div class="step-title">Rest & Serve</div>
+            <div class="step-text">Pull the chicken and let it rest 5 minutes — don't skip this. The skin should be deep red-brown and crackling. Serve immediately; the crust softens as it sits.</div>
+          </div>
+        </li>
+
+      </ol>
+    </div>
+
+  </div>
+
+  <div class="notes-banner">
+    <div class="nb-label">Chef's Note</div>
+    <div class="nb-text">The wire rack is not optional — direct pan contact steams the underside into mush. If you only have a sheet pan, prop the pieces on thick-sliced onion rounds; they'll char under the chicken and the skin will still crisp. Don't cover or tent the chicken at any point.</div>
+  </div>
+
+  <div class="footer">
+    <span>Spicy Dry-Rubbed Baked Chicken</span>
+    <span>Page 1 of 2</span>
+  </div>
+</div>
+
+
+<div class="page">
+
+  <div class="p2-header">
+    <div>
+      <div class="label">Sides &amp; Plating</div>
+      <h2>Roasted Potatoes &amp; Cucumber Salad</h2>
+      <div class="subtitle" style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:11pt;color:var(--muted);margin-top:0.04in;">Crisp · Garlicky · Cool Contrast</div>
+    </div>
+    <div class="header-rule"></div>
+  </div>
+
+  <div class="sides-grid">
+
+    <div class="side-box">
+      <div class="section-title">Garlic Roasted Potatoes</div>
+      <ul class="ingredient-list">
+        <li><span class="qty">1½ lbs</span><span>baby potatoes, halved</span></li>
+        <li><span class="qty">3 cloves</span><span>garlic, smashed</span></li>
+        <li><span class="qty">2 tbsp</span><span>olive oil</span></li>
+        <li><span class="qty">½ tsp</span><span>smoked paprika</span></li>
+        <li><span class="qty">¾ tsp</span><span>kosher salt</span></li>
+        <li><span class="qty">½ tsp</span><span>black pepper</span></li>
+        <li><span class="qty">4 sprigs</span><span>fresh thyme or rosemary</span></li>
+      </ul>
+      <ol class="steps-list" style="margin-top:0.1in;">
+        <li>
+          <span class="step-num">1</span>
+          <div>
+            <div class="step-title">Season & Roast</div>
+            <div class="step-text">Toss 1½ lbs halved baby potatoes with 2 tbsp olive oil, 3 smashed garlic cloves, ½ tsp smoked paprika, ¾ tsp kosher salt, and ½ tsp pepper. Spread cut-side down on a sheet pan with the herb sprigs. Roast at 425°F for 30–35 minutes alongside the chicken until golden and crisp-edged. No stirring — let the cut side caramelize undisturbed.</div>
+          </div>
+        </li>
+      </ol>
+    </div>
+
+    <div class="side-box">
+      <div class="section-title">Cucumber & Red Onion Salad</div>
+      <ul class="ingredient-list">
+        <li><span class="qty">1</span><span>English cucumber, thin-sliced</span></li>
+        <li><span class="qty">¼</span><span>red onion, paper-thin sliced</span></li>
+        <li><span class="qty">2 tbsp</span><span>red wine vinegar</span></li>
+        <li><span class="qty">1 tbsp</span><span>olive oil</span></li>
+        <li><span class="qty">½ tsp</span><span>kosher salt</span></li>
+        <li><span class="qty">½ tsp</span><span>sugar</span></li>
+        <li><span class="qty">2 tbsp</span><span>fresh dill or flat-leaf parsley</span></li>
+      </ul>
+      <ol class="steps-list" style="margin-top:0.1in;">
+        <li>
+          <span class="step-num">1</span>
+          <div>
+            <div class="step-title">Quick Pickle & Toss</div>
+            <div class="step-text">Combine 2 tbsp red wine vinegar, 1 tbsp olive oil, ½ tsp salt, and ½ tsp sugar in a bowl. Add the thin-sliced cucumber and red onion and toss. Let sit at least 10 minutes — 30 is better. Fold in fresh dill or parsley just before serving. This salad is the cooling foil to the spicy chicken; don't skip it.</div>
+          </div>
+        </li>
+      </ol>
+    </div>
+
+  </div>
+
+  <div class="plating-box">
+    <div class="pb-title">To Plate</div>
+    <div class="pb-body">Place one or two pieces of chicken <strong>skin-side up</strong> — never face-down, never under sauce. Fan the roasted potatoes alongside, cut-side visible. Add a generous scoop of cucumber salad on the opposite side of the plate; the cool acidity cuts the heat beautifully. Finish the chicken with a squeeze of fresh lemon right before service. <strong>Serve on warm plates</strong> so the skin doesn't go cold and limp before the first bite.</div>
+  </div>
+
+  <div class="extras-row">
+
+    <div class="extra-box">
+      <div class="section-title">Make Ahead</div>
+      <div class="step-text" style="font-size:7.8pt;line-height:1.55;">The dry rub keeps in a sealed jar for months — make a double or triple batch. Chicken can be rubbed up to 24 hours in advance and held <em>uncovered</em> on a rack in the fridge; the exposed skin dries out even further and produces a superior crust. The cucumber salad improves after 30 minutes of sitting and can be made up to 2 hours ahead (drain lightly before serving if it releases too much liquid).</div>
+    </div>
+
+    <div class="extra-box">
+      <div class="section-title">Wine Pairing</div>
+      <div class="step-text" style="font-size:7.8pt;line-height:1.55;">Spice and tannin fight — avoid big Cabernet. A medium-bodied Grenache or Côtes du Rhône is the move: enough fruit to meet the heat, enough weight to hold its own. For white, an off-dry Riesling or a round, textured Roussanne handles the cayenne without flattening it. Rosé from Provence — dry and minerally — is also an excellent call here.</div>
+    </div>
+
+  </div>
+
+  <div class="footer">
+    <span>Garlic Potatoes &amp; Cucumber Salad</span>
+    <span>Page 2 of 2</span>
+  </div>
+</div>
+
+<div class="print-btn">
+  <button onclick="window.print()">⬡ &nbsp; Print Recipe &nbsp; ⬡</button>
+</div>
+
+</body>
+</html>
