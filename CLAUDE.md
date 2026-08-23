@@ -15,6 +15,7 @@ recipe UI in roadmap Phase 5. Run everything from the repo root.
 |---|---|
 | `apps/server/` | Cloudflare Worker, 8 MCP tools over D1. Stateless — no session objects |
 | `content/recipes/` | Recipe HTML cards, the format spec, and the base template |
+| `apps/server/src/app/` | The read-only web view at `/app/<view secret>` |
 | `scripts/check-recipes.mjs` | Recipe conformance — dependency-free on purpose |
 | `skill/SKILL.md` | The coaching layer. Every judgment lives here, not in code |
 | `docs/` | ARCHITECTURE, ROADMAP, COACHING-LAYER, DEV |
@@ -32,9 +33,12 @@ npm run deploy:prod      # manual, deliberately not in CI
 
 ## Guardrails
 
-- **Never commit secrets.** `MCP_PATH_SECRET` is the entire authentication story
-  for v1 — it lives in `wrangler secret` and `.dev.vars` (gitignored). The repo
-  is public.
+- **Never commit secrets.** `MCP_PATH_SECRET` and `APP_VIEW_SECRET` are the
+  entire authentication story for v1 — both live in `wrangler secret` and
+  `.dev.vars` (gitignored). The repo is public.
+- **Keep the two secrets apart.** `MCP_PATH_SECRET` grants writes;
+  `APP_VIEW_SECRET` opens the read-only view and is the only one safe to share.
+  Never reuse one for the other, and never hand out the MCP URL.
 - **Never put log data in the repo.** Meals, workouts, and bodyweight live in
   D1. `seeds/dev_seed.sql` is local-only and must never be applied to prod — it
   is deliberately outside `migrations/` so `d1 migrations apply` cannot reach it.

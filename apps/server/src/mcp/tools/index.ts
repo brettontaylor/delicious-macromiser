@@ -2,7 +2,7 @@
  * Tool registry. One entry per tool: JSON Schema for the model, a handler that
  * receives validated-enough args plus the request context.
  *
- * Kept small on purpose (ARCHITECTURE.md §5, design principle 3): eight good
+ * Kept small on purpose (ARCHITECTURE.md §5, design principle 3): a few good
  * descriptions beat thirty tools. Nothing here returns advice — no
  * recommend_workout, no analyze_progress. Coaching lives in the Skill.
  */
@@ -17,6 +17,7 @@ import { getToday } from './get_today.ts';
 import { getLastPerformance } from './get_last_performance.ts';
 import { getWeekSummary } from './get_week_summary.ts';
 import { getHistory } from './get_history.ts';
+import { importDays } from './import_days.ts';
 
 export type ToolArgs = Record<string, unknown>;
 export type ToolHandler = (ctx: Ctx, args: ToolArgs) => Promise<unknown>;
@@ -193,6 +194,97 @@ export const TOOLS: ToolDef[] = [
       additionalProperties: false,
     },
     handler: getHistory,
+  },
+  {
+    name: 'import_days',
+    description: DESCRIPTIONS.import_days,
+    inputSchema: {
+      type: 'object',
+      properties: {
+        days: {
+          type: 'array',
+          description: 'One object per calendar day. Up to 60 per call.',
+          items: {
+            type: 'object',
+            properties: {
+              date: str('The day these entries belong to, YYYY-MM-DD. Required.'),
+              meals: {
+                type: 'array',
+                description: 'Up to 20 meals for this day. Omit if none are known.',
+                items: {
+                  type: 'object',
+                  properties: {
+                    description: str('What was eaten, in the user’s own words.'),
+                    kcal: num('Total calories, including any from alcohol.'),
+                    protein_g: num('Grams of protein.'),
+                    fat_g: num('Grams of fat.'),
+                    carb_g: num('Grams of carbohydrate, excluding alcohol.'),
+                    fiber_g: num('Grams of fiber. Optional.'),
+                    alcohol_g: num(ARG_DOCS.alcohol_g),
+                    meal_type: {
+                      type: 'string',
+                      enum: ['breakfast', 'lunch', 'dinner', 'snack'],
+                      description: 'Optional.',
+                    },
+                    confidence: {
+                      type: 'string',
+                      enum: ['high', 'medium', 'low'],
+                      description: ARG_DOCS.confidence,
+                    },
+                  },
+                  required: ['description', 'kcal', 'protein_g', 'fat_g', 'carb_g', 'confidence'],
+                  additionalProperties: false,
+                },
+              },
+              workout: {
+                type: 'object',
+                description: 'One training session for this day. Omit if none.',
+                properties: {
+                  session_label: str('Free text, e.g. "Pull" or "Day A". Optional.'),
+                  notes: str('Optional.'),
+                  sets: {
+                    type: 'array',
+                    description: 'Every set of the session. set_no defaults to position.',
+                    items: {
+                      type: 'object',
+                      properties: {
+                        exercise: str('The lift name as the user said it; the server normalizes it.'),
+                        set_no: num('1-based position. Optional — defaults to array order.'),
+                        reps: num('Reps completed. Omit if unknown rather than guessing.'),
+                        weight_lb: num('Load in pounds. Omit if unknown rather than guessing.'),
+                        rpe: num('1-10. Optional.'),
+                        completed: {
+                          type: 'boolean',
+                          description: 'False when the set was attempted but target reps were missed.',
+                        },
+                      },
+                      required: ['exercise'],
+                      additionalProperties: false,
+                    },
+                  },
+                },
+                required: ['sets'],
+                additionalProperties: false,
+              },
+              bodyweight: {
+                type: 'object',
+                description: 'Weigh-in for this day. Omit if none.',
+                properties: {
+                  weight_lb: num('Bodyweight in pounds.'),
+                  waist_in: num('Waist in inches.'),
+                },
+                additionalProperties: false,
+              },
+            },
+            required: ['date'],
+            additionalProperties: false,
+          },
+        },
+      },
+      required: ['days'],
+      additionalProperties: false,
+    },
+    handler: importDays,
   },
 ];
 

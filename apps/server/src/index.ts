@@ -13,11 +13,18 @@ import { handleRpc } from './mcp/server.ts';
 import { SERVER_INFO } from './mcp/server.ts';
 import { PARSE_ERROR, error, json } from './mcp/rpc.ts';
 import { ensureUser, getUserTz } from './db/queries.ts';
+import { renderApp } from './app/page.ts';
 import type { Ctx } from './db/queries.ts';
 
 export interface Env {
   DB: D1Database;
   MCP_PATH_SECRET: string;
+  /**
+   * Separate secret for the read-only web view. Deliberately not MCP_PATH_SECRET:
+   * that one grants writes, so a link you can send someone must be revocable
+   * without breaking the connector. Unset means the view is simply off.
+   */
+  APP_VIEW_SECRET?: string;
   DEFAULT_TZ?: string;
   OWNER_USER_ID?: string;
 }
@@ -62,6 +69,28 @@ export default {
         return new Response('Not found', { status: 404 });
       }
       return handleMcp(request, env);
+    }
+
+    // ---------- read-only web view ----------
+    const appMatch = /^\/app\/([A-Za-z0-9_-]{16,128})$/.exec(path);
+    if (appMatch) {
+      const secret = env.APP_VIEW_SECRET;
+      // No secret configured means the view is off, not open. Same 404 as a
+      // wrong secret so the response never distinguishes the two.
+      if (!secret || !timingSafeEqual(appMatch[1]!, secret)) {
+        return new Response('Not found', { status: 404 });
+      }
+      if (request.method !== 'GET') {
+        // The view never writes. Anything but GET is a misunderstanding.
+        return new Response('Method not allowed', { status: 405, headers: { allow: 'GET' } });
+      }
+      const userId = env.OWNER_USER_ID || 'owner';
+      const now = new Date();
+      const stored = await getUserTz(env.DB, userId);
+      const ctx: Ctx = { db: env.DB, userId, tz: stored ?? (env.DEFAULT_TZ || 'America/New_York'), now };
+      const requested = url.searchParams.get('date');
+      const date = requested && /^\d{4}-\d{2}-\d{2}$/.test(requested) ? requested : null;
+      return renderApp(ctx, date);
     }
 
     // A bare /mcp with no secret is the most likely misconfiguration. Say so

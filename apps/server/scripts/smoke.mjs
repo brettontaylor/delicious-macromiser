@@ -100,7 +100,21 @@ try {
   section('Tool surface');
   const { tools } = await rpc('tools/list');
   const names = tools.map((t) => t.name).sort();
-  check('eight tools listed', tools.length === 8, names.join(', '));
+  // Assert the exact surface, not a count — a count assertion only tells you
+  // the number changed, never which tool went missing.
+  const EXPECTED_TOOLS = [
+    'get_history', 'get_last_performance', 'get_today', 'get_week_summary',
+    'import_days', 'log_bodyweight', 'log_meal', 'log_workout', 'set_goals',
+  ];
+  const missing = EXPECTED_TOOLS.filter((t) => !names.includes(t));
+  const extra = names.filter((t) => !EXPECTED_TOOLS.includes(t));
+  check(
+    'tool surface matches exactly',
+    missing.length === 0 && extra.length === 0,
+    missing.length || extra.length
+      ? `missing: ${missing.join(', ') || 'none'} | unexpected: ${extra.join(', ') || 'none'}`
+      : names.join(', '),
+  );
   check('get_last_performance present', names.includes('get_last_performance'));
   check(
     'every tool has a description and schema',

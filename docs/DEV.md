@@ -84,6 +84,29 @@ node scripts/smoke.mjs https://macromiser-prod.<subdomain>.workers.dev <secret>
 
 ---
 
+## 2b. The read-only web view
+
+`/app/<APP_VIEW_SECRET>` serves a server-rendered day view — the ring, macros,
+meals with their source and confidence, recent sessions, and a bodyweight
+sparkline. No framework, no build step, no client JS.
+
+```bash
+npx wrangler secret put APP_VIEW_SECRET --env prod
+```
+
+**It is a second secret on purpose.** `MCP_PATH_SECRET` grants writes; anyone
+holding it can log or overwrite anything through `/mcp/<secret>`. A link you can
+send to someone must be revocable without breaking your connector, so the view
+has its own. Rotating one never touches the other, and the MCP secret returns
+404 on `/app` just like any other wrong value.
+
+The view is read-only by construction: it issues no writes, and anything but GET
+returns 405. Editing waits on the Phase 3 correction tools.
+
+If `APP_VIEW_SECRET` is unset the route 404s — the view is off, not open.
+
+---
+
 ## 3. Connecting it to Claude
 
 Custom connectors require Pro/Max/Team/Enterprise, and must be **added on

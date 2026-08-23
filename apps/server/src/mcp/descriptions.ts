@@ -39,6 +39,14 @@ It returns data, not a recommendation. Apply your own progression rules to it. I
 
 Returns 7-day (or requested-window) averages for calories, food calories excluding alcohol, protein, and alcohol; protein adherence as a percentage of logged days; session count; and average bodyweight and waist. Averages are computed over days that actually have data, and days_with_data is returned alongside so you can say plainly when a week is too sparse to read.`,
 
+  import_days: `Backfill many days of history in ONE call. Use this — not repeated log_meal and log_workout calls — whenever reconstructing more than a day or two, for example from an earlier conversation or another tracker.
+
+Each call approval interrupts the user, so twenty separate writes is twenty interruptions and a real chance the run is abandoned half-finished. Send the whole reconstruction as a single days array instead.
+
+Everything written here is marked source="import", because a reconstructed entry is weaker evidence than one captured as it happened and the trend views need to tell them apart. Only include numbers the user actually stated or that were calculated at the time; omit a field rather than inventing it.
+
+This is NOT idempotent for meals and workouts — calling it twice writes everything twice. Confirm the full list with the user before calling it, and never retry a call that may have partly succeeded.`,
+
   get_history: `Retrieve meals, workouts and bodyweight for an explicit date range. Use this for questions that reach further back than the current week, for export, and for "how was last month". Prefer get_today for today and get_week_summary for the current week — both are cheaper and shaped for the question.`,
 } as const;
 
