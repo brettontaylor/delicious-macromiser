@@ -368,7 +368,15 @@ export const TOOLS: ToolDef[] = [
       'Diagnostic. Returns a test image so we can find out whether this client ' +
       'passes image content blocks through to the model. Describe exactly what ' +
       'you see, and say plainly if you see nothing.',
-    inputSchema: { type: 'object', properties: {}, additionalProperties: false },
+    // Deliberately carries one optional property. spike_image was the only
+    // parameterless tool in the surface and did not appear in a client that
+    // listed every other tool — an empty `properties` object is a plausible
+    // reason a client would drop it, and this rules that out cheaply.
+    inputSchema: {
+      type: 'object',
+      properties: { note: str('Optional. Ignored — present only so the schema is not empty.') },
+      additionalProperties: false,
+    },
     handler: spikeImage,
   },
 ];
