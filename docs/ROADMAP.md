@@ -22,8 +22,8 @@ Prove the connection before building anything.
 
 - [x] Cloudflare Worker with a single MCP tool: `ping` → `"pong"`
 - [x] Streamable HTTP at `/mcp/<random>`
-- [ ] Add as a custom connector in claude.ai (Settings → Connectors → Add custom)
-- [ ] Confirm the tool is callable from a chat
+- [x] Add as a custom connector in claude.ai (Settings → Connectors → Add custom)
+- [x] Confirm the tool is callable from a chat
 - [ ] Confirm it also appears on Claude mobile
 
 **Exit:** Claude on your phone can call a tool on your Worker.
@@ -76,7 +76,7 @@ recovery spacing, and no re-explanation of your history.
 
 ---
 
-## Phase 2.5 — Recipes become macros (1 evening + a backfill)
+## Phase 2.5 — Recipes become macros — ✅ done 2026-08-23
 
 The reason the recipe book and the server share a repo. A recipe you actually
 cooked is the highest-confidence food entry that can exist: the portions are
@@ -88,28 +88,27 @@ logged as "roughly 700 calories" is a measurement thrown away.
       a serving eaten without the rice can still be logged accurately.
       Six rules, including the one that matters: only count what the ingredient
       list actually contains
-- [ ] **Backfill the existing recipes** — all six still lack nutrition, so the
-      catalog is empty and nothing is loggable yet. This is the remaining work
-      in this phase and it is content, not code: each card needs per-ingredient
-      macros summed and divided by its yield.
+- [x] **Backfill the existing recipes** — all six carry per-serving nutrition,
+      summed per ingredient from each card's own list and divided by its yield
+      (larger end of a range). Each also carries an `x-components` split, so a
+      serving eaten without the rice or polenta logs accurately.
 
-      Two cards need their ingredients fixed first. `greek-beef-zucchini-bowl`
-      lists no beef despite the title, and several recipes mix main and side
-      ingredients into one list, so the component split has to be decided per
-      card. Format rule 4 applies — add the missing ingredients or leave the
-      card out; do not infer them
-- [ ] Flip `ENFORCE_NUTRITION` to `true` in `scripts/check-recipes.mjs` so CI
+      Ethanol is not counted; dry wine contributes almost nothing once it cooks
+      off. An Atwater cross-check (4/9/4) now runs in the build and every card
+      lands within 2% of its stated calories.
+
+- [x] Flipped `ENFORCE_NUTRITION` to `true` in `scripts/check-recipes.mjs` so CI
       keeps it true from then on
 - [x] `scripts/build-recipe-catalog.mjs` — parses the cards into
       `apps/server/src/generated/recipes.json`, bundled into the Worker at
       deploy (wired into `deploy:prod`). No D1 table, no sync step. Rejects a
       partial nutrition block rather than logging a missing macro as zero;
       runs in CI. Parser verified against fixtures
-- [ ] Migration: `ALTER TABLE meals ADD COLUMN recipe_slug TEXT`, and extend the
+- [x] Migration `0002_recipe_link.sql`: `recipe_slug` column + partial index, and extend the
       `source` enum with `'recipe'` alongside `estimate|corrected|barcode|import`
-- [ ] `log_meal` accepts `recipe_slug` + `servings` → exact macros, `confidence`
+- [x] `log_meal` accepts `recipe_slug` + `servings` → exact macros, `confidence`
       = high, description auto-filled from the recipe title
-- [ ] New tool `list_recipes` — returns slug, title, servings, per-serving macros
+- [x] New tool `list_recipes` — returns slug, title, servings, per-serving macros
 
 **Exit:** "log two servings of the galbi jjim" writes exact macros, and
 "what can I make tonight with 60g of protein left?" is answerable.

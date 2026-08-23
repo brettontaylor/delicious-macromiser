@@ -113,6 +113,8 @@ export async function importDays(ctx: Ctx, args: ToolArgs): Promise<unknown> {
           alcohol_g: num('alcohol_g', false),
           confidence,
           source: 'import',
+          // Imports are reconstructed from prose, never from a recipe card.
+          recipe_slug: null,
         };
         await insertMeal(ctx, row);
         tally.meals += 1;

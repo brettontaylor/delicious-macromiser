@@ -7,16 +7,16 @@
  *   ENFORCED — structural guarantees the print format depends on. A failure
  *              here means the card will not render or print correctly, so it
  *              fails the build.
- *   ADVISORY — the schema.org/Recipe JSON-LD block carrying per-serving
- *              nutrition. Reported but not enforced until the recipe catalog
- *              is wired into the MCP server (docs/ROADMAP.md, Phase 2.5).
- *              Flip ENFORCE_NUTRITION to true when the backfill is done.
+ *   ENFORCED (since the Phase 2.5 backfill) — the schema.org/Recipe JSON-LD
+ *              block carrying per-serving nutrition. A card without it cannot
+ *              be logged, so a new recipe that omits it is a silent regression
+ *              in the catalog rather than a cosmetic gap.
  */
 import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 const RECIPE_DIR = 'content/recipes';
-const ENFORCE_NUTRITION = false;
+const ENFORCE_NUTRITION = true;
 
 // Palette from _template/BASE_TEMPLATE.html. RECIPE_FORMAT.md says these are
 // fixed — a recipe that invents its own colors breaks the book's consistency.

@@ -99,6 +99,26 @@ for (const file of files) {
     continue;
   }
 
+  // Atwater cross-check: protein and carbs at 4 kcal/g, fat at 9. If the stated
+  // calories and the stated macros disagree badly, one of them is a typo — and
+  // a meal logged from this card would carry the error into the trend data.
+  const atwater = protein * 4 + fat * 9 + carb * 4;
+  const drift = kcal > 0 ? Math.abs(atwater - kcal) / kcal : 0;
+  if (drift > 0.1) {
+    console.error(
+      `FAIL  ${file}: ${kcal} kcal stated but macros imply ${Math.round(atwater)} ` +
+        `(${(drift * 100).toFixed(1)}% apart)`,
+    );
+    failed++;
+    continue;
+  }
+  if (drift > 0.05) {
+    console.warn(
+      `warn  ${file}: ${kcal} kcal stated, macros imply ${Math.round(atwater)} ` +
+        `(${(drift * 100).toFixed(1)}% apart)`,
+    );
+  }
+
   recipes.push({
     slug,
     title: node.name ?? slug,

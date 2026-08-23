@@ -40,6 +40,7 @@ export interface NewMeal {
   alcohol_g: number;
   confidence: string;
   source: string;
+  recipe_slug: string | null;
 }
 
 export async function insertMeal(ctx: Ctx, m: NewMeal): Promise<string> {
@@ -48,13 +49,14 @@ export async function insertMeal(ctx: Ctx, m: NewMeal): Promise<string> {
   await ctx.db
     .prepare(
       `INSERT INTO meals (id, user_id, logged_at, local_date, meal_type, description,
-         kcal, protein_g, fat_g, carb_g, fiber_g, alcohol_g, confidence, source, created_at)
-       VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
+         kcal, protein_g, fat_g, carb_g, fiber_g, alcohol_g, confidence, source,
+         recipe_slug, created_at)
+       VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
     )
     .bind(
       id, ctx.userId, iso, m.local_date, m.meal_type, m.description,
       m.kcal, m.protein_g, m.fat_g, m.carb_g, m.fiber_g, m.alcohol_g,
-      m.confidence, m.source, iso,
+      m.confidence, m.source, m.recipe_slug ?? null, iso,
     )
     .run();
   return id;

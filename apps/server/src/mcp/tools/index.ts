@@ -18,6 +18,7 @@ import { getLastPerformance } from './get_last_performance.ts';
 import { getWeekSummary } from './get_week_summary.ts';
 import { getHistory } from './get_history.ts';
 import { importDays } from './import_days.ts';
+import { listRecipes } from './list_recipes.ts';
 
 export type ToolArgs = Record<string, unknown>;
 export type ToolHandler = (ctx: Ctx, args: ToolArgs) => Promise<unknown>;
@@ -62,8 +63,15 @@ export const TOOLS: ToolDef[] = [
           enum: ['estimate', 'import'],
           description: ARG_DOCS.source,
         },
+        recipe_slug: str(
+          'Slug of a dish from the user’s recipe book. When set, macros come from ' +
+            'the recipe and kcal/protein_g/fat_g/carb_g are not required. See list_recipes.',
+        ),
+        servings: num('How many servings of the recipe. Defaults to 1. Only with recipe_slug.'),
       },
-      required: ['description', 'kcal', 'protein_g', 'fat_g', 'carb_g', 'confidence'],
+      // kcal and macros are required only when there is no recipe_slug; that is
+      // enforced in the handler, which JSON Schema cannot express cleanly here.
+      required: ['description'],
       additionalProperties: false,
     },
     handler: logMeal,
@@ -285,6 +293,20 @@ export const TOOLS: ToolDef[] = [
       additionalProperties: false,
     },
     handler: importDays,
+  },
+  {
+    name: 'list_recipes',
+    description: DESCRIPTIONS.list_recipes,
+    inputSchema: {
+      type: 'object',
+      properties: {
+        query: str('Optional substring of a title or slug.'),
+        min_protein_g: num('Optional. Only recipes with at least this much protein per serving.'),
+        max_kcal: num('Optional. Only recipes at or under this many calories per serving.'),
+      },
+      additionalProperties: false,
+    },
+    handler: listRecipes,
   },
 ];
 

@@ -11,6 +11,8 @@
 export const DESCRIPTIONS = {
   log_meal: `Record food or drink the user has eaten. Call this as soon as the user describes something they ate or drank — do not ask permission first, and do not wait for them to finish listing everything. Estimate kcal and macros yourself from the description; the server stores what you send and never re-estimates. State the estimate you used in your reply so the user can correct it.
 
+If the user ate something from their recipe book, pass recipe_slug and servings INSTEAD of kcal and macros. The numbers then come from the recipe itself — portions that were measured and written down when it was cooked — so the entry is recorded at high confidence and any macros you also send are ignored. Call list_recipes if you are unsure of the slug. Do not use recipe_slug for something merely similar to a recipe; that is an estimate, and it should be logged as one.
+
 Set alcohol_g to the grams of pure ethanol (a 5oz glass of 13% wine is about 15g, a 12oz 5% beer about 14g, a 1.5oz shot of 80-proof spirit about 17g) and do NOT also fold those calories into carbs. Set confidence to "low" when the portion is genuinely unclear rather than inventing precision.
 
 Returns the updated running total for the day, so you can report where the user now stands without a second call.`,
@@ -38,6 +40,12 @@ It returns data, not a recommendation. Apply your own progression rules to it. I
   get_week_summary: `Call this for any question about progress, trends, "how was this week", or whether something is working. A single day is noise; never answer a trend question from one day's data.
 
 Returns 7-day (or requested-window) averages for calories, food calories excluding alcohol, protein, and alcohol; protein adherence as a percentage of logged days; session count; and average bodyweight and waist. Averages are computed over days that actually have data, and days_with_data is returned alongside so you can say plainly when a week is too sparse to read.`,
+
+  list_recipes: `The user's own cookbook, with per-serving macros already calculated. Call this when they ask what to cook, what fits their remaining macros, or whether a dish is in the book.
+
+Returns facts, not a recommendation — which dishes exist, what a serving costs, and a per-component breakdown so a serving eaten without the rice can still be logged accurately. Apply your own judgement about what to suggest.
+
+When they eat one of these, log it with log_meal using recipe_slug rather than estimating.`,
 
   import_days: `Backfill many days of history in ONE call. Use this — not repeated log_meal and log_workout calls — whenever reconstructing more than a day or two, for example from an earlier conversation or another tracker.
 
