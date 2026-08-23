@@ -29,7 +29,9 @@ product.** The server stores and retrieves and does arithmetic. Every judgment
 lives in a prompt layer ([`skill/SKILL.md`](skill/SKILL.md)) that can be edited
 in a text file without a deploy.
 
-Full reasoning: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+Full reasoning: [docs/PRODUCT.md](docs/PRODUCT.md) for the problem, thesis, and
+user objectives; [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the stack and
+data model.
 
 ## Layout
 
