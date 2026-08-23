@@ -84,26 +84,35 @@ node scripts/smoke.mjs https://macromiser-prod.<subdomain>.workers.dev <secret>
 
 ---
 
-## 2b. The read-only web view
+## 2b. The web view
 
-`/app/<APP_VIEW_SECRET>` serves a server-rendered day view — the ring, macros,
-meals with their source and confidence, recent sessions, and a bodyweight
-sparkline. No framework, no build step, no client JS.
+`/app/<secret>` serves a server-rendered day view — the ring, macros, meals with
+their source and confidence, recent sessions, and a bodyweight trend chart. No
+framework, no build step, no client JavaScript.
+
+**Three secrets, three capabilities**, each revocable without touching the others:
+
+| Secret | Opens | Can write |
+|---|---|---|
+| `MCP_PATH_SECRET` | the connector at `/mcp/<secret>` | yes, via tools |
+| `APP_EDIT_SECRET` | `/app/<secret>`, editable | yes, this page only |
+| `APP_VIEW_SECRET` | `/app/<secret>`, read-only | no |
 
 ```bash
 npx wrangler secret put APP_VIEW_SECRET --env prod
+npx wrangler secret put APP_EDIT_SECRET --env prod
 ```
 
-**It is a second secret on purpose.** `MCP_PATH_SECRET` grants writes; anyone
-holding it can log or overwrite anything through `/mcp/<secret>`. A link you can
-send to someone must be revocable without breaking your connector, so the view
-has its own. Rotating one never touches the other, and the MCP secret returns
-404 on `/app` just like any other wrong value.
+The read link exists to be shared, so editing must not ride along with it — the
+capability is resolved from which secret opened the page, and a read link that
+reaches a write path gets 403, not a silent no-op. An unset secret disables that
+capability rather than opening it; a wrong secret and an unconfigured one both
+return the same 404 so the response never distinguishes them.
 
-The view is read-only by construction: it issues no writes, and anything but GET
-returns 405. Editing waits on the Phase 3 correction tools.
-
-If `APP_VIEW_SECRET` is unset the route 404s — the view is off, not open.
+Editing is plain HTML form POSTs with Post/Redirect/Get — no fetch, no client
+state that can disagree with the server, and a refresh after saving never
+re-submits. An edit made with a thumb and one made in chat are indistinguishable
+in the log: both land as `source='corrected'` and both teach a portion.
 
 ---
 

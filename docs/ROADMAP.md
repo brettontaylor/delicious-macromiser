@@ -124,7 +124,7 @@ catalog is a much better reason for a second user than a shared macro log.
 
 ---
 
-## Phase 3 — Correction UI + trends (1 weekend)
+## Phase 3 — Correction UI + trends — ✅ done 2026-08-23
 
 Closes the loop that no competing tool closes.
 
@@ -132,15 +132,25 @@ Closes the loop that no competing tool closes.
       (see [DEV.md](DEV.md) §2b)
 - [x] `correct_meal` / `delete_meal` tools — partial edits, soft delete.
       Until now there was no undo at all short of hand-editing prod SQL
-- [ ] Inline edit in the web view (the tools exist; the UI is still read-only)
+- [x] Inline edit in the web view — a `<details>` per meal keeps the day
+      scannable and opens number inputs only for the one being fixed. Plain
+      form POSTs with Post/Redirect/Get; no client JavaScript. Gated on a
+      third secret so the shareable read link cannot write
 - [x] Edits set `source='corrected'` and raise confidence to high — a human
       has now looked at the numbers, which is different evidence
 - [x] `portion_memory`: corrected portions become reusable phrases, surfaced
       on every `get_today` as `known_portions`
 - [x] `get_week_summary` tool: 7-day averages, protein adherence, weight trend
       — pulled forward into Phase 1; a trend view was cheap once totals existed
-- [ ] Weight + waist trend chart
-- [ ] CSV export
+- [x] Weight + waist trend chart — inline SVG, no chart library. Raw
+      weigh-ins are faint dots, the 7-day rolling average is the line, matching
+      the Skill's rule that a single reading is noise. Scaled to the data, never
+      to the target: a goal 20 lb away would otherwise crush every real reading
+      into a strip at the top. An off-scale target is annotated instead
+- [~] CSV export — **dropped 2026-08-23.** Import and export belong in
+      predefined MCP connectors (other trackers, Apple Health, running apps),
+      not in a one-off file format. A CSV would be a second integration surface
+      to maintain that nothing would consume.
 
 **Exit:** correcting an estimate once measurably improves the next estimate of
 the same food.

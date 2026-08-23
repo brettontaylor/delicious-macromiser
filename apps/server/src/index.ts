@@ -15,6 +15,7 @@ import { PARSE_ERROR, error, json } from './mcp/rpc.ts';
 import { ensureUser, getUserTz } from './db/queries.ts';
 import { renderApp } from './app/page.ts';
 import { runBackup, scheduledBackup } from './backup.ts';
+import { handleAppWrite } from './app/write.ts';
 import type { Ctx } from './db/queries.ts';
 
 export interface Env {
@@ -26,6 +27,12 @@ export interface Env {
    * without breaking the connector. Unset means the view is simply off.
    */
   APP_VIEW_SECRET?: string;
+  /**
+   * Opens the same page with editing enabled. A third secret rather than a flag
+   * on the second one, because the read link exists to be shared and editing
+   * must not ride along with it. Each is revocable without touching the others.
+   */
+  APP_EDIT_SECRET?: string;
   /** Nightly D1 snapshots. Unbound simply disables backup. */
   BACKUPS?: R2Bucket;
   DEFAULT_TZ?: string;
@@ -74,26 +81,47 @@ export default {
       return handleMcp(request, env);
     }
 
-    // ---------- read-only web view ----------
-    const appMatch = /^\/app\/([A-Za-z0-9_-]{16,128})$/.exec(path);
+    // ---------- web view ----------
+    // Three secrets, three capabilities, all independently revocable:
+    //   MCP_PATH_SECRET  — the connector. Full write access via tools.
+    //   APP_EDIT_SECRET  — this page, editable. Personal.
+    //   APP_VIEW_SECRET  — this page, read-only. The one that is safe to send.
+    // Resolving capability from the secret means a shared link cannot be
+    // escalated by guessing a URL.
+    const appMatch = /^\/app\/([A-Za-z0-9_-]{16,128})(\/[a-z]+)?$/.exec(path);
     if (appMatch) {
-      const secret = env.APP_VIEW_SECRET;
-      // No secret configured means the view is off, not open. Same 404 as a
-      // wrong secret so the response never distinguishes the two.
-      if (!secret || !timingSafeEqual(appMatch[1]!, secret)) {
-        return new Response('Not found', { status: 404 });
-      }
-      if (request.method !== 'GET') {
-        // The view never writes. Anything but GET is a misunderstanding.
-        return new Response('Method not allowed', { status: 405, headers: { allow: 'GET' } });
-      }
+      const given = appMatch[1]!;
+      const action = appMatch[2] ?? '';
+      const canEdit = !!env.APP_EDIT_SECRET && timingSafeEqual(given, env.APP_EDIT_SECRET);
+      const canRead = canEdit || (!!env.APP_VIEW_SECRET && timingSafeEqual(given, env.APP_VIEW_SECRET));
+      // An unconfigured secret means that capability is off, not open — and a
+      // wrong secret gets the same 404, so the response never distinguishes them.
+      if (!canRead) return new Response('Not found', { status: 404 });
+
       const userId = env.OWNER_USER_ID || 'owner';
       const now = new Date();
       const stored = await getUserTz(env.DB, userId);
       const ctx: Ctx = { db: env.DB, userId, tz: stored ?? (env.DEFAULT_TZ || 'America/New_York'), now };
-      const requested = url.searchParams.get('date');
-      const date = requested && /^\d{4}-\d{2}-\d{2}$/.test(requested) ? requested : null;
-      return renderApp(ctx, date);
+
+      if (request.method === 'GET') {
+        const requested = url.searchParams.get('date');
+        const date = requested && /^\d{4}-\d{2}-\d{2}$/.test(requested) ? requested : null;
+        return renderApp(ctx, date, { canEdit, secret: given, notice: url.searchParams.get('ok') });
+      }
+
+      if (request.method === 'POST' && (action === '/save' || action === '/remove')) {
+        if (!canEdit) {
+          // The read link reached a write path. Say so plainly rather than 404 —
+          // the page is real, the capability is not.
+          return new Response('This link is read-only.', { status: 403 });
+        }
+        return handleAppWrite(ctx, request, given, action === '/remove');
+      }
+
+      return new Response('Method not allowed', {
+        status: 405,
+        headers: { allow: canEdit ? 'GET, POST' : 'GET' },
+      });
     }
 
     // ---------- manual backup trigger ----------

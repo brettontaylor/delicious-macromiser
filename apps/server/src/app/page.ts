@@ -24,6 +24,7 @@ import {
 } from '../db/queries.ts';
 import { sumMeals, remainingVsGoals } from '../domain/totals.ts';
 import { localDate, shiftDate } from '../util/date.ts';
+import { trendChart } from './chart.ts';
 
 const esc = (s: unknown): string =>
   String(s).replace(/[&<>"']/g, (c) =>
@@ -69,7 +70,19 @@ async function recentWorkouts(ctx: Ctx, start: string, end: string): Promise<Wor
   return [...byDate.values()];
 }
 
-export async function renderApp(ctx: Ctx, dateParam: string | null): Promise<Response> {
+export interface AppOptions {
+  canEdit: boolean;
+  /** Needed so form actions post back to the same capability. */
+  secret: string;
+  /** One-shot result of the last write, from the redirect. */
+  notice: string | null;
+}
+
+export async function renderApp(
+  ctx: Ctx,
+  dateParam: string | null,
+  opts: AppOptions,
+): Promise<Response> {
   const today = localDate(ctx.now, ctx.tz);
   const date = dateParam ?? today;
   const windowStart = shiftDate(date, -29);
@@ -96,7 +109,6 @@ export async function renderApp(ctx: Ctx, dateParam: string | null): Promise<Res
   const loggedDays = [...new Set(rangeMeals.map((m) => m.local_date))].sort().reverse();
 
   const latestWeight = [...bw].reverse().find((r) => r.weight_lb !== null);
-  const weightSeries = bw.filter((r) => r.weight_lb !== null).slice(-14);
 
   const importedCount = meals.filter((m) => m.source === 'import').length;
 
@@ -180,9 +192,47 @@ h2{font-family:var(--display);font-size:17px;font-weight:600;margin:0}
 .empty{border:1px dashed var(--line-firm);border-radius:10px;padding:20px 16px;text-align:center;
   color:var(--muted);font-size:13px}
 
-.spark{display:flex;align-items:flex-end;gap:3px;height:44px}
-.spark i{flex:1;background:var(--track);border-radius:2px 2px 0 0;min-height:2px}
-.spark i:last-child{background:var(--fill)}
+/* chart */
+.chart{display:flex;flex-direction:column;gap:8px}
+.chart svg{width:100%;height:auto;display:block}
+.c-axis{stroke:var(--line);stroke-width:1}
+.c-target{stroke:var(--line-firm);stroke-width:1;stroke-dasharray:3 3}
+.c-tick{font-family:var(--mono);font-size:8px;fill:var(--muted)}
+.c-dot{fill:var(--line-firm)}
+.c-avg{stroke:var(--fill);stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.c-last{fill:var(--fill);stroke:var(--surface);stroke-width:1.5}
+.c-legend{display:flex;flex-wrap:wrap;gap:4px 14px;font-family:var(--mono);font-size:11px;color:var(--muted)}
+.c-legend b{color:var(--ink);font-weight:500;font-family:var(--ui);font-size:13px}
+.c-down{color:var(--ink)}
+.c-waist{opacity:.85}
+
+/* editing */
+.notice{margin:0;padding:9px 12px;border:1px solid var(--line-firm);border-radius:8px;
+  background:var(--surface);font-size:13px}
+details summary{cursor:pointer;list-style:none;display:flex;flex-direction:column;gap:8px}
+details summary::-webkit-details-marker{display:none}
+details summary::after{content:"Edit";font-family:var(--mono);font-size:10px;letter-spacing:.08em;
+  text-transform:uppercase;color:var(--muted);border:1px solid var(--line-firm);
+  border-radius:9999px;padding:2px 8px;align-self:flex-start}
+details[open] summary::after{content:"Close"}
+details summary:focus-visible{outline:2px solid var(--ink);outline-offset:3px;border-radius:6px}
+.edit{display:flex;flex-direction:column;gap:10px;margin-top:12px;padding-top:12px;
+  border-top:1px dashed var(--line-firm)}
+.edit label{display:flex;flex-direction:column;gap:4px;font-family:var(--mono);font-size:10px;
+  letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.edit input{font-family:var(--mono);font-size:14px;border:1px solid var(--line-firm);
+  border-radius:4px;padding:8px;background:var(--ground);color:var(--ink);width:100%;
+  -webkit-appearance:none}
+.edit input:focus-visible{outline:2px solid var(--ink);outline-offset:1px}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.hint{margin:0;font-size:12px;color:var(--muted);line-height:1.4}
+.row{display:flex;gap:8px}
+.btn{flex:1;font-family:var(--ui);font-size:14px;font-weight:500;border-radius:50px;
+  padding:11px 16px;cursor:pointer;border:1px solid var(--ink)}
+.btn-primary{background:var(--ink);color:var(--ground)}
+.btn-ghost{background:transparent;color:var(--ink)}
+.btn:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+@media (max-width:400px){.grid4{grid-template-columns:repeat(2,1fr)}}
 
 .days{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;-webkit-overflow-scrolling:touch}
 .day{flex:0 0 auto;font-family:var(--mono);font-size:12px;text-decoration:none;color:var(--ink);
@@ -197,9 +247,24 @@ footer code{font-family:var(--mono);background:var(--chrome);color:var(--ink);pa
 <body>
 <main class="shell">
 
+  ${
+    opts.notice
+      ? `<p class="notice">${
+          {
+            saved: 'Saved.',
+            learned: 'Saved — and the portion is remembered for next time.',
+            deleted: 'Deleted. The entry is recoverable.',
+            nochange: 'Nothing changed.',
+            gone: 'That entry is already gone.',
+            missing: 'That form was missing an entry id.',
+          }[opts.notice] ?? 'Done.'
+        }</p>`
+      : ''
+  }
+
   <div class="bar">
     <span class="brand">Macromiser</span>
-    <span class="ro">Read only</span>
+    <span class="ro">${opts.canEdit ? 'Editable' : 'Read only'}</span>
   </div>
 
   <div>
@@ -277,23 +342,73 @@ footer code{font-family:var(--mono);background:var(--chrome);color:var(--ink);pa
       meals.length === 0
         ? `<div class="empty">Nothing logged for this day.</div>`
         : meals
-            .map(
-              (m) => `<article class="card">
-        <div class="desc">${esc(m.description)}</div>
-        <div class="chips">
+            .map((m) => {
+              const chips = `
           ${m.meal_type ? `<span class="chip">${esc(m.meal_type)}</span>` : ''}
-          <span class="chip${m.source === 'import' ? ' ink' : ''}">${esc(m.source)}</span>
+          <span class="chip${m.source === 'corrected' || m.source === 'recipe' ? ' ink' : ''}">${esc(
+            m.source,
+          )}</span>
           <span class="chip">${esc(m.confidence)} confidence</span>
-          ${m.alcohol_g > 0 ? `<span class="chip warn">${Math.round(m.alcohol_g)} g alcohol</span>` : ''}
-        </div>
+          ${m.alcohol_g > 0 ? `<span class="chip warn">${Math.round(m.alcohol_g)} g alcohol</span>` : ''}`;
+
+              if (!opts.canEdit) {
+                return `<article class="card">
+        <div class="desc">${esc(m.description)}</div>
+        <div class="chips">${chips}</div>
         <div class="nums">
           <span><b>${Math.round(m.kcal)}</b> kcal</span>
           <span>P <b>${Math.round(m.protein_g)}</b></span>
           <span>C <b>${Math.round(m.carb_g)}</b></span>
           <span>F <b>${Math.round(m.fat_g)}</b></span>
         </div>
-      </article>`,
-            )
+      </article>`;
+              }
+
+              // A <details> keeps the day scannable: the numbers read at a
+              // glance and the inputs only appear for the one you are fixing.
+              return `<article class="card">
+        <details>
+          <summary>
+            <span class="desc">${esc(m.description)}</span>
+            <span class="nums">
+              <span><b>${Math.round(m.kcal)}</b> kcal</span>
+              <span>P <b>${Math.round(m.protein_g)}</b></span>
+              <span>C <b>${Math.round(m.carb_g)}</b></span>
+              <span>F <b>${Math.round(m.fat_g)}</b></span>
+            </span>
+            <span class="chips">${chips}</span>
+          </summary>
+          <form class="edit" method="post" action="/app/${esc(opts.secret)}/save">
+            <input type="hidden" name="meal_id" value="${esc(m.id)}">
+            <input type="hidden" name="date" value="${esc(date)}">
+            <label class="wide">what it was
+              <input name="description" value="${esc(m.description)}" maxlength="200">
+            </label>
+            <div class="grid4">
+              <label>kcal<input name="kcal" type="number" inputmode="numeric" min="0" step="1" value="${Math.round(
+                m.kcal,
+              )}"></label>
+              <label>protein<input name="protein_g" type="number" inputmode="numeric" min="0" step="1" value="${Math.round(
+                m.protein_g,
+              )}"></label>
+              <label>carbs<input name="carb_g" type="number" inputmode="numeric" min="0" step="1" value="${Math.round(
+                m.carb_g,
+              )}"></label>
+              <label>fat<input name="fat_g" type="number" inputmode="numeric" min="0" step="1" value="${Math.round(
+                m.fat_g,
+              )}"></label>
+            </div>
+            <p class="hint">Saving marks this corrected and teaches the portion — the next estimate of the same phrase starts here.</p>
+            <div class="row">
+              <button class="btn btn-primary" type="submit">Save</button>
+              <button class="btn btn-ghost" type="submit"
+                      formaction="/app/${esc(opts.secret)}/remove"
+                      formnovalidate>Delete</button>
+            </div>
+          </form>
+        </details>
+      </article>`;
+            })
             .join('')
     }
   </section>
@@ -329,27 +444,17 @@ footer code{font-family:var(--mono);background:var(--chrome);color:var(--ink);pa
     <div class="head"><h2>Bodyweight</h2><span class="count">${
       latestWeight ? n0(latestWeight.weight_lb) + ' lb' : 'no readings'
     }${goals?.target_weight_lb ? ` · target ${Math.round(goals.target_weight_lb)}` : ''}</span></div>
-    ${
-      weightSeries.length < 2
-        ? `<div class="empty">Two readings are needed before a trend means anything.</div>`
-        : (() => {
-            const vals = weightSeries.map((r) => r.weight_lb as number);
-            const lo = Math.min(...vals);
-            const hi = Math.max(...vals);
-            const span = hi - lo || 1;
-            return `<div class="spark" role="img" aria-label="Bodyweight over the last ${
-              vals.length
-            } readings, ${n0(lo)} to ${n0(hi)} pounds">${vals
-              .map((v) => `<i style="height:${(12 + ((v - lo) / span) * 32).toFixed(1)}px"></i>`)
-              .join('')}</div>`;
-          })()
-    }
+    ${trendChart(bw, goals?.target_weight_lb ?? null)}
   </section>
 
   <footer>
-    Read-only view of your own log. Entries marked <code>import</code> were reconstructed
-    from an earlier conversation and are weaker evidence than ones logged as they happened.
-    Corrections happen in chat until the edit tools ship.
+    ${
+      opts.canEdit
+        ? 'Editing here marks an entry <code>corrected</code> and teaches the portion, exactly as correcting it in chat does.'
+        : 'Read-only. Corrections happen in chat, or from the editable link.'
+    }
+    Entries marked <code>import</code> were reconstructed from an earlier conversation and are
+    weaker evidence than ones logged as they happened.
   </footer>
 </main>
 </body>
