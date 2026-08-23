@@ -224,7 +224,12 @@ lists rather than an inventory.
       and closes the capture in the SAME call — two calls would double the
       approval prompts the user sees
 - [ ] Phase 2 — photo upload to R2, size and count caps, retention
-- [ ] Phase 4 — staples + fresh lists, "what can I make?"
+- [x] **Phase 4 — the kitchen, as two lists.** `pantry` table with `staple` and
+      `fresh`, no quantities and nothing decrementing. `list_recipes` now
+      reports `have`/`missing` per recipe and sorts best-covered first;
+      `max_missing` filters. Ingredients are scraped from each card's own
+      `ul.ingredient-list` at build time, so the card stays the single source
+      and cannot drift from an index.
 
 ---
 

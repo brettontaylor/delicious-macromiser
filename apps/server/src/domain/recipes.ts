@@ -19,6 +19,9 @@ export interface RecipeComponent {
 
 export interface Recipe {
   slug: string;
+  /** Normalised ingredient names, scraped from the card's own list at build
+   *  time. Used for pantry matching; the card stays the source of truth. */
+  ingredients: string[];
   title: string;
   servings: number | null;
   serving_size: string;

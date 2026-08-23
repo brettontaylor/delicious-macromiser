@@ -38,6 +38,65 @@ function servings(v) {
   return nums.length ? Math.max(...nums) : null;
 }
 
+/**
+ * Ingredient names, scraped from the card's own `ul.ingredient-list`.
+ *
+ * Scraped rather than duplicated into the JSON-LD on purpose: the visible list
+ * is what the cook reads, so making it the single source means a recipe and its
+ * ingredient index cannot drift. RECIPE_FORMAT.md fixes this markup, so it is a
+ * contract rather than a guess.
+ *
+ * Normalised to the head of the phrase — "ground beef (80/20)" and "zucchini,
+ * sliced into half-moons" become "ground beef" and "zucchini". Preparation is
+ * not identity, and a pantry match on "sliced" would be nonsense.
+ */
+// Words that begin a PREPARATION clause rather than naming the thing. Splitting
+// blindly at the first comma turns "bone-in, skin-on chicken breasts" into
+// "bone-in", which is not an ingredient. Cutting only at a clause that starts
+// with one of these keeps the name and drops the knife-work.
+const PREP_WORDS = new Set([
+  'sliced', 'diced', 'minced', 'chopped', 'grated', 'smashed', 'halved',
+  'quartered', 'cracked', 'divided', 'torn', 'roughly', 'finely', 'thinly',
+  'fine', 'cut', 'cubed', 'crushed', 'shaved', 'julienned', 'peeled', 'stems',
+  'trimmed', 'rinsed', 'drained', 'toasted', 'cold-cubed', 'paper-thin',
+  'for', 'to', 'from', 'juiced', 'zested', 'very',
+]);
+
+function normaliseIngredient(raw) {
+  const noParens = raw.replace(/\([^)]*\)/g, ' ').replace(/\s+/g, ' ').trim();
+  const parts = noParens.split(',').map((p) => p.trim()).filter(Boolean);
+  const kept = [];
+  for (const part of parts) {
+    const firstWord = part.split(/\s+/)[0]?.toLowerCase() ?? '';
+    if (PREP_WORDS.has(firstWord)) break;
+    kept.push(part);
+  }
+  return (kept.length ? kept.join(', ') : parts[0] ?? noParens).toLowerCase().trim();
+}
+
+function ingredientsOf(source) {
+  const names = new Set();
+  for (const list of source.matchAll(/<ul[^>]*class="[^"]*ingredient-list[^"]*"[^>]*>([\s\S]*?)<\/ul>/gi)) {
+    for (const li of list[1].matchAll(/<li[^>]*>([\s\S]*?)<\/li>/gi)) {
+      const spans = [...li[1].matchAll(/<span[^>]*>([\s\S]*?)<\/span>/gi)].map((m) =>
+        m[1].replace(/<[^>]+>/g, '').replace(/&amp;/g, '&').replace(/\s+/g, ' ').trim(),
+      );
+      // <span class="qty">amount</span><span>item</span> — the item is the last span.
+      const raw = spans.length >= 2 ? spans[spans.length - 1] : spans[0];
+      if (!raw) continue;
+      const name = normaliseIngredient(raw);
+      // Some cards put the ingredient in the quantity span and only the
+      // preparation in the name span ("½ lemon" / "juiced"). A cell that
+      // normalises to nothing but a preparation word is not an ingredient.
+      if (PREP_WORDS.has(name)) continue;
+      // A dash-only cell means "from page 1" — a cross-reference, not an item.
+      if (name.length < 2 || /^[—–-]+$/.test(name)) continue;
+      names.add(name);
+    }
+  }
+  return [...names].sort();
+}
+
 function recipeNode(source) {
   for (const m of source.matchAll(
     /<script[^>]+type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi,
@@ -119,8 +178,14 @@ for (const file of files) {
     );
   }
 
+  const ingredients = ingredientsOf(source);
+  if (ingredients.length === 0) {
+    console.warn(`warn  ${file}: no ingredient list found — pantry matching will skip it`);
+  }
+
   recipes.push({
     slug,
+    ingredients,
     title: node.name ?? slug,
     servings: servings(node.recipeYield),
     serving_size: n.servingSize ?? '1 serving',

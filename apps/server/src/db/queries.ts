@@ -628,3 +628,47 @@ export async function upsertPlanDay(ctx: Ctx, d: PlanDay): Promise<void> {
     .bind(ctx.userId, d.weekday, d.kind, d.label, d.notes, ctx.now.toISOString())
     .run();
 }
+
+// ---------- pantry ----------
+
+export interface PantryItem {
+  item: string;
+  kind: string;
+  added_at: string;
+}
+
+export async function getPantry(ctx: Ctx): Promise<PantryItem[]> {
+  const res = await ctx.db
+    .prepare(`SELECT item, kind, added_at FROM pantry WHERE user_id = ? ORDER BY kind, item`)
+    .bind(ctx.userId)
+    .all<PantryItem>();
+  return res.results ?? [];
+}
+
+export async function addPantryItem(ctx: Ctx, item: string, kind: string): Promise<void> {
+  await ctx.db
+    .prepare(
+      `INSERT INTO pantry (user_id, item, kind, added_at) VALUES (?,?,?,?)
+       ON CONFLICT(user_id, item) DO UPDATE SET kind = excluded.kind`,
+    )
+    .bind(ctx.userId, item.trim().toLowerCase(), kind, ctx.now.toISOString())
+    .run();
+}
+
+export async function removePantryItem(ctx: Ctx, item: string): Promise<boolean> {
+  const res = await ctx.db
+    .prepare(`DELETE FROM pantry WHERE user_id = ? AND item = ?`)
+    .bind(ctx.userId, item.trim().toLowerCase())
+    .run();
+  return (res.meta.changes ?? 0) > 0;
+}
+
+/** Clear one list without touching the other — "what's fresh" is retyped often,
+ *  staples almost never. */
+export async function clearPantryKind(ctx: Ctx, kind: string): Promise<number> {
+  const res = await ctx.db
+    .prepare(`DELETE FROM pantry WHERE user_id = ? AND kind = ?`)
+    .bind(ctx.userId, kind)
+    .run();
+  return res.meta.changes ?? 0;
+}

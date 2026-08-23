@@ -53,6 +53,16 @@ For each capture: estimate the macros from the note and call log_meal with captu
 
 Do NOT use this for a capture you successfully logged: log_meal with capture_id already closes those. This is only for the ones you are declining to guess at.`,
 
+  set_pantry: `The user's kitchen, as two lists. "staple" is what they always have and changes a few times a year; "fresh" is a short list of what is in the house right now.
+
+This is deliberately NOT an inventory — no quantities, nothing decrements. Do not offer to track amounts; a pantry that claims to know you have 1.5 onions is wrong within a week and worse than none.
+
+Use replace_kind: "fresh" when the user tells you what they bought or what is in the fridge now — that clears the old list first, so it is one call rather than a diff.`,
+
+  get_pantry: `What the user has in the house. Call this before answering "what can I make", alongside list_recipes.
+
+used_by_no_recipe is what they own that nothing in their book uses — a good prompt to add a recipe, not a complaint.`,
+
   set_training_plan: `Define or change the user's weekly training split — which weekdays are lift days, which are rest or active recovery, and any standing rules for a day ("walk 10,000 steps", "no alcohol", "no phone after 8").
 
 Upserts one weekday at a time, so moving leg day is a single call and not a rewrite of the whole week. Call this when the user describes their split or changes it.`,
@@ -93,7 +103,9 @@ The row is soft-deleted and stays recoverable. Get the meal_id from get_today or
 
 Returns facts, not a recommendation — which dishes exist, what a serving costs, and a per-component breakdown so a serving eaten without the rice can still be logged accurately. Apply your own judgement about what to suggest.
 
-When they eat one of these, log it with log_meal using recipe_slug rather than estimating.`,
+When they eat one of these, log it with log_meal using recipe_slug rather than estimating.
+
+If a pantry is set up, each recipe also reports have and missing against it, best-covered first. Those are facts — deciding what is actually cookable tonight is YOUR judgement, and a missing herb is not a missing protein. have and missing are null (not empty) when no pantry exists; do not read that as an empty kitchen.`,
 
   import_days: `Backfill many days of history in ONE call. Use this — not repeated log_meal and log_workout calls — whenever reconstructing more than a day or two, for example from an earlier conversation or another tracker.
 

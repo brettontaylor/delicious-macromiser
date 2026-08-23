@@ -25,6 +25,7 @@ import { spikeImage } from './spike_image.ts';
 import { getPendingCaptures, resolveCapture } from './captures.ts';
 import { correctWorkout, deleteWorkout } from './correct_workout.ts';
 import { setTrainingPlan, getTrainingPlanTool } from './training_plan.ts';
+import { setPantry, getPantryTool } from './pantry.ts';
 
 export type ToolArgs = Record<string, unknown>;
 export type ToolHandler = (ctx: Ctx, args: ToolArgs) => Promise<unknown>;
@@ -313,6 +314,10 @@ export const TOOLS: ToolDef[] = [
         query: str('Optional substring of a title or slug.'),
         min_protein_g: num('Optional. Only recipes with at least this much protein per serving.'),
         max_kcal: num('Optional. Only recipes at or under this many calories per serving.'),
+        max_missing: num(
+          'Optional. Only recipes missing at most this many pantry ingredients. ' +
+            'Ignored when no pantry is set up.',
+        ),
       },
       additionalProperties: false,
     },
@@ -500,6 +505,47 @@ export const TOOLS: ToolDef[] = [
     description: DESCRIPTIONS.get_training_plan,
     inputSchema: { type: 'object', properties: {}, additionalProperties: false },
     handler: getTrainingPlanTool,
+  },
+  {
+    name: 'set_pantry',
+    description: DESCRIPTIONS.set_pantry,
+    inputSchema: {
+      type: 'object',
+      properties: {
+        add: {
+          type: 'array',
+          description: 'Items to add. Strings, or {item, kind} objects.',
+          items: {
+            oneOf: [
+              { type: 'string' },
+              {
+                type: 'object',
+                properties: {
+                  item: str('The ingredient, in plain words.'),
+                  kind: { type: 'string', enum: ['staple', 'fresh'] },
+                },
+                required: ['item'],
+                additionalProperties: false,
+              },
+            ],
+          },
+        },
+        remove: { type: 'array', items: { type: 'string' }, description: 'Items to drop.' },
+        replace_kind: {
+          type: 'string',
+          enum: ['staple', 'fresh'],
+          description: 'Clear this list before adding — use for "here is what is fresh now".',
+        },
+      },
+      additionalProperties: false,
+    },
+    handler: setPantry,
+  },
+  {
+    name: 'get_pantry',
+    description: DESCRIPTIONS.get_pantry,
+    inputSchema: { type: 'object', properties: {}, additionalProperties: false },
+    handler: getPantryTool,
   },
 ];
 
