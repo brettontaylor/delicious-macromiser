@@ -21,6 +21,7 @@ import {
   getGoalsAsOf,
   getBodyweightRange,
   getMealsForRange,
+  listPendingCaptures,
 } from '../db/queries.ts';
 import { sumMeals, remainingVsGoals } from '../domain/totals.ts';
 import { localDate, shiftDate } from '../util/date.ts';
@@ -88,12 +89,13 @@ export async function renderApp(
   const date = dateParam ?? today;
   const windowStart = shiftDate(date, -29);
 
-  const [meals, goals, bw, workouts, rangeMeals] = await Promise.all([
+  const [meals, goals, bw, workouts, rangeMeals, pendingCaptures] = await Promise.all([
     getMealsForDate(ctx, date),
     getGoalsAsOf(ctx, date),
     getBodyweightRange(ctx, shiftDate(date, -89), date),
     recentWorkouts(ctx, windowStart, date),
     getMealsForRange(ctx, windowStart, date),
+    listPendingCaptures(ctx, 10),
   ]);
 
   const totals = sumMeals(meals);
@@ -207,6 +209,19 @@ h2{font-family:var(--display);font-size:17px;font-weight:600;margin:0}
 .empty{border:1px dashed var(--line-firm);border-radius:10px;padding:20px 16px;text-align:center;
   color:var(--muted);font-size:13px}
 
+/* capture */
+.capture{display:flex;flex-direction:column;gap:8px;border:1px solid var(--line);
+  border-radius:10px;padding:13px;background:var(--surface)}
+.cap-label{font-family:var(--display);font-size:16px;font-weight:600}
+.capture input{font-size:16px;border:1px solid var(--line-firm);border-radius:4px;
+  padding:11px;background:var(--ground);color:var(--ink);width:100%;-webkit-appearance:none}
+.capture input:focus-visible{outline:2px solid var(--ink);outline-offset:1px}
+.pending{display:flex;align-items:center;gap:10px;border:1px solid var(--ink);
+  border-radius:10px;padding:10px 13px;background:var(--accent);color:#111}
+.pend-n{font-family:var(--display);font-size:22px;font-weight:700;line-height:1}
+.pend-t{font-size:13px;display:flex;flex-direction:column;gap:2px}
+.pend-list{font-family:var(--mono);font-size:11px;opacity:.75}
+
 /* next meal */
 .upnext{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 10px;
   border:1px solid var(--line);border-radius:10px;padding:11px 13px;background:var(--surface)}
@@ -279,6 +294,9 @@ footer code{font-family:var(--mono);background:var(--chrome);color:var(--ink);pa
             nochange: 'Nothing changed.',
             gone: 'That entry is already gone.',
             missing: 'That form was missing an entry id.',
+            captured: 'Captured. Your coach will pick it up next time you open a chat.',
+            emptynote: 'Nothing to capture — write what you ate first.',
+            longnote: 'That note is too long. Keep it under 500 characters.',
           }[opts.notice] ?? 'Done.'
         }</p>`
       : ''
@@ -373,6 +391,36 @@ footer code{font-family:var(--mono);background:var(--chrome);color:var(--ink);pa
       )
       .join('')}
   </div>
+
+  ${
+    opts.canEdit
+      ? `<form class="capture" method="post" action="/app/${esc(opts.secret)}/capture">
+          <input type="hidden" name="date" value="${esc(date)}">
+          <label class="cap-label" for="cap-note">Log a meal</label>
+          <input id="cap-note" name="note" maxlength="500" autocomplete="off"
+                 placeholder="8oz chicken, cup of rice, big salad">
+          <button class="btn btn-primary" type="submit">Capture</button>
+          <p class="hint">The app does no analysis of its own — your coach reads this
+          next time you open a chat and works out the macros on your own model.</p>
+        </form>`
+      : ''
+  }
+
+  ${
+    pendingCaptures.length > 0
+      ? `<div class="pending">
+          <span class="pend-n">${pendingCaptures.length}</span>
+          <span class="pend-t">waiting for your coach${
+            opts.canEdit
+              ? `<span class="pend-list">${pendingCaptures
+                  .slice(0, 3)
+                  .map((c) => esc(c.note ?? c.kind))
+                  .join(' · ')}</span>`
+              : ''
+          }</span>
+        </div>`
+      : ''
+  }
 
   <section>
     <div class="head"><h2>Meals</h2><span class="count">${Math.round(totals.kcal)} kcal${

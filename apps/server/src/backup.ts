@@ -28,6 +28,7 @@ const TABLES = [
   'bodyweight',
   'goals',
   'portion_memory',
+  'captures',
 ] as const;
 
 const RETENTION_DAYS = 30;

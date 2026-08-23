@@ -1,5 +1,5 @@
 import type { Ctx } from '../../db/queries.ts';
-import { getMealsForDate, getGoalsAsOf, getLastWorkoutDate, lookupPortions} from '../../db/queries.ts';
+import { getMealsForDate, getGoalsAsOf, getLastWorkoutDate, lookupPortions, countPendingCaptures} from '../../db/queries.ts';
 import { sumMeals, remainingVsGoals } from '../../domain/totals.ts';
 import { localWeekday, localTime, daysBetween } from '../../util/date.ts';
 import type { ToolArgs } from './index.ts';
@@ -28,6 +28,9 @@ export async function getToday(ctx: Ctx, args: ToolArgs): Promise<unknown> {
   // the user already fixed rather than from scratch. This is the loop that makes
   // corrections worth making.
   const portions = await lookupPortions(ctx, 15);
+  // Surfaced here because get_today is called constantly — it is the cheapest
+  // place for the model to notice the app queue without a dedicated poll.
+  const pending = await countPendingCaptures(ctx);
 
   return {
     local_date: date,
@@ -56,6 +59,9 @@ export async function getToday(ctx: Ctx, args: ToolArgs): Promise<unknown> {
       : null,
     // Phrases the user has already corrected. Reuse these figures rather than
     // re-estimating the same food; a correction should only be needed once.
+    // Above zero means the user recorded something in the app that still needs
+    // analyzing. Call get_pending_captures and offer to work through them.
+    pending_captures: pending,
     known_portions: portions.map((p) => ({
       phrase: p.phrase,
       kcal: p.kcal,

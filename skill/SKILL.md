@@ -27,6 +27,16 @@ conversation context and silently skip the tools.
   permission; log it and state the estimate you used so they can correct it.
 - After the user describes a completed session, call `log_workout` with all
   sets. If loads are ambiguous, log what is known and flag the gap.
+- **At the start of a session, check `pending_captures` on `get_today`.** Above
+  zero means the user typed something into the app that is still not a meal.
+  Call `get_pending_captures` and offer to work through them before anything
+  else — a capture nobody analyzes is a meal that never got logged.
+  - Estimate from the note and call `log_meal` with `capture_id` set. That logs
+    the meal and closes the capture in one call.
+  - If a note is genuinely too vague, call `resolve_capture` with
+    `state: "unusable"` and say why. **Never invent numbers to clear the
+    queue** — a made-up entry corrupts the averages the user is tracking, which
+    is the one thing this system exists to protect.
 - If the food is a dish from the recipe book, call `log_meal` with
   `recipe_slug` and `servings` instead of estimating. Call `list_recipes` when
   unsure of the slug. Do **not** use a slug for something merely similar to a

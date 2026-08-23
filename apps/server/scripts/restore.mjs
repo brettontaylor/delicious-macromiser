@@ -48,8 +48,12 @@ out.push('');
 
 // Children before parents on delete, parents before children on insert — the
 // schema has real foreign keys and will reject the wrong order.
-const DELETE_ORDER = ['sets', 'workouts', 'meals', 'bodyweight', 'goals', 'portion_memory', 'users'];
-const INSERT_ORDER = ['users', 'meals', 'workouts', 'sets', 'bodyweight', 'goals', 'portion_memory'];
+const DELETE_ORDER = ['sets', 'workouts', 'meals', 'captures', 'bodyweight', 'goals', 'portion_memory', 'users'];
+// captures before meals: meals.capture_id references captures. The reverse link
+// (captures.meal_id) is deliberately NOT a foreign key, because making it one
+// creates a cycle that leaves neither table deletable — which would break this
+// script, the only undo the project has.
+const INSERT_ORDER = ['users', 'captures', 'meals', 'workouts', 'sets', 'bodyweight', 'goals', 'portion_memory'];
 
 if (replace) {
   for (const t of DELETE_ORDER) {

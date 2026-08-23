@@ -15,7 +15,7 @@ import { PARSE_ERROR, error, json } from './mcp/rpc.ts';
 import { ensureUser, getUserTz } from './db/queries.ts';
 import { renderApp } from './app/page.ts';
 import { runBackup, scheduledBackup } from './backup.ts';
-import { handleAppWrite } from './app/write.ts';
+import { handleAppWrite, handleAppCapture } from './app/write.ts';
 import type { Ctx } from './db/queries.ts';
 
 export interface Env {
@@ -107,6 +107,11 @@ export default {
         const requested = url.searchParams.get('date');
         const date = requested && /^\d{4}-\d{2}-\d{2}$/.test(requested) ? requested : null;
         return renderApp(ctx, date, { canEdit, secret: given, notice: url.searchParams.get('ok') });
+      }
+
+      if (request.method === 'POST' && action === '/capture') {
+        if (!canEdit) return new Response('This link is read-only.', { status: 403 });
+        return handleAppCapture(ctx, request, given);
       }
 
       if (request.method === 'POST' && (action === '/save' || action === '/remove')) {

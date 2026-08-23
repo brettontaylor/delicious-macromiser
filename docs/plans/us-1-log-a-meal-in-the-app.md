@@ -1,6 +1,6 @@
 # US-1 — Log a meal from the app
 
-**Date:** 2026-08-23 · **Status:** decided; Phase 3 shipped 2026-08-23
+**Date:** 2026-08-23 · **Status:** Phases 1 and 3 shipped 2026-08-23; Phase 0 spike outstanding
 **Triggered by:** "I want to add a meal via the app… it should use the user's
 connected Claude (OpenAI, Gemini, etc.) connector to analyze and add the meal,
 rather than our app's tokens."
@@ -184,6 +184,14 @@ CREATE TABLE captures (
 );
 CREATE INDEX idx_captures_pending ON captures(user_id, state) WHERE state = 'pending';
 ```
+
+> **Shipped with one correction.** `captures.meal_id` is deliberately NOT a
+> foreign key. As first written it referenced `meals(id)` while `meals.capture_id`
+> referenced `captures(id)` — a cycle SQLite cannot resolve, so `DELETE` failed
+> on both tables with `FOREIGN KEY constraint failed`. That would have broken
+> `restore.mjs --replace`, which is the only undo this project has. Caught by a
+> smoke run against a database that would not clear. The meal→capture direction
+> carries the provenance and is the one worth enforcing.
 
 Additive; nothing existing changes. The partial index exists because
 `get_pending_captures` is called at the start of many conversations and must not

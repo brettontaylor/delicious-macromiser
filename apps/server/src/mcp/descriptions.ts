@@ -11,6 +11,8 @@
 export const DESCRIPTIONS = {
   log_meal: `Record food or drink the user has eaten. Call this as soon as the user describes something they ate or drank — do not ask permission first, and do not wait for them to finish listing everything. Estimate kcal and macros yourself from the description; the server stores what you send and never re-estimates. State the estimate you used in your reply so the user can correct it.
 
+If this meal came from a capture in the app, pass capture_id — the capture is closed in the same call, so you do not need resolve_capture afterwards.
+
 If the user ate something from their recipe book, pass recipe_slug and servings INSTEAD of kcal and macros. The numbers then come from the recipe itself — portions that were measured and written down when it was cooked — so the entry is recorded at high confidence and any macros you also send are ignored. Call list_recipes if you are unsure of the slug. Do not use recipe_slug for something merely similar to a recipe; that is an estimate, and it should be logged as one.
 
 Set alcohol_g to the grams of pure ethanol (a 5oz glass of 13% wine is about 15g, a 12oz 5% beer about 14g, a 1.5oz shot of 80-proof spirit about 17g) and do NOT also fold those calories into carbs. Set confidence to "low" when the portion is genuinely unclear rather than inventing precision.
@@ -29,7 +31,7 @@ Use the exercise name the user actually said; the server normalizes it (so "squa
 
   get_today: `Call this before answering ANY question about remaining calories, remaining macros, or what the user has eaten today. Never compute a running total from the conversation — meals may have been logged in an earlier session or from another device, and the conversation is not the source of truth.
 
-Returns: every meal logged today (each with its id, for correct_meal), the totals, the remaining amount against the active goals, and food calories excluding alcohol. Also returns known_portions — phrases the user has already corrected once. Reuse those figures instead of re-estimating the same food. Also returns the user's local date, weekday and time, so you can judge whether protein is behind pace for the hour rather than guessing what time it is.`,
+Returns: every meal logged today (each with its id, for correct_meal), the totals, the remaining amount against the active goals, and food calories excluding alcohol. Also returns known_portions — phrases the user has already corrected once, whose figures you should reuse instead of re-estimating — and pending_captures, the number of things logged in the app that still need analyzing. If that is above zero, call get_pending_captures and offer to work through them. Also returns the user's local date, weekday and time, so you can judge whether protein is behind pace for the hour rather than guessing what time it is.`,
 
   get_last_performance: `Call this before recommending any weight for any exercise. Never propose a load from memory, from earlier in the conversation, or by inference from a different lift.
 
@@ -40,6 +42,16 @@ It returns data, not a recommendation. Apply your own progression rules to it. I
   get_week_summary: `Call this for any question about progress, trends, "how was this week", or whether something is working. A single day is noise; never answer a trend question from one day's data.
 
 Returns 7-day (or requested-window) averages for calories, food calories excluding alcohol, protein, and alcohol; protein adherence as a percentage of logged days; session count; and average bodyweight and waist. Averages are computed over days that actually have data, and days_with_data is returned alongside so you can say plainly when a week is too sparse to read.`,
+
+  get_pending_captures: `Things the user recorded in the app that are not yet meals. Call this at the START of a session when get_today reports pending_captures above zero, and offer to work through them before anything else.
+
+The app has no AI of its own by design — it captures, and you analyze. That is what keeps this running on the model the user already pays for rather than on ours.
+
+For each capture: estimate the macros from the note and call log_meal with capture_id set. That logs the meal AND closes the capture in a single call. If a note is genuinely too vague to estimate, call resolve_capture with state "unusable" and say why — never invent numbers to clear the queue, because a made-up entry corrupts the very averages the user is tracking.`,
+
+  resolve_capture: `Close a capture that will not become a meal — one too vague to estimate from. Requires a reason, and you should repeat that reason to the user rather than letting the entry vanish quietly.
+
+Do NOT use this for a capture you successfully logged: log_meal with capture_id already closes those. This is only for the ones you are declining to guess at.`,
 
   get_next_meal: `When the user is likely to eat next, and what they have left to spend. Call this for "what should I eat next", "what's for lunch", or any planning question about the rest of the day.
 

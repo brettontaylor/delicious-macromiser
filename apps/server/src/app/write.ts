@@ -12,7 +12,10 @@
  */
 
 import type { Ctx, MealPatch } from '../db/queries.ts';
-import { getMealById, updateMeal, softDeleteMeal, rememberPortion } from '../db/queries.ts';
+import {
+  getMealById, updateMeal, softDeleteMeal, rememberPortion, insertCapture,
+} from '../db/queries.ts';
+import { localDate } from '../util/date.ts';
 
 function seeOther(location: string): Response {
   return new Response(null, { status: 303, headers: { location } });
@@ -25,6 +28,45 @@ function field(form: FormData, key: string): number | undefined {
   const n = Number(raw);
   if (!Number.isFinite(n) || n < 0) return undefined;
   return n;
+}
+
+/**
+ * Capture a note from the app. Deliberately does no analysis: the app has no
+ * LLM, and adding one would mean holding an API key. The user's own model picks
+ * this up from get_pending_captures next time they open a chat.
+ */
+export async function handleAppCapture(
+  ctx: Ctx,
+  request: Request,
+  secret: string,
+): Promise<Response> {
+  let form: FormData;
+  try {
+    form = await request.formData();
+  } catch {
+    return new Response('Bad form submission', { status: 400 });
+  }
+
+  const raw = form.get('note');
+  const note = typeof raw === 'string' ? raw.trim() : '';
+  const date = form.get('date');
+  const back = `/app/${secret}${
+    typeof date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(date) ? `?date=${date}` : ''
+  }`;
+  const sep = back.includes('?') ? '&' : '?';
+
+  // A blank note captures nothing. Fail quietly back to the page rather than
+  // queuing an empty row the model would then have to decline.
+  if (note.length < 2) return seeOther(`${back}${sep}ok=emptynote`);
+  if (note.length > 500) return seeOther(`${back}${sep}ok=longnote`);
+
+  await insertCapture(ctx, {
+    local_date: localDate(ctx.now, ctx.tz),
+    kind: 'note',
+    note,
+  });
+
+  return seeOther(`${back}${sep}ok=captured`);
 }
 
 export async function handleAppWrite(

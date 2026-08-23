@@ -41,6 +41,8 @@ export interface NewMeal {
   confidence: string;
   source: string;
   recipe_slug: string | null;
+  /** Set when the meal came from an app capture. US-1 Phase 1. */
+  capture_id?: string | null;
 }
 
 export async function insertMeal(ctx: Ctx, m: NewMeal): Promise<string> {
@@ -50,13 +52,13 @@ export async function insertMeal(ctx: Ctx, m: NewMeal): Promise<string> {
     .prepare(
       `INSERT INTO meals (id, user_id, logged_at, local_date, meal_type, description,
          kcal, protein_g, fat_g, carb_g, fiber_g, alcohol_g, confidence, source,
-         recipe_slug, created_at)
-       VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
+         recipe_slug, capture_id, created_at)
+       VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
     )
     .bind(
       id, ctx.userId, iso, m.local_date, m.meal_type, m.description,
       m.kcal, m.protein_g, m.fat_g, m.carb_g, m.fiber_g, m.alcohol_g,
-      m.confidence, m.source, m.recipe_slug ?? null, iso,
+      m.confidence, m.source, m.recipe_slug ?? null, m.capture_id ?? null, iso,
     )
     .run();
   return id;
@@ -375,4 +377,91 @@ export async function lookupPortions(
     .all<{ phrase: string; kcal: number | null; protein_g: number | null;
            fat_g: number | null; carb_g: number | null; times_used: number }>();
   return res.results ?? [];
+}
+
+// ---------- captures (US-1 Phase 1) ----------
+
+export interface CaptureRow {
+  id: string;
+  created_at: string;
+  local_date: string;
+  kind: string;
+  note: string | null;
+  object_key: string | null;
+  mime_type: string | null;
+  bytes: number | null;
+  state: string;
+}
+
+export async function insertCapture(
+  ctx: Ctx,
+  c: { local_date: string; kind: string; note: string | null;
+       object_key?: string | null; mime_type?: string | null; bytes?: number | null },
+): Promise<string> {
+  const id = crypto.randomUUID();
+  await ctx.db
+    .prepare(
+      `INSERT INTO captures (id, user_id, created_at, local_date, kind, note,
+         object_key, mime_type, bytes, state)
+       VALUES (?,?,?,?,?,?,?,?,?, 'pending')`,
+    )
+    .bind(id, ctx.userId, ctx.now.toISOString(), c.local_date, c.kind, c.note,
+          c.object_key ?? null, c.mime_type ?? null, c.bytes ?? null)
+    .run();
+  return id;
+}
+
+/** Oldest first — a queue should drain in the order things happened. */
+export async function listPendingCaptures(ctx: Ctx, limit = 20): Promise<CaptureRow[]> {
+  const res = await ctx.db
+    .prepare(
+      `SELECT id, created_at, local_date, kind, note, object_key, mime_type, bytes, state
+         FROM captures
+        WHERE user_id = ? AND state = 'pending'
+        ORDER BY created_at ASC LIMIT ?`,
+    )
+    .bind(ctx.userId, limit)
+    .all<CaptureRow>();
+  return res.results ?? [];
+}
+
+export async function countPendingCaptures(ctx: Ctx): Promise<number> {
+  const row = await ctx.db
+    .prepare(`SELECT COUNT(*) AS n FROM captures WHERE user_id = ? AND state = 'pending'`)
+    .bind(ctx.userId)
+    .first<{ n: number }>();
+  return row?.n ?? 0;
+}
+
+export async function getCaptureById(ctx: Ctx, id: string): Promise<CaptureRow | null> {
+  const row = await ctx.db
+    .prepare(
+      `SELECT id, created_at, local_date, kind, note, object_key, mime_type, bytes, state
+         FROM captures WHERE id = ? AND user_id = ?`,
+    )
+    .bind(id, ctx.userId)
+    .first<CaptureRow>();
+  return row ?? null;
+}
+
+/**
+ * Close a capture. Guarded on `state = 'pending'` so a second attempt is a
+ * no-op rather than a silent overwrite — the queue must not double-log.
+ * Returns false when it was already resolved.
+ */
+export async function resolveCaptureRow(
+  ctx: Ctx,
+  id: string,
+  state: 'logged' | 'unusable',
+  opts: { mealId?: string | null; reason?: string | null } = {},
+): Promise<boolean> {
+  const res = await ctx.db
+    .prepare(
+      `UPDATE captures SET state = ?, meal_id = ?, reason = ?, resolved_at = ?
+        WHERE id = ? AND user_id = ? AND state = 'pending'`,
+    )
+    .bind(state, opts.mealId ?? null, opts.reason ?? null,
+          ctx.now.toISOString(), id, ctx.userId)
+    .run();
+  return (res.meta.changes ?? 0) > 0;
 }

@@ -22,6 +22,7 @@ import { listRecipes } from './list_recipes.ts';
 import { correctMeal, deleteMeal } from './correct_meal.ts';
 import { getNextMeal } from './get_next_meal.ts';
 import { spikeImage } from './spike_image.ts';
+import { getPendingCaptures, resolveCapture } from './captures.ts';
 
 export type ToolArgs = Record<string, unknown>;
 export type ToolHandler = (ctx: Ctx, args: ToolArgs) => Promise<unknown>;
@@ -71,6 +72,10 @@ export const TOOLS: ToolDef[] = [
             'the recipe and kcal/protein_g/fat_g/carb_g are not required. See list_recipes.',
         ),
         servings: num('How many servings of the recipe. Defaults to 1. Only with recipe_slug.'),
+        capture_id: str(
+          'Id of the app capture this meal came from, from get_pending_captures. ' +
+            'Closes the capture in the same call.',
+        ),
       },
       // kcal and macros are required only when there is no recipe_slug; that is
       // enforced in the handler, which JSON Schema cannot express cleanly here.
@@ -378,6 +383,35 @@ export const TOOLS: ToolDef[] = [
       additionalProperties: false,
     },
     handler: spikeImage,
+  },
+  {
+    name: 'get_pending_captures',
+    description: DESCRIPTIONS.get_pending_captures,
+    inputSchema: {
+      type: 'object',
+      properties: { limit: num('How many to return, 1-50. Defaults to 20.') },
+      additionalProperties: false,
+    },
+    handler: getPendingCaptures,
+  },
+  {
+    name: 'resolve_capture',
+    description: DESCRIPTIONS.resolve_capture,
+    inputSchema: {
+      type: 'object',
+      properties: {
+        capture_id: str('From get_pending_captures.'),
+        state: {
+          type: 'string',
+          enum: ['unusable'],
+          description: 'Only "unusable". A logged capture is closed by log_meal.',
+        },
+        reason: str('What made it impossible to estimate. Required, and repeated to the user.'),
+      },
+      required: ['capture_id', 'state', 'reason'],
+      additionalProperties: false,
+    },
+    handler: resolveCapture,
   },
 ];
 

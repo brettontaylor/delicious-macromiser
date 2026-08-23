@@ -173,7 +173,11 @@ lists rather than an inventory.
       Below three observations it returns null with a reason rather than
       guessing. 10 unit tests.
 - [ ] Phase 0 — spike: can the connector client show an image from a tool result?
-- [ ] Phase 1 — `captures` table, text capture in the app, `get_pending_captures`
+- [x] **Phase 1 — the capture queue.** `captures` table, text capture in the
+      app, `get_pending_captures` + `resolve_capture`, pending count on
+      `get_today`, pending strip in the view. `log_meal` takes a `capture_id`
+      and closes the capture in the SAME call — two calls would double the
+      approval prompts the user sees
 - [ ] Phase 2 — photo upload to R2, size and count caps, retention
 - [ ] Phase 4 — staples + fresh lists, "what can I make?"
 

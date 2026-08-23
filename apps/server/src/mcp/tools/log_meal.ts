@@ -4,6 +4,7 @@ import { sumMeals, remainingVsGoals } from '../../domain/totals.ts';
 import type { ToolArgs } from './index.ts';
 import { reqString, reqNumber, optNumber, optNonNegative, reqEnum, optEnum, resolveWhen, ArgError, optString } from './args.ts';
 import { findRecipe, scaleServings } from '../../domain/recipes.ts';
+import { getCaptureById, resolveCaptureRow } from '../../db/queries.ts';
 
 const MEAL_TYPES = ['breakfast', 'lunch', 'dinner', 'snack'] as const;
 const CONFIDENCE = ['high', 'medium', 'low'] as const;
@@ -73,7 +74,29 @@ export async function logMeal(ctx: Ctx, args: ToolArgs): Promise<unknown> {
     };
   }
 
-  const id = await insertMeal(ctx, meal);
+  // A capture becomes a meal in ONE call. Splitting it into log_meal +
+  // resolve_capture would double the approval prompts the user sees, which is
+  // the same friction import_days exists to remove.
+  const captureId = optString(args, 'capture_id');
+  let capture = null;
+  if (captureId !== null) {
+    capture = await getCaptureById(ctx, captureId);
+    if (!capture) {
+      throw new ArgError(`NOT SAVED — no capture with id "${captureId}".`);
+    }
+    if (capture.state !== 'pending') {
+      throw new ArgError(
+        `NOT SAVED — that capture is already ${capture.state}. It has been logged once; do not log it twice.`,
+      );
+    }
+  }
+
+  const id = await insertMeal(ctx, { ...meal, capture_id: captureId });
+
+  let captureResolved = false;
+  if (captureId !== null) {
+    captureResolved = await resolveCaptureRow(ctx, captureId, 'logged', { mealId: id });
+  }
 
   const meals = await getMealsForDate(ctx, when.localDate);
   const totals = sumMeals(meals);
@@ -82,6 +105,8 @@ export async function logMeal(ctx: Ctx, args: ToolArgs): Promise<unknown> {
   return {
     logged: true,
     meal_id: id,
+    capture_id: captureId,
+    capture_resolved: captureResolved,
     local_date: when.localDate,
     backdated: when.backdated,
     day_totals: totals,
