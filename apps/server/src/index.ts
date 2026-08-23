@@ -16,6 +16,7 @@ import { ensureUser, getUserTz } from './db/queries.ts';
 import { renderApp } from './app/page.ts';
 import { runBackup, scheduledBackup } from './backup.ts';
 import { handleAppWrite, handleAppCapture } from './app/write.ts';
+import { renderRecipes } from './app/recipes.ts';
 import type { Ctx } from './db/queries.ts';
 
 export interface Env {
@@ -103,7 +104,15 @@ export default {
       const stored = await getUserTz(env.DB, userId);
       const ctx: Ctx = { db: env.DB, userId, tz: stored ?? (env.DEFAULT_TZ || 'America/New_York'), now };
 
-      if (request.method === 'GET') {
+      const isRead = request.method === 'GET' || request.method === 'HEAD';
+
+      if (isRead && action === '/recipes') {
+        // Read-only for both capabilities: the book and the pantry are not
+        // sensitive the way the food log is.
+        return renderRecipes(ctx, given);
+      }
+
+      if (isRead) {
         const requested = url.searchParams.get('date');
         const date = requested && /^\d{4}-\d{2}-\d{2}$/.test(requested) ? requested : null;
         return renderApp(ctx, date, { canEdit, secret: given, notice: url.searchParams.get('ok') });
@@ -125,7 +134,7 @@ export default {
 
       return new Response('Method not allowed', {
         status: 405,
-        headers: { allow: canEdit ? 'GET, POST' : 'GET' },
+        headers: { allow: canEdit ? 'GET, HEAD, POST' : 'GET, HEAD' },
       });
     }
 

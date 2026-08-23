@@ -202,6 +202,26 @@ this project exists to get right.
 
 ---
 
+## Recipes in the app — ✅ done 2026-08-23
+
+Phase 4 gave the MODEL the pantry-matched catalog and gave the cook nothing:
+"what can I make tonight" still meant opening a chat. `/app/<secret>/recipes`
+is the same data with a thumb-sized interface — what fits today's remaining
+budget first, then best-covered by the pantry, with the shopping gap behind a
+disclosure per recipe.
+
+Read-only for both capabilities: the book and the pantry are not sensitive the
+way the food log is.
+
+Prompted a refactor worth having on its own — the shell (tokens, `esc`, the
+no-store/no-referrer/noindex headers) moved to `src/app/layout.ts`. Two pages
+with two copies of a stylesheet is how a design system starts drifting, and the
+point of lifting these tokens from macromiser.vercel.app was that the two
+products read as one. Also fixed `HEAD`, which returned 405 where it should
+behave like `GET`.
+
+---
+
 ## US-1 — Log a meal from the app (in progress)
 
 Planned in [plans/us-1-log-a-meal-in-the-app.md](plans/us-1-log-a-meal-in-the-app.md)
