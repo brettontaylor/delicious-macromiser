@@ -40,6 +40,11 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci --no-audit --no-fund
+      # The recipe catalog is generated and gitignored, and src/domain/recipes.ts
+      # imports it — so it has to exist before tsc runs. `npm ci` triggers this
+      # via `prepare` too; kept explicit here so a change to that never silently
+      # breaks the build.
+      - run: npm run recipes:build
       - run: npm run typecheck
       - run: npm test
 

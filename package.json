@@ -15,7 +15,8 @@
     "smoke": "npm run smoke --workspace @dm/server",
     "recipes:check": "node scripts/check-recipes.mjs",
     "backup:restore": "npm run restore --workspace @dm/server --",
-    "recipes:build": "node scripts/build-recipe-catalog.mjs"
+    "recipes:build": "node scripts/build-recipe-catalog.mjs",
+    "prepare": "node scripts/build-recipe-catalog.mjs"
   },
   "engines": {
     "node": ">=22"
