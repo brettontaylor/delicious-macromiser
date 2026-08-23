@@ -107,6 +107,49 @@ If `APP_VIEW_SECRET` is unset the route 404s — the view is off, not open.
 
 ---
 
+## 2c. Backups
+
+A nightly cron on the prod Worker dumps every table to R2 as one JSON object,
+keyed by date, keeping 30 days. `wrangler d1 export` is a CLI command and cannot
+run inside a Worker, so this reads the tables directly — which also means a
+snapshot is a plain object you can inspect without SQLite.
+
+```
+[env.prod.triggers]  crons = ["10 7 * * *"]     # after midnight in every US tz
+[[env.prod.r2_buckets]] binding = "BACKUPS"      # bucket: macromiser-backups
+```
+
+Take one on demand (gated on the **write** secret — a snapshot is an operational
+action, so the shareable view secret cannot trigger it):
+
+```bash
+curl -X POST https://macromiser-prod.<subdomain>.workers.dev/backup/<MCP_PATH_SECRET>
+```
+
+### Restoring
+
+D1 has no point-in-time restore on the free tier, and there are no edit or delete
+tools yet, so this is currently the only undo that exists.
+
+```bash
+npx wrangler r2 object get macromiser-backups/d1/2026-08-23.json --file=bk.json --remote
+npm run backup:restore -- bk.json --replace > restore.sql   # read it before running
+npx wrangler d1 execute macromiser-prod --remote --env prod --file=restore.sql
+```
+
+The script only prints SQL — it never touches a database. Restoring is rare,
+high-stakes and irreversible; you should read the statements first, and a script
+that helpfully applied them would remove that step.
+
+Without `--replace` it only inserts. With it, every table is emptied first —
+correct after a bad write, wrong if the live database holds good rows the
+snapshot predates.
+
+> Verified end-to-end: a production snapshot (21 meals, 52 sets, 3 workouts)
+> restored into an empty local D1 and reproduced those counts exactly.
+
+---
+
 ## 3. Connecting it to Claude
 
 Custom connectors require Pro/Max/Team/Enterprise, and must be **added on

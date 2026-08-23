@@ -14,6 +14,7 @@ import { SERVER_INFO } from './mcp/server.ts';
 import { PARSE_ERROR, error, json } from './mcp/rpc.ts';
 import { ensureUser, getUserTz } from './db/queries.ts';
 import { renderApp } from './app/page.ts';
+import { runBackup, scheduledBackup } from './backup.ts';
 import type { Ctx } from './db/queries.ts';
 
 export interface Env {
@@ -25,6 +26,8 @@ export interface Env {
    * without breaking the connector. Unset means the view is simply off.
    */
   APP_VIEW_SECRET?: string;
+  /** Nightly D1 snapshots. Unbound simply disables backup. */
+  BACKUPS?: R2Bucket;
   DEFAULT_TZ?: string;
   OWNER_USER_ID?: string;
 }
@@ -93,6 +96,25 @@ export default {
       return renderApp(ctx, date);
     }
 
+    // ---------- manual backup trigger ----------
+    // Gated on the write secret, not the view secret: taking a snapshot is an
+    // operational action, not something a shared read link should be able to do.
+    const backupMatch = /^\/backup\/([A-Za-z0-9_-]{16,128})$/.exec(path);
+    if (backupMatch) {
+      if (!env.MCP_PATH_SECRET || !timingSafeEqual(backupMatch[1]!, env.MCP_PATH_SECRET)) {
+        return new Response('Not found', { status: 404 });
+      }
+      if (request.method !== 'POST') {
+        return new Response('Method not allowed', { status: 405, headers: { allow: 'POST' } });
+      }
+      if (!env.BACKUPS) return json({ error: 'no backup bucket bound' }, 503);
+      try {
+        return json(await runBackup(env, new Date()));
+      } catch (err) {
+        return json({ error: err instanceof Error ? err.message : String(err) }, 500);
+      }
+    }
+
     // A bare /mcp with no secret is the most likely misconfiguration. Say so
     // without revealing the correct path.
     if (path === '/mcp') {
@@ -100,6 +122,10 @@ export default {
     }
 
     return new Response('Not found', { status: 404 });
+  },
+
+  async scheduled(_event: ScheduledController, env: Env, ctx: ExecutionContext): Promise<void> {
+    ctx.waitUntil(scheduledBackup(env, new Date()));
   },
 } satisfies ExportedHandler<Env>;
 

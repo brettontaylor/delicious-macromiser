@@ -45,8 +45,9 @@ The minimum that replaces this conversation's manual tracking.
 - [x] `get_today` returns eaten / remaining / food-kcal-excluding-alcohol
 - [x] Tool descriptions written deliberately (this is the highest-leverage hour
       in the whole phase)
-- [ ] Nightly D1 export to R2 — reuse the existing Cloudflare R2 bucket
-      (`npm run db:export:prod` is wired; the schedule is not)
+- [x] Nightly D1 export to R2 — cron on the prod Worker, 30-day retention,
+      bucket `macromiser-backups`. Restore path verified end-to-end
+      (see [DEV.md](DEV.md) §2c)
 
 **Exit criteria — all four:**
 1. "Log lunch: 12oz ground chicken, ¼ cup farro, salad with 3 tbsp olive oil"

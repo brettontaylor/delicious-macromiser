@@ -20,6 +20,15 @@ OWNER_USER_ID = "owner"
 [env.prod]
 name = "macromiser-prod"
 
+# 07:10 UTC — after midnight in every US timezone, so a nightly snapshot always
+# covers a complete local day.
+[env.prod.triggers]
+crons = ["10 7 * * *"]
+
+[[env.prod.r2_buckets]]
+binding = "BACKUPS"
+bucket_name = "macromiser-backups"
+
 [[env.prod.d1_databases]]
 binding = "DB"
 database_name = "macromiser-prod"

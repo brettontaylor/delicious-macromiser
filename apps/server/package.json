@@ -16,7 +16,8 @@
     "db:export:prod": "wrangler d1 export macromiser-prod --remote --env prod --output=./backup-prod.sql",
     "test": "node --test \"test/**/*.test.ts\"",
     "typecheck": "tsc --noEmit",
-    "smoke": "node scripts/smoke.mjs"
+    "smoke": "node scripts/smoke.mjs",
+    "restore": "node scripts/restore.mjs"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^5.20260820.1",
