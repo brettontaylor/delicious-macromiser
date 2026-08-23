@@ -104,7 +104,8 @@ try {
   // the number changed, never which tool went missing.
   const EXPECTED_TOOLS = [
     'correct_meal', 'delete_meal', 'get_history', 'get_last_performance',
-    'get_today', 'get_week_summary', 'import_days', 'list_recipes',
+    'get_next_meal', 'get_today', 'get_week_summary', 'import_days',
+    'list_recipes',
     'log_bodyweight', 'log_meal', 'log_workout', 'set_goals',
   ];
   const missing = EXPECTED_TOOLS.filter((t) => !names.includes(t));

@@ -25,6 +25,7 @@ import {
 import { sumMeals, remainingVsGoals } from '../domain/totals.ts';
 import { localDate, shiftDate } from '../util/date.ts';
 import { trendChart } from './chart.ts';
+import { nextMeal } from '../domain/mealtimes.ts';
 
 const esc = (s: unknown): string =>
   String(s).replace(/[&<>"']/g, (c) =>
@@ -112,6 +113,20 @@ export async function renderApp(
 
   const importedCount = meals.filter((m) => m.source === 'import').length;
 
+  // Only meaningful for today — a next meal on a day already past is noise.
+  const upcoming =
+    date === today
+      ? nextMeal(
+          rangeMeals.map((m) => ({
+            local_date: m.local_date,
+            logged_at: m.logged_at,
+            meal_type: m.meal_type,
+          })),
+          ctx.now,
+          ctx.tz,
+        )
+      : null;
+
   const html = `<!doctype html>
 <html lang="en" data-date="${esc(date)}">
 <head>
@@ -191,6 +206,13 @@ h2{font-family:var(--display);font-size:17px;font-weight:600;margin:0}
   padding:2px 8px;font-variant-numeric:tabular-nums}
 .empty{border:1px dashed var(--line-firm);border-radius:10px;padding:20px 16px;text-align:center;
   color:var(--muted);font-size:13px}
+
+/* next meal */
+.upnext{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 10px;
+  border:1px solid var(--line);border-radius:10px;padding:11px 13px;background:var(--surface)}
+.up-slot{font-family:var(--display);font-size:16px;font-weight:600;text-transform:capitalize}
+.up-time{font-size:13px;color:var(--muted)}
+.up-budget{font-family:var(--mono);font-size:12px;color:var(--muted);margin-left:auto}
 
 /* chart */
 .chart{display:flex;flex-direction:column;gap:8px}
@@ -315,6 +337,24 @@ footer code{font-family:var(--mono);background:var(--chrome);color:var(--ink);pa
         : ''
     }
   </div>
+
+  ${
+    upcoming?.next
+      ? `<div class="upnext">
+          <span class="up-slot">${esc(upcoming.next.meal_type)}${
+            upcoming.next.tomorrow ? ' tomorrow' : ''
+          }</span>
+          <span class="up-time">usually around ${esc(upcoming.next.typical_time)}</span>
+          ${
+            remaining.kcal !== null && remaining.kcal > 0
+              ? `<span class="up-budget">${Math.round(remaining.kcal)} kcal · ${
+                  remaining.protein_g !== null ? Math.round(remaining.protein_g) + ' g protein' : ''
+                } left</span>`
+              : ''
+          }
+        </div>`
+      : ''
+  }
 
   <div class="macros">
     ${(

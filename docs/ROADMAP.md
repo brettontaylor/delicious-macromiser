@@ -157,6 +157,28 @@ the same food.
 
 ---
 
+## US-1 — Log a meal from the app (in progress)
+
+Planned in [plans/us-1-log-a-meal-in-the-app.md](plans/us-1-log-a-meal-in-the-app.md)
+with the ported `/design-plan` skill. Decisions taken: capture-then-analyze
+rather than app-side inference (the connector already IS the user's model, and
+consumer users have subscriptions rather than API keys); pantry as two small
+lists rather than an inventory.
+
+- [x] **Phase 3 — next meal.** `src/domain/mealtimes.ts` predicts the next slot
+      from the user's own same-day logs; `get_next_meal` returns it with the
+      remaining budget; the view renders a line under the ring. Only meals
+      logged on the day they were eaten count — a backfilled row carries the
+      time it was *written*, so including it would learn the time of the import.
+      Below three observations it returns null with a reason rather than
+      guessing. 10 unit tests.
+- [ ] Phase 0 — spike: can the connector client show an image from a tool result?
+- [ ] Phase 1 — `captures` table, text capture in the app, `get_pending_captures`
+- [ ] Phase 2 — photo upload to R2, size and count caps, retention
+- [ ] Phase 4 — staples + fresh lists, "what can I make?"
+
+---
+
 ## Phase 4 — Multi-user (2–3 weekends)
 
 Only start this when a second person actually wants in.

@@ -41,6 +41,12 @@ It returns data, not a recommendation. Apply your own progression rules to it. I
 
 Returns 7-day (or requested-window) averages for calories, food calories excluding alcohol, protein, and alcohol; protein adherence as a percentage of logged days; session count; and average bodyweight and waist. Averages are computed over days that actually have data, and days_with_data is returned alongside so you can say plainly when a week is too sparse to read.`,
 
+  get_next_meal: `When the user is likely to eat next, and what they have left to spend. Call this for "what should I eat next", "what's for lunch", or any planning question about the rest of the day.
+
+Returns the typical time for each meal slot, computed from the user's own logs, together with today's remaining calories and macros. It returns facts, not a suggestion — apply your own judgement about what to actually recommend, and use list_recipes if they want something from their own book.
+
+Only meals logged on the day they were eaten inform the timing; backfilled history carries the time it was written, not the time it was eaten. If unavailable_because is set, say plainly that there is not enough history yet rather than guessing a mealtime.`,
+
   correct_meal: `Fix a meal that was logged with the wrong numbers. Call this the moment the user corrects an estimate — "that was closer to 900 calories", "it was 8oz not 12" — rather than logging a second meal to compensate.
 
 Send only the fields that are wrong; everything else is left alone. Get the meal_id from get_today or get_history.

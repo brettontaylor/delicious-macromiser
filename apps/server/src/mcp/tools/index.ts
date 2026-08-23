@@ -20,6 +20,7 @@ import { getHistory } from './get_history.ts';
 import { importDays } from './import_days.ts';
 import { listRecipes } from './list_recipes.ts';
 import { correctMeal, deleteMeal } from './correct_meal.ts';
+import { getNextMeal } from './get_next_meal.ts';
 
 export type ToolArgs = Record<string, unknown>;
 export type ToolHandler = (ctx: Ctx, args: ToolArgs) => Promise<unknown>;
@@ -346,6 +347,18 @@ export const TOOLS: ToolDef[] = [
       additionalProperties: false,
     },
     handler: deleteMeal,
+  },
+  {
+    name: 'get_next_meal',
+    description: DESCRIPTIONS.get_next_meal,
+    inputSchema: {
+      type: 'object',
+      properties: {
+        days: num('How far back to read the habit, 7-90. Defaults to 30.'),
+      },
+      additionalProperties: false,
+    },
+    handler: getNextMeal,
   },
 ];
 

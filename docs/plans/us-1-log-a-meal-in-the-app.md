@@ -1,6 +1,6 @@
 # US-1 — Log a meal from the app
 
-**Date:** 2026-08-23 · **Status:** draft, awaiting decisions
+**Date:** 2026-08-23 · **Status:** decided; Phase 3 shipped 2026-08-23
 **Triggered by:** "I want to add a meal via the app… it should use the user's
 connected Claude (OpenAI, Gemini, etc.) connector to analyze and add the meal,
 rather than our app's tokens."
@@ -278,13 +278,13 @@ with no evidence behind them — the exact failure mode the `source` and
 
 **Open decisions**
 
-1. **Async analysis acceptable?** (D-1) Recommend yes — it is the price of not
-   holding API keys, and the gap is usually minutes.
+1. **Async analysis acceptable?** (D-1) — **DECIDED: yes**, capture-then-analyze.
+   The app never calls a provider; no API keys are ever held.
 2. **Should the shareable read link show pending photos?** Recommend no; show
-   only the count.
-3. **Ship Phase 3 first if the spike stalls?** Recommend yes — independent and
-   immediately visible.
-4. **Pantry as two lists rather than an inventory?** Recommend yes, per §7.
+   only the count. Still open, decided at Phase 2.
+3. **Ship Phase 3 first?** — **DECIDED: yes.** Shipped 2026-08-23.
+4. **Pantry shape?** — **DECIDED: two lists** (staples + fresh right now), not
+   an inventory. Per §7.
 
 ---
 
