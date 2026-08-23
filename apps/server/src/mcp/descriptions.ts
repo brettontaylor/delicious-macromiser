@@ -46,6 +46,8 @@ Returns 7-day (or requested-window) averages for calories, food calories excludi
 export const ARG_DOCS = {
   when: 'Optional ISO8601 timestamp or YYYY-MM-DD. Omit for now. Use only when logging something from an earlier day the user explicitly names.',
   date: 'Optional YYYY-MM-DD. Omit for today.',
+  source:
+    'Where the entry came from. Omit for a normal live log. Use "import" only when backfilling an entry reconstructed from an earlier conversation or an external tool, so reconstructed history stays distinguishable from data captured as it happened.',
   confidence:
     'How sure you are of the macro estimate. "high" for a packaged item or a weighed portion, "medium" for a described home portion, "low" for a restaurant dish or a vague description.',
   alcohol_g:

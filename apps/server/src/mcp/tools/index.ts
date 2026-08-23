@@ -56,6 +56,11 @@ export const TOOLS: ToolDef[] = [
           description: ARG_DOCS.confidence,
         },
         when: str(ARG_DOCS.when),
+        source: {
+          type: 'string',
+          enum: ['estimate', 'import'],
+          description: ARG_DOCS.source,
+        },
       },
       required: ['description', 'kcal', 'protein_g', 'fat_g', 'carb_g', 'confidence'],
       additionalProperties: false,

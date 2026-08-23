@@ -6,6 +6,9 @@ import { reqString, reqNumber, optNumber, optNonNegative, reqEnum, optEnum, reso
 
 const MEAL_TYPES = ['breakfast', 'lunch', 'dinner', 'snack'] as const;
 const CONFIDENCE = ['high', 'medium', 'low'] as const;
+// 'barcode' and 'corrected' are set by the server, never by the caller:
+// 'corrected' belongs to the Phase 3 correction UI, 'barcode' to a scanner.
+const CALLER_SOURCES = ['estimate', 'import'] as const;
 
 /**
  * Stores the meal, then returns the updated day so the assistant can report
@@ -25,7 +28,7 @@ export async function logMeal(ctx: Ctx, args: ToolArgs): Promise<unknown> {
     fiber_g: optNumber(args, 'fiber_g'),
     alcohol_g: optNonNegative(args, 'alcohol_g', 0),
     confidence: reqEnum(args, 'confidence', CONFIDENCE),
-    source: 'estimate',
+    source: optEnum(args, 'source', CALLER_SOURCES) ?? 'estimate',
   };
 
   const id = await insertMeal(ctx, meal);
@@ -52,6 +55,7 @@ export async function logMeal(ctx: Ctx, args: ToolArgs): Promise<unknown> {
       carb_g: meal.carb_g,
       alcohol_g: meal.alcohol_g,
       confidence: meal.confidence,
+      source: meal.source,
     },
   };
 }

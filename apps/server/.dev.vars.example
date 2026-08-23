@@ -1,3 +1,4 @@
 # Copy to .dev.vars (gitignored). Any 32+ char random string.
 # Generate: node -e "console.log(crypto.randomUUID().replace(/-/g,'')+crypto.randomUUID().replace(/-/g,''))"
+# Write it with LF endings — a trailing CR makes wrangler read the secret as unset.
 MCP_PATH_SECRET=devsecretdevsecretdevsecretdev01
