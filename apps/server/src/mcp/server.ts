@@ -47,8 +47,13 @@ function toolResult(payload: unknown) {
  * dropped meal reported as saved is the worst possible bug.
  */
 function toolError(message: string) {
+  // "NOT SAVED" is the default lead-in because a dropped write reported as a
+  // success is the worst bug this server can have. A message that already
+  // states its own outcome (NOT DELETED, NOT CHANGED) keeps it rather than
+  // stacking a second one.
+  const stated = /^NOT [A-Z]+ —/.test(message);
   return {
-    content: [{ type: 'text', text: `NOT SAVED — ${message}` }],
+    content: [{ type: 'text', text: stated ? message : `NOT SAVED — ${message}` }],
     isError: true,
   };
 }

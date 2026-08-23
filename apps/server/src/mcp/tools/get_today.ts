@@ -1,5 +1,5 @@
 import type { Ctx } from '../../db/queries.ts';
-import { getMealsForDate, getGoalsAsOf, getLastWorkoutDate } from '../../db/queries.ts';
+import { getMealsForDate, getGoalsAsOf, getLastWorkoutDate, lookupPortions} from '../../db/queries.ts';
 import { sumMeals, remainingVsGoals } from '../../domain/totals.ts';
 import { localWeekday, localTime, daysBetween } from '../../util/date.ts';
 import type { ToolArgs } from './index.ts';
@@ -24,6 +24,11 @@ export async function getToday(ctx: Ctx, args: ToolArgs): Promise<unknown> {
 
   const totals = sumMeals(meals);
 
+  // Corrected portions, so an estimate for a repeat meal starts from the number
+  // the user already fixed rather than from scratch. This is the loop that makes
+  // corrections worth making.
+  const portions = await lookupPortions(ctx, 15);
+
   return {
     local_date: date,
     weekday: localWeekday(ctx.now, ctx.tz),
@@ -40,6 +45,7 @@ export async function getToday(ctx: Ctx, args: ToolArgs): Promise<unknown> {
       alcohol_g: m.alcohol_g,
       confidence: m.confidence,
       source: m.source,
+      recipe_slug: m.recipe_slug ?? null,
     })),
     totals,
     goals,
@@ -48,6 +54,16 @@ export async function getToday(ctx: Ctx, args: ToolArgs): Promise<unknown> {
     last_workout: lastWorkout
       ? { local_date: lastWorkout, days_ago: daysBetween(lastWorkout, date) }
       : null,
+    // Phrases the user has already corrected. Reuse these figures rather than
+    // re-estimating the same food; a correction should only be needed once.
+    known_portions: portions.map((p) => ({
+      phrase: p.phrase,
+      kcal: p.kcal,
+      protein_g: p.protein_g,
+      fat_g: p.fat_g,
+      carb_g: p.carb_g,
+      times_used: p.times_used,
+    })),
     // Both numbers, always. The Skill decides when the gap is worth mentioning.
     alcohol_note:
       totals.alcohol_g > 0

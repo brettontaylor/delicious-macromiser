@@ -19,6 +19,7 @@ import { getWeekSummary } from './get_week_summary.ts';
 import { getHistory } from './get_history.ts';
 import { importDays } from './import_days.ts';
 import { listRecipes } from './list_recipes.ts';
+import { correctMeal, deleteMeal } from './correct_meal.ts';
 
 export type ToolArgs = Record<string, unknown>;
 export type ToolHandler = (ctx: Ctx, args: ToolArgs) => Promise<unknown>;
@@ -307,6 +308,44 @@ export const TOOLS: ToolDef[] = [
       additionalProperties: false,
     },
     handler: listRecipes,
+  },
+  {
+    name: 'correct_meal',
+    description: DESCRIPTIONS.correct_meal,
+    inputSchema: {
+      type: 'object',
+      properties: {
+        meal_id: str('Id of the meal to fix, from get_today or get_history.'),
+        description: str('Corrected description. Optional.'),
+        kcal: num('Corrected calories. Optional.'),
+        protein_g: num('Corrected protein in grams. Optional.'),
+        fat_g: num('Corrected fat in grams. Optional.'),
+        carb_g: num('Corrected carbohydrate in grams. Optional.'),
+        fiber_g: num('Corrected fiber in grams. Optional.'),
+        alcohol_g: num('Corrected pure ethanol in grams. Optional.'),
+        meal_type: {
+          type: 'string',
+          enum: ['breakfast', 'lunch', 'dinner', 'snack'],
+          description: 'Optional.',
+        },
+      },
+      required: ['meal_id'],
+      additionalProperties: false,
+    },
+    handler: correctMeal,
+  },
+  {
+    name: 'delete_meal',
+    description: DESCRIPTIONS.delete_meal,
+    inputSchema: {
+      type: 'object',
+      properties: {
+        meal_id: str('Id of the meal to remove, from get_today or get_history.'),
+      },
+      required: ['meal_id'],
+      additionalProperties: false,
+    },
+    handler: deleteMeal,
   },
 ];
 

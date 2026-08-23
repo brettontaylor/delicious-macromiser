@@ -20,6 +20,8 @@ export interface MealRow {
   confidence: string;
   source: string;
   logged_at: string;
+  /** Set when the meal was logged from a recipe card. Phase 2.5. */
+  recipe_slug?: string | null;
 }
 
 export interface GoalRow {

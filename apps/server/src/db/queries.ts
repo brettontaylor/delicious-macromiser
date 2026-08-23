@@ -259,3 +259,120 @@ export async function getGoalsAsOf(ctx: Ctx, date: string): Promise<GoalRow | nu
     .first<GoalRow>();
   return row ?? null;
 }
+
+// ---------- corrections (Phase 3) ----------
+
+export interface MealPatch {
+  description?: string;
+  kcal?: number;
+  protein_g?: number;
+  fat_g?: number;
+  carb_g?: number;
+  fiber_g?: number | null;
+  alcohol_g?: number;
+  meal_type?: string | null;
+}
+
+/**
+ * Returns the row as it stands, so a caller can show the user what they are
+ * about to change and so a patch can be validated against real values.
+ * Soft-deleted rows are invisible here — correcting a deleted meal is a bug.
+ */
+export async function getMealById(ctx: Ctx, id: string): Promise<MealRow | null> {
+  const row = await ctx.db
+    .prepare(
+      `SELECT id, local_date, meal_type, description, kcal, protein_g, fat_g, carb_g,
+              fiber_g, alcohol_g, confidence, source, recipe_slug, logged_at
+         FROM meals
+        WHERE id = ? AND user_id = ? AND deleted_at IS NULL`,
+    )
+    .bind(id, ctx.userId)
+    .first<MealRow>();
+  return row ?? null;
+}
+
+/**
+ * Applies a partial correction. Always sets source='corrected' — the point of
+ * the column is to distinguish a number the user has actually looked at from
+ * one nobody has checked, and an edit is exactly that signal.
+ *
+ * Confidence is raised to 'high' for the same reason: a human just confirmed it.
+ */
+export async function updateMeal(ctx: Ctx, id: string, patch: MealPatch): Promise<boolean> {
+  const sets: string[] = [];
+  const vals: unknown[] = [];
+  for (const [k, v] of Object.entries(patch)) {
+    if (v === undefined) continue;
+    sets.push(`${k} = ?`);
+    vals.push(v);
+  }
+  if (sets.length === 0) return false;
+
+  sets.push(`source = 'corrected'`, `confidence = 'high'`);
+  vals.push(id, ctx.userId);
+
+  const res = await ctx.db
+    .prepare(
+      `UPDATE meals SET ${sets.join(', ')}
+        WHERE id = ? AND user_id = ? AND deleted_at IS NULL`,
+    )
+    .bind(...vals)
+    .run();
+  return (res.meta.changes ?? 0) > 0;
+}
+
+/** Soft delete. Every read already filters `deleted_at IS NULL`, and keeping the
+ *  row means a mistaken delete is recoverable without reaching for a backup. */
+export async function softDeleteMeal(ctx: Ctx, id: string): Promise<boolean> {
+  const res = await ctx.db
+    .prepare(
+      `UPDATE meals SET deleted_at = ?
+        WHERE id = ? AND user_id = ? AND deleted_at IS NULL`,
+    )
+    .bind(ctx.now.toISOString(), id, ctx.userId)
+    .run();
+  return (res.meta.changes ?? 0) > 0;
+}
+
+/**
+ * A corrected portion becomes reusable. This is the loop nothing else in this
+ * space closes: fix "8oz chicken breast" once and the next estimate of the same
+ * phrase starts from the corrected number instead of from scratch.
+ */
+export async function rememberPortion(
+  ctx: Ctx,
+  phrase: string,
+  m: { kcal: number; protein_g: number; fat_g: number; carb_g: number },
+): Promise<void> {
+  await ctx.db
+    .prepare(
+      `INSERT INTO portion_memory (id, user_id, phrase, kcal, protein_g, fat_g, carb_g,
+         times_used, updated_at)
+       VALUES (?,?,?,?,?,?,?,1,?)
+       ON CONFLICT(user_id, phrase) DO UPDATE SET
+         kcal = excluded.kcal, protein_g = excluded.protein_g,
+         fat_g = excluded.fat_g, carb_g = excluded.carb_g,
+         times_used = portion_memory.times_used + 1,
+         updated_at = excluded.updated_at`,
+    )
+    .bind(crypto.randomUUID(), ctx.userId, phrase.trim().toLowerCase(),
+          m.kcal, m.protein_g, m.fat_g, m.carb_g, ctx.now.toISOString())
+    .run();
+}
+
+export async function lookupPortions(
+  ctx: Ctx,
+  limit = 25,
+): Promise<{ phrase: string; kcal: number | null; protein_g: number | null;
+             fat_g: number | null; carb_g: number | null; times_used: number }[]> {
+  const res = await ctx.db
+    .prepare(
+      `SELECT phrase, kcal, protein_g, fat_g, carb_g, times_used
+         FROM portion_memory WHERE user_id = ?
+        ORDER BY times_used DESC, updated_at DESC LIMIT ?`,
+    )
+    .bind(ctx.userId, limit)
+    .all<{ phrase: string; kcal: number | null; protein_g: number | null;
+           fat_g: number | null; carb_g: number | null; times_used: number }>();
+  return res.results ?? [];
+}

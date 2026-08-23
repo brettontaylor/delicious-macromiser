@@ -29,7 +29,7 @@ Use the exercise name the user actually said; the server normalizes it (so "squa
 
   get_today: `Call this before answering ANY question about remaining calories, remaining macros, or what the user has eaten today. Never compute a running total from the conversation — meals may have been logged in an earlier session or from another device, and the conversation is not the source of truth.
 
-Returns: every meal logged today, the totals, the remaining amount against the active goals, and food calories excluding alcohol. Also returns the user's local date, weekday and time, so you can judge whether protein is behind pace for the hour rather than guessing what time it is.`,
+Returns: every meal logged today (each with its id, for correct_meal), the totals, the remaining amount against the active goals, and food calories excluding alcohol. Also returns known_portions — phrases the user has already corrected once. Reuse those figures instead of re-estimating the same food. Also returns the user's local date, weekday and time, so you can judge whether protein is behind pace for the hour rather than guessing what time it is.`,
 
   get_last_performance: `Call this before recommending any weight for any exercise. Never propose a load from memory, from earlier in the conversation, or by inference from a different lift.
 
@@ -40,6 +40,16 @@ It returns data, not a recommendation. Apply your own progression rules to it. I
   get_week_summary: `Call this for any question about progress, trends, "how was this week", or whether something is working. A single day is noise; never answer a trend question from one day's data.
 
 Returns 7-day (or requested-window) averages for calories, food calories excluding alcohol, protein, and alcohol; protein adherence as a percentage of logged days; session count; and average bodyweight and waist. Averages are computed over days that actually have data, and days_with_data is returned alongside so you can say plainly when a week is too sparse to read.`,
+
+  correct_meal: `Fix a meal that was logged with the wrong numbers. Call this the moment the user corrects an estimate — "that was closer to 900 calories", "it was 8oz not 12" — rather than logging a second meal to compensate.
+
+Send only the fields that are wrong; everything else is left alone. Get the meal_id from get_today or get_history.
+
+The corrected entry is recorded as source="corrected" at high confidence, because a human has now looked at the numbers. If the macros changed, the description is also remembered as a reusable portion, so your next estimate of the same phrase starts from the corrected figure instead of from scratch. Tell the user when that happens.`,
+
+  delete_meal: `Remove a meal that should not have been logged — a duplicate, or something the user did not actually eat. Prefer correct_meal when the entry is real but the numbers are wrong; deleting and re-logging loses the correction history.
+
+The row is soft-deleted and stays recoverable. Get the meal_id from get_today or get_history.`,
 
   list_recipes: `The user's own cookbook, with per-serving macros already calculated. Call this when they ask what to cook, what fits their remaining macros, or whether a dish is in the book.
 

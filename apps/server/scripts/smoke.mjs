@@ -103,9 +103,9 @@ try {
   // Assert the exact surface, not a count — a count assertion only tells you
   // the number changed, never which tool went missing.
   const EXPECTED_TOOLS = [
-    'get_history', 'get_last_performance', 'get_today', 'get_week_summary',
-    'import_days', 'list_recipes', 'log_bodyweight', 'log_meal', 'log_workout',
-    'set_goals',
+    'correct_meal', 'delete_meal', 'get_history', 'get_last_performance',
+    'get_today', 'get_week_summary', 'import_days', 'list_recipes',
+    'log_bodyweight', 'log_meal', 'log_workout', 'set_goals',
   ];
   const missing = EXPECTED_TOOLS.filter((t) => !names.includes(t));
   const extra = names.filter((t) => !EXPECTED_TOOLS.includes(t));

@@ -128,10 +128,15 @@ catalog is a much better reason for a second user than a shared macro log.
 
 Closes the loop that no competing tool closes.
 
-- [ ] `/app` on the same Worker — auth via the same path secret
-- [ ] Table of recent entries; inline edit of macros
-- [ ] Edits set `source='corrected'`
-- [ ] `portion_memory`: corrected portions become reusable phrases
+- [x] `/app` on the same Worker — its own read-only secret, not the write one
+      (see [DEV.md](DEV.md) §2b)
+- [x] `correct_meal` / `delete_meal` tools — partial edits, soft delete.
+      Until now there was no undo at all short of hand-editing prod SQL
+- [ ] Inline edit in the web view (the tools exist; the UI is still read-only)
+- [x] Edits set `source='corrected'` and raise confidence to high — a human
+      has now looked at the numbers, which is different evidence
+- [x] `portion_memory`: corrected portions become reusable phrases, surfaced
+      on every `get_today` as `known_portions`
 - [x] `get_week_summary` tool: 7-day averages, protein adherence, weight trend
       — pulled forward into Phase 1; a trend view was cheap once totals existed
 - [ ] Weight + waist trend chart
