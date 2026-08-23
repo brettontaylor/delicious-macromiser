@@ -157,6 +157,29 @@ the same food.
 
 ---
 
+## Training plan — ✅ done 2026-08-23
+
+Prompted by a real observation: the homepage answered "what did I lift" and had
+nothing to say about "what am I supposed to do today", which is the question
+someone actually opens the app with. Everything in the database until now was a
+record of the past.
+
+- [x] `training_plan` table — one row per weekday. Not a rotating cycle: people
+      say "lower body on Tuesday", and a schedule you cannot state in those
+      words is one you will not follow.
+- [x] `set_training_plan` upserts a day at a time, so moving leg day is one call
+      rather than a rewrite of the week.
+- [x] `get_training_plan` returns today's kind, label and the user's own
+      standing rules, plus how many days to the next lift. Facts only —
+      `no_plan_set` distinguishes "never set up" from "today is rest", which
+      read the same on screen and mean opposite things.
+- [x] Homepage renders it above the ring: the day, the user's rules verbatim,
+      and "Next lift Tuesday — Lower body". Disappears entirely with no plan.
+- [x] 10 unit tests, including the wrap-around week and refusing to invent a
+      rest day for someone who never set one.
+
+---
+
 ## Workout corrections — ✅ done 2026-08-23
 
 Not on the original roadmap. Found by asking which writable entities had an

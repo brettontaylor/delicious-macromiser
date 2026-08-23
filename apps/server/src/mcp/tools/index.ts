@@ -24,6 +24,7 @@ import { getNextMeal } from './get_next_meal.ts';
 import { spikeImage } from './spike_image.ts';
 import { getPendingCaptures, resolveCapture } from './captures.ts';
 import { correctWorkout, deleteWorkout } from './correct_workout.ts';
+import { setTrainingPlan, getTrainingPlanTool } from './training_plan.ts';
 
 export type ToolArgs = Record<string, unknown>;
 export type ToolHandler = (ctx: Ctx, args: ToolArgs) => Promise<unknown>;
@@ -462,6 +463,43 @@ export const TOOLS: ToolDef[] = [
       additionalProperties: false,
     },
     handler: deleteWorkout,
+  },
+  {
+    name: 'set_training_plan',
+    description: DESCRIPTIONS.set_training_plan,
+    inputSchema: {
+      type: 'object',
+      properties: {
+        days: {
+          type: 'array',
+          description: 'One entry per weekday to set. Others are left alone.',
+          items: {
+            type: 'object',
+            properties: {
+              weekday: str('Weekday name ("Tuesday") or 0-6 with 0 = Sunday.'),
+              kind: {
+                type: 'string',
+                enum: ['lift', 'active', 'rest'],
+                description: 'lift = a training session; active = walk/mobility; rest = off.',
+              },
+              label: str('What the day is, e.g. "Lower body", "Pull", "Long walk".'),
+              notes: str('Standing rules for this day, in the user’s own words.'),
+            },
+            required: ['weekday', 'kind'],
+            additionalProperties: false,
+          },
+        },
+      },
+      required: ['days'],
+      additionalProperties: false,
+    },
+    handler: setTrainingPlan,
+  },
+  {
+    name: 'get_training_plan',
+    description: DESCRIPTIONS.get_training_plan,
+    inputSchema: { type: 'object', properties: {}, additionalProperties: false },
+    handler: getTrainingPlanTool,
   },
 ];
 

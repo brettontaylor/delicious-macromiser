@@ -53,6 +53,16 @@ For each capture: estimate the macros from the note and call log_meal with captu
 
 Do NOT use this for a capture you successfully logged: log_meal with capture_id already closes those. This is only for the ones you are declining to guess at.`,
 
+  set_training_plan: `Define or change the user's weekly training split — which weekdays are lift days, which are rest or active recovery, and any standing rules for a day ("walk 10,000 steps", "no alcohol", "no phone after 8").
+
+Upserts one weekday at a time, so moving leg day is a single call and not a rewrite of the whole week. Call this when the user describes their split or changes it.`,
+
+  get_training_plan: `What today is meant to be, and when the next lift day falls. Call this for "what am I doing today", "when's my next lift", or any planning question about training.
+
+Returns facts — the day's kind, its label, the user's own standing rules for it, and how many days until the next lift day. Whether they should actually train, push, or skip given recent sessions and recovery is YOUR judgement; combine this with get_last_performance rather than reading it as an instruction.
+
+no_plan_set true means they have never set a split up. Say so and offer to build one rather than implying today is a rest day.`,
+
   get_next_meal: `When the user is likely to eat next, and what they have left to spend. Call this for "what should I eat next", "what's for lunch", or any planning question about the rest of the day.
 
 Returns the typical time for each meal slot, computed from the user's own logs, together with today's remaining calories and macros. It returns facts, not a suggestion — apply your own judgement about what to actually recommend, and use list_recipes if they want something from their own book.

@@ -22,11 +22,14 @@ import {
   getBodyweightRange,
   getMealsForRange,
   listPendingCaptures,
+  getTrainingPlan,
 } from '../db/queries.ts';
 import { sumMeals, remainingVsGoals } from '../domain/totals.ts';
 import { localDate, shiftDate } from '../util/date.ts';
 import { trendChart } from './chart.ts';
 import { nextMeal } from '../domain/mealtimes.ts';
+import { planView, weekdayIndex, whenPhrase } from '../domain/plan.ts';
+import { localWeekday } from '../util/date.ts';
 
 const esc = (s: unknown): string =>
   String(s).replace(/[&<>"']/g, (c) =>
@@ -89,13 +92,14 @@ export async function renderApp(
   const date = dateParam ?? today;
   const windowStart = shiftDate(date, -29);
 
-  const [meals, goals, bw, workouts, rangeMeals, pendingCaptures] = await Promise.all([
+  const [meals, goals, bw, workouts, rangeMeals, pendingCaptures, plan] = await Promise.all([
     getMealsForDate(ctx, date),
     getGoalsAsOf(ctx, date),
     getBodyweightRange(ctx, shiftDate(date, -89), date),
     recentWorkouts(ctx, windowStart, date),
     getMealsForRange(ctx, windowStart, date),
     listPendingCaptures(ctx, 10),
+    getTrainingPlan(ctx),
   ]);
 
   const totals = sumMeals(meals);
@@ -114,6 +118,10 @@ export async function renderApp(
   const latestWeight = [...bw].reverse().find((r) => r.weight_lb !== null);
 
   const importedCount = meals.filter((m) => m.source === 'import').length;
+
+  // The plan is about the shape of a week, so it only makes sense on today.
+  const planToday = date === today ? planView(plan, weekdayIndex(localWeekday(ctx.now, ctx.tz))) : null;
+  const didLiftToday = workouts.some((w) => w.local_date === date);
 
   // Only meaningful for today — a next meal on a day already past is noise.
   const upcoming =
@@ -221,6 +229,17 @@ h2{font-family:var(--display);font-size:17px;font-weight:600;margin:0}
 .pend-n{font-family:var(--display);font-size:22px;font-weight:700;line-height:1}
 .pend-t{font-size:13px;display:flex;flex-direction:column;gap:2px}
 .pend-list{font-family:var(--mono);font-size:11px;opacity:.75}
+
+/* today's plan */
+.today{display:flex;flex-direction:column;gap:6px;border:1px solid var(--line);
+  border-left:3px solid var(--ink);border-radius:10px;padding:12px 14px;background:var(--surface)}
+.t-row{display:flex;align-items:baseline;gap:8px}
+.t-kind{font-family:var(--display);font-size:19px;font-weight:600}
+.t-rest,.t-active{color:var(--muted)}
+.t-done{font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;
+  border:1px solid var(--ink);border-radius:9999px;padding:2px 8px;margin-left:auto}
+.t-notes{margin:0;font-size:14px;line-height:1.45}
+.t-next{margin:0;font-family:var(--mono);font-size:12px;color:var(--muted)}
 
 /* next meal */
 .upnext{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 10px;
@@ -332,6 +351,39 @@ footer code{font-family:var(--mono);background:var(--chrome);color:var(--ink);pa
               )}</a>`,
           )
           .join('')}</nav>`
+      : ''
+  }
+
+  ${
+    planToday && !planToday.empty && (planToday.today || planToday.next_lift)
+      ? `<section class="today">
+          ${
+            planToday.today
+              ? `<div class="t-row">
+                  <span class="t-kind t-${esc(planToday.today.kind)}">${
+                    planToday.today.kind === 'lift'
+                      ? esc(planToday.today.label ?? 'Lift day')
+                      : planToday.today.kind === 'active'
+                        ? esc(planToday.today.label ?? 'Active recovery')
+                        : esc(planToday.today.label ?? 'Rest day')
+                  }</span>
+                  ${
+                    planToday.today.kind === 'lift' && didLiftToday
+                      ? '<span class="t-done">logged</span>'
+                      : ''
+                  }
+                </div>
+                ${planToday.today.notes ? `<p class="t-notes">${esc(planToday.today.notes)}</p>` : ''}`
+              : ''
+          }
+          ${
+            planToday.next_lift && !(planToday.today?.kind === 'lift')
+              ? `<p class="t-next">Next lift ${esc(
+                  whenPhrase(planToday.next_lift.days_away, planToday.next_lift.weekday_name),
+                )}${planToday.next_lift.label ? ` — ${esc(planToday.next_lift.label)}` : ''}</p>`
+              : ''
+          }
+        </section>`
       : ''
   }
 

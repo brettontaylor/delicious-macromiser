@@ -104,11 +104,12 @@ try {
   // the number changed, never which tool went missing.
   const EXPECTED_TOOLS = [
     'correct_meal', 'correct_workout', 'delete_meal', 'delete_workout', 'get_history', 'get_last_performance',
-    'get_next_meal', 'get_pending_captures', 'get_today', 'get_week_summary',
+    'get_next_meal', 'get_pending_captures', 'get_today', 'get_training_plan',
+    'get_week_summary',
     'import_days',
     'list_recipes',
     'log_bodyweight', 'log_meal', 'log_workout', 'resolve_capture',
-    'set_goals', 'spike_image',
+    'set_goals', 'set_training_plan', 'spike_image',
   ];
   const missing = EXPECTED_TOOLS.filter((t) => !names.includes(t));
   const extra = names.filter((t) => !EXPECTED_TOOLS.includes(t));

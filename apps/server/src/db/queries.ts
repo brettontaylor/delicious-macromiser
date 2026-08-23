@@ -593,3 +593,38 @@ export async function softDeleteWorkout(ctx: Ctx, id: string): Promise<boolean> 
     .run();
   return (res.meta.changes ?? 0) > 0;
 }
+
+// ---------- training plan ----------
+
+export interface PlanDay {
+  weekday: number;
+  kind: string;
+  label: string | null;
+  notes: string | null;
+}
+
+export async function getTrainingPlan(ctx: Ctx): Promise<PlanDay[]> {
+  const res = await ctx.db
+    .prepare(
+      `SELECT weekday, kind, label, notes FROM training_plan
+        WHERE user_id = ? ORDER BY weekday ASC`,
+    )
+    .bind(ctx.userId)
+    .all<PlanDay>();
+  return res.results ?? [];
+}
+
+/** Upsert one day. The plan is small and changes rarely; a whole-week replace
+ *  would make "just move leg day" into a rewrite of everything. */
+export async function upsertPlanDay(ctx: Ctx, d: PlanDay): Promise<void> {
+  await ctx.db
+    .prepare(
+      `INSERT INTO training_plan (user_id, weekday, kind, label, notes, updated_at)
+       VALUES (?,?,?,?,?,?)
+       ON CONFLICT(user_id, weekday) DO UPDATE SET
+         kind = excluded.kind, label = excluded.label,
+         notes = excluded.notes, updated_at = excluded.updated_at`,
+    )
+    .bind(ctx.userId, d.weekday, d.kind, d.label, d.notes, ctx.now.toISOString())
+    .run();
+}
