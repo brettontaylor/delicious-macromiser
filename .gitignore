@@ -21,3 +21,8 @@ apps/server/src/generated/
 
 # Windows: `--file=/dev/null` creates a literal file named `nul` here.
 nul
+
+# Chat transcripts and anything that looks like personal health notes.
+# This repo is PUBLIC — see GOTCHAS.
+Claude-Chat*
+*transcript*.txt

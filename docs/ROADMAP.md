@@ -68,7 +68,10 @@ Where the actual value is.
 - [x] Write `SKILL.md` (see `COACHING-LAYER.md`)
 - [x] Encode: macro targets, progressive-overload rule, recovery spacing,
       alcohol-adjusted food-calorie check, protein-priority ordering
-- [ ] Install as a Claude Skill or Project instructions
+- [ ] Install as a Claude Skill or Project instructions — zip is built at
+      `dist/macromiser-coach.zip` (gitignored; `npm run` nothing, it is produced
+      by hand). **Re-upload needed:** the Skill has changed twice since it was
+      first sent — photos, and §0 `get_briefing`
 - [ ] Iterate on the prompt for a week — it's a text file, not a deploy
 
 **Exit:** you ask "gym today?" and get a session with correct loads, correct
@@ -222,7 +225,30 @@ behave like `GET`.
 
 ---
 
-## US-1 — Log a meal from the app (in progress)
+## Conversation latency — ✅ done 2026-08-24
+
+Operator feedback: the back-and-forth of MCP calls made the chat feel blocked.
+Measured before changing anything — individual calls run 120-250ms, so the server
+was never the problem. Four sequential calls to orient were.
+
+- [x] `get_briefing` — the day, what is left, the capture queue **with notes
+      inline**, the training plan and next lift, the week's shape, bodyweight,
+      and corrected portions, in ONE parallel round.
+      **1209ms across 4 calls → 200ms in 1.** The milliseconds are the smaller
+      half: four calls is also four approval prompts and four pauses.
+- [x] `get_today` had two queries outside its `Promise.all` — 651ms → 233ms.
+- [x] The Skill now opens with §0 "the first tool call of any session is
+      `get_briefing`".
+
+> Correctness gap this surfaced: the Skill's rule to check `pending_captures` at
+> session start **did not fire**. The queue was noticed only because the user
+> asked about a meal and `get_today` mentioned it in passing. An instruction to
+> make an extra call is weaker than putting the thing in a payload the model
+> already reads — hence notes inline.
+
+---
+
+## US-1 — Log a meal from the app — ✅ all phases done 2026-08-24
 
 Planned in [plans/us-1-log-a-meal-in-the-app.md](plans/us-1-log-a-meal-in-the-app.md)
 with the ported `/design-plan` skill. Decisions taken: capture-then-analyze
@@ -267,7 +293,9 @@ Only start this when a second person actually wants in.
       port-agnostic loopback for Claude Code
 - [ ] Per-user data isolation enforced at the server boundary
 - [ ] Signup flow + consent screen
-- [ ] MyFitnessPal / Cronometer CSV import
+- [~] MyFitnessPal / Cronometer CSV import — **dropped**, same reasoning as the
+      Phase 3 export: import belongs in predefined MCP connectors (Apple Health,
+      other trackers), not a one-off file format
 - [ ] Rate limiting, audit logging
 - [ ] Privacy policy and data-deletion path
 

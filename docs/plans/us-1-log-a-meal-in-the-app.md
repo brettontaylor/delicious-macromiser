@@ -1,6 +1,6 @@
 # US-1 — Log a meal from the app
 
-**Date:** 2026-08-23 · **Status:** Phase 0 spike PASSED; Phases 1 and 3 shipped 2026-08-23
+**Date:** 2026-08-23 · **Status:** COMPLETE 2026-08-24 — spike passed, Phases 1, 2, 3 and 4 all shipped
 **Triggered by:** "I want to add a meal via the app… it should use the user's
 connected Claude (OpenAI, Gemini, etc.) connector to analyze and add the meal,
 rather than our app's tokens."
