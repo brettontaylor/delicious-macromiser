@@ -145,6 +145,28 @@ Facts only. Whether to discount a reading, and by how much, is your call.`,
 
   delete_event: `Remove an event that never happened. Soft-deleted and recoverable. Prefer correct_event when the event was real but recorded wrong — deleting it loses the annotation on every reading in its window.`,
 
+  prescribe_session: `Write down the training session you just proposed, so it survives this conversation.
+
+Call this AFTER you have proposed a session and the user has agreed to it. Not every time a lift is mentioned, and never speculatively — a prescription is a commitment the user will read at the gym, not a thought you had.
+
+Get the loads from get_last_performance FIRST. Never propose a weight from memory or from earlier in the conversation.
+
+A PRESCRIPTION IS INTENT, NOT A RECORD. It never counts as a logged workout, it never appears in training history, and it must never be reported as something the user did. When the session actually happens, call log_workout with prescription_id — that logs the real sets and links the two.
+
+Writing a second prescription for the same date replaces the first. That is the right behaviour when the plan changes; it is the wrong tool for logging two sessions in a day.`,
+
+  get_session: `What the user is supposed to train on a given day, with the history needed to adjust it — in one call.
+
+Call this for "what am I doing at the gym", "what's today's session", or before proposing any change to a planned workout. Returns the prescribed exercises with their target loads, plus \`last\` and \`best_ever\` for each one, so you can apply the progression rule without a second round trip.
+
+no_prescription: true means nothing has been written down for that date. That is different from a rest day — check get_training_plan for what the day is FOR. Offer to write a session rather than implying there is nothing to do.
+
+Returns facts and no recommendation. The next load is your call, from \`last\` and the user's own progression rule.
+
+\`reconciliation\` appears once a workout has been linked to the prescription: what was planned against what was done, as arithmetic. Whether a miss matters is your judgement, not the number's.`,
+
+  delete_prescription: `Remove a session that was written down and should not have been. Soft-deleted and recoverable. To CHANGE a session, call prescribe_session again for the same date — it replaces rather than duplicates.`,
+
   get_history: `Retrieve meals, workouts and bodyweight for an explicit date range. Use this for questions that reach further back than the current week, for export, and for "how was last month". Prefer get_today for today and get_week_summary for the current week — both are cheaper and shaped for the question.`,
 } as const;
 

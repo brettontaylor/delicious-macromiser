@@ -24,6 +24,7 @@ import {
   listPendingCaptures,
   getTrainingPlan,
   getEventsInRange,
+  getPrescription,
 } from '../db/queries.ts';
 import { sumMeals, remainingVsGoals } from '../domain/totals.ts';
 import { localDate, shiftDate } from '../util/date.ts';
@@ -34,6 +35,7 @@ import { planView, weekdayIndex, whenPhrase } from '../domain/plan.ts';
 import { localWeekday } from '../util/date.ts';
 import { roadmapStub as stub } from './stub.ts';
 import { pace as computePace } from '../domain/pacing.ts';
+import { describeTarget, type PrescribedTarget } from '../domain/prescription.ts';
 import { minutesToClock } from '../domain/mealtimes.ts';
 
 const n0 = (v: number | null | undefined): string =>
@@ -100,7 +102,8 @@ export async function renderApp(
   const date = dateParam ?? today;
   const windowStart = shiftDate(date, -29);
 
-  const [meals, goals, bw, workouts, rangeMeals, pendingCaptures, plan, events] = await Promise.all([
+  const [meals, goals, bw, workouts, rangeMeals, pendingCaptures, plan, events, prescription] =
+    await Promise.all([
     getMealsForDate(ctx, date),
     getGoalsAsOf(ctx, date),
     getBodyweightRange(ctx, shiftDate(date, -89), date),
@@ -111,6 +114,7 @@ export async function renderApp(
     // Same 90-day window the chart draws over, so a marker can never point at
     // a date outside the frame.
     getEventsInRange(ctx, shiftDate(date, -89), date),
+    getPrescription(ctx, date),
   ]);
 
   const totals = sumMeals(meals);
@@ -255,12 +259,28 @@ export async function renderApp(
   }
 
   ${
-    opts.canEdit
-      ? stub(
-          'session',
-          opts.secret,
-          'Back squat 4&times;6 @ 185 &middot; RDL 3&times;8 @ 135 &middot; Bench 3&times;8 @ 145',
-        )
+    prescription && prescription.sets.length > 0
+      ? `<section class="session">
+          <div class="s-head">
+            <span class="s-title">${esc(prescription.label ?? 'Today’s session')}</span>
+            <span class="s-status s-${esc(prescription.status)}">${
+              prescription.status === 'completed' ? 'logged' : 'planned'
+            }</span>
+          </div>
+          ${
+            prescription.notes
+              ? `<p class="s-notes">${esc(prescription.notes)}</p>`
+              : ''
+          }
+          <ol class="s-list">${(prescription.sets as unknown as PrescribedTarget[])
+            .map(
+              (t) =>
+                `<li${t.block ? ` data-block="${esc(t.block)}"` : ''}>${esc(
+                  describeTarget(t),
+                )}${t.notes ? `<span class="s-note">${esc(t.notes)}</span>` : ''}</li>`,
+            )
+            .join('')}</ol>
+        </section>`
       : ''
   }
 

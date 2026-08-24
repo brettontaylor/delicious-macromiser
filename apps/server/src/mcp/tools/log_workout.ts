@@ -1,7 +1,14 @@
 import type { Ctx } from '../../db/queries.ts';
-import { insertWorkout, getBestSets } from '../../db/queries.ts';
+import {
+  insertWorkout,
+  getBestSets,
+  getPrescription,
+  getPrescriptionById,
+  setPrescriptionStatus,
+} from '../../db/queries.ts';
+import { reconcile, type PrescribedTarget } from '../../domain/prescription.ts';
 import type { ToolArgs } from './index.ts';
-import { optString, resolveWhen } from './args.ts';
+import { ArgError, optString, resolveWhen } from './args.ts';
 import { parseSets } from './sets.ts';
 
 /**
@@ -21,6 +28,18 @@ export async function logWorkout(ctx: Ctx, args: ToolArgs): Promise<unknown> {
   const priorBest = new Map(
     (await getBestSets(ctx, exerciseKeys)).map((b) => [b.exercise, b]),
   );
+
+  // Resolve the prescription BEFORE the write, so an explicit id that does not
+  // exist fails loudly instead of silently logging an unlinked session.
+  const prescId = optString(args, 'prescription_id');
+  const presc = prescId
+    ? await getPrescriptionById(ctx, prescId)
+    : await getPrescription(ctx, when.localDate);
+  if (prescId && !presc) {
+    throw new ArgError(
+      `NOT SAVED — no prescription with id "${prescId}". Call get_session for the right id, or omit it.`,
+    );
+  }
 
   const { workoutId, setCount } = await insertWorkout(
     ctx,
@@ -59,6 +78,23 @@ export async function logWorkout(ctx: Ctx, args: ToolArgs): Promise<unknown> {
     })
     .filter((r): r is NonNullable<typeof r> => r !== null);
 
+  // Close the loop in the SAME call. Two calls would double the approval
+  // prompts the user sees, which is the reasoning log_meal + capture_id already
+  // settled.
+  let reconciliation = null;
+  if (presc && presc.status !== 'completed') {
+    await setPrescriptionStatus(ctx, presc.id, 'completed', workoutId);
+    reconciliation = reconcile(
+      presc.sets as unknown as PrescribedTarget[],
+      sets.map((s) => ({
+        exercise: s.exercise,
+        reps: s.reps ?? null,
+        weight_lb: s.weight_lb ?? null,
+        completed: s.completed !== false,
+      })),
+    );
+  }
+
   return {
     logged: true,
     workout_id: workoutId,
@@ -73,5 +109,9 @@ export async function logWorkout(ctx: Ctx, args: ToolArgs): Promise<unknown> {
     // is simply the first time the lift has been logged with a load, which is
     // not the same thing and should not be announced as a PR.
     personal_records: records,
+    // Present when this session fulfilled a written plan. Facts only — whether
+    // three sets instead of four was the right call is not the server's to say.
+    prescription_id: presc?.id ?? null,
+    reconciliation,
   };
 }

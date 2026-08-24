@@ -27,6 +27,7 @@ import { setTrainingPlan, getTrainingPlanTool } from './training_plan.ts';
 import { setPantry, getPantryTool } from './pantry.ts';
 import { getBriefing } from './get_briefing.ts';
 import { logEvent, getEvents, correctEvent, deleteEvent } from './events.ts';
+import { prescribeSession, getSession, deletePrescription } from './prescriptions.ts';
 
 export type ToolArgs = Record<string, unknown>;
 export type ToolHandler = (ctx: Ctx, args: ToolArgs) => Promise<unknown>;
@@ -123,6 +124,11 @@ export const TOOLS: ToolDef[] = [
         session_label: str('Optional label, e.g. "Day A" or "Pull".'),
         notes: str('Optional free text: soreness, sleep, how it felt.'),
         when: str(ARG_DOCS.when),
+        prescription_id: str(
+          'The session that was planned, from get_session. Marks it completed and ' +
+            'returns what was planned against what was done, in this same call. ' +
+            'Omit and any prescription for that date is linked automatically.',
+        ),
       },
       required: ['sets'],
       additionalProperties: false,
@@ -494,6 +500,63 @@ export const TOOLS: ToolDef[] = [
     description: DESCRIPTIONS.get_training_plan,
     inputSchema: { type: 'object', properties: {}, additionalProperties: false },
     handler: getTrainingPlanTool,
+  },
+  {
+    name: 'prescribe_session',
+    description: DESCRIPTIONS.prescribe_session,
+    inputSchema: {
+      type: 'object',
+      properties: {
+        date: str('YYYY-MM-DD the session is for. Omit for today.'),
+        label: str('What the day is, e.g. "Day A" or "Hinge + pull".'),
+        exercises: {
+          type: 'array',
+          description: 'In the order they should be performed.',
+          items: {
+            type: 'object',
+            properties: {
+              exercise: str('The lift, as you would say it. The server normalizes it.'),
+              sets: { type: 'integer', description: 'Number of working sets.' },
+              rep_low: { type: 'integer', description: 'Target reps, or the bottom of a range.' },
+              rep_high: { type: 'integer', description: 'Top of a rep range. Omit for a fixed target.' },
+              target_weight_lb: num(
+                'Working load in pounds, from get_last_performance. Omit for bodyweight, ' +
+                  'or when the instruction is genuinely "start light and find it".',
+              ),
+              block: str('Superset grouping, e.g. "C1" and "C2" for a pair done back to back.'),
+              notes: str('Anything specific to this lift. Optional.'),
+            },
+            required: ['exercise'],
+            additionalProperties: false,
+          },
+        },
+        notes: str('Warmup, ordering, or a standing reminder for the session.'),
+      },
+      required: ['exercises'],
+      additionalProperties: false,
+    },
+    handler: prescribeSession,
+  },
+  {
+    name: 'get_session',
+    description: DESCRIPTIONS.get_session,
+    inputSchema: {
+      type: 'object',
+      properties: { date: str('YYYY-MM-DD. Omit for today.') },
+      additionalProperties: false,
+    },
+    handler: getSession,
+  },
+  {
+    name: 'delete_prescription',
+    description: DESCRIPTIONS.delete_prescription,
+    inputSchema: {
+      type: 'object',
+      properties: { prescription_id: str('From get_session.') },
+      required: ['prescription_id'],
+      additionalProperties: false,
+    },
+    handler: deletePrescription,
   },
   {
     name: 'log_event',

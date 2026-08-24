@@ -133,10 +133,11 @@ finished product, not a construction site.
 │ ┃ Rest day                                 │
 │ ┃ walk 10,000 steps, no cell phone time…   │
 │ ┃ Next lift Tuesday — Lower body           │
-│ ┌ · · · · · · · · · · · · · · · · · · · ·┐ │  ← E1 stub  (prescribed session)
-│ ·  Today's session            Planned  ·   │     the block's Day A, with loads
-│ ·  Back squat 4×6 @ 185 · RDL 3×8 @ 135 ·  │
-│ └ · · · · · · · · · · · · · · · · · · · ·┘ │
+│ ┃ Day B — hinge + pull          PLANNED   │  ← E1 SHIPPED 2026-08-24
+│ ┃ 8 min bike, dynamic only.                │  .session / .s-notes
+│ ┃  1. Romanian deadlift 3×8 @ 115          │  .s-list — execution order
+│ ┃  2. Bench press 3×8 @ 145                │  becomes LOGGED once reconciled
+│ ┃  3. Assisted wide-grip pullup 3×8        │
 │                                            │
 │           ╭──────────────────╮             │
 │        ╭──┘   ████████████   └──╮          │

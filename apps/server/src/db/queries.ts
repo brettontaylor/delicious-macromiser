@@ -878,3 +878,150 @@ export async function getBestSets(ctx: Ctx, exercises: string[]): Promise<BestSe
   }
   return [...best.values()];
 }
+
+// ---------- prescriptions ----------
+
+export interface NewPrescribedSet {
+  ordinal: number;
+  exercise: string;
+  exercise_raw: string | null;
+  block: string | null;
+  sets: number | null;
+  rep_low: number | null;
+  rep_high: number | null;
+  target_weight_lb: number | null;
+  notes: string | null;
+}
+
+export interface PrescribedSetRow extends NewPrescribedSet {
+  id: string;
+}
+
+export interface PrescriptionRow {
+  id: string;
+  local_date: string;
+  label: string | null;
+  notes: string | null;
+  status: string;
+  workout_id: string | null;
+  created_at: string;
+}
+
+export interface PrescriptionDetail extends PrescriptionRow {
+  sets: PrescribedSetRow[];
+}
+
+/**
+ * Write a prescription and its targets in one batch, marking any existing
+ * prescription for the same date `replaced` first.
+ *
+ * Replace rather than accumulate: a model that writes a second prescription for
+ * Tuesday means Tuesday changed, not that Tuesday now has two sessions. The old
+ * row survives with status 'replaced' so the change is inspectable.
+ */
+export async function insertPrescription(
+  ctx: Ctx,
+  p: { local_date: string; label: string | null; notes: string | null },
+  sets: NewPrescribedSet[],
+): Promise<{ id: string; replaced: number }> {
+  const id = crypto.randomUUID();
+  const now = ctx.now.toISOString();
+
+  const replacedRes = await ctx.db
+    .prepare(
+      `UPDATE prescriptions SET status = 'replaced'
+        WHERE user_id = ? AND local_date = ? AND deleted_at IS NULL AND status = 'planned'`,
+    )
+    .bind(ctx.userId, p.local_date)
+    .run();
+
+  const stmts = [
+    ctx.db
+      .prepare(
+        `INSERT INTO prescriptions (id, user_id, local_date, label, notes, status, created_at)
+         VALUES (?,?,?,?,?, 'planned', ?)`,
+      )
+      .bind(id, ctx.userId, p.local_date, p.label, p.notes, now),
+    ...sets.map((s) =>
+      ctx.db
+        .prepare(
+          `INSERT INTO prescribed_sets (id, prescription_id, ordinal, exercise, exercise_raw,
+             block, sets, rep_low, rep_high, target_weight_lb, notes)
+           VALUES (?,?,?,?,?,?,?,?,?,?,?)`,
+        )
+        .bind(
+          crypto.randomUUID(), id, s.ordinal, s.exercise, s.exercise_raw,
+          s.block, s.sets, s.rep_low, s.rep_high, s.target_weight_lb, s.notes,
+        ),
+    ),
+  ];
+  await ctx.db.batch(stmts);
+  return { id, replaced: replacedRes.meta.changes ?? 0 };
+}
+
+const PRESC_COLS = 'id, local_date, label, notes, status, workout_id, created_at';
+
+async function withSets(ctx: Ctx, row: PrescriptionRow): Promise<PrescriptionDetail> {
+  const res = await ctx.db
+    .prepare(
+      `SELECT id, ordinal, exercise, exercise_raw, block, sets, rep_low, rep_high,
+              target_weight_lb, notes
+         FROM prescribed_sets WHERE prescription_id = ? ORDER BY ordinal ASC`,
+    )
+    .bind(row.id)
+    .all<PrescribedSetRow>();
+  return { ...row, sets: res.results ?? [] };
+}
+
+/** The live prescription for a date. `replaced` rows are never returned. */
+export async function getPrescription(
+  ctx: Ctx,
+  date: string,
+): Promise<PrescriptionDetail | null> {
+  const row = await ctx.db
+    .prepare(
+      `SELECT ${PRESC_COLS} FROM prescriptions
+        WHERE user_id = ? AND local_date = ? AND deleted_at IS NULL AND status != 'replaced'
+        ORDER BY created_at DESC LIMIT 1`,
+    )
+    .bind(ctx.userId, date)
+    .first<PrescriptionRow>();
+  return row ? withSets(ctx, row) : null;
+}
+
+export async function getPrescriptionById(
+  ctx: Ctx,
+  id: string,
+): Promise<PrescriptionDetail | null> {
+  const row = await ctx.db
+    .prepare(`SELECT ${PRESC_COLS} FROM prescriptions WHERE id = ? AND user_id = ? AND deleted_at IS NULL`)
+    .bind(id, ctx.userId)
+    .first<PrescriptionRow>();
+  return row ? withSets(ctx, row) : null;
+}
+
+export async function setPrescriptionStatus(
+  ctx: Ctx,
+  id: string,
+  status: 'planned' | 'completed' | 'skipped',
+  workoutId: string | null = null,
+): Promise<boolean> {
+  const res = await ctx.db
+    .prepare(
+      `UPDATE prescriptions SET status = ?, workout_id = ?
+        WHERE id = ? AND user_id = ? AND deleted_at IS NULL`,
+    )
+    .bind(status, workoutId, id, ctx.userId)
+    .run();
+  return (res.meta.changes ?? 0) > 0;
+}
+
+export async function softDeletePrescription(ctx: Ctx, id: string): Promise<boolean> {
+  const res = await ctx.db
+    .prepare(
+      `UPDATE prescriptions SET deleted_at = ? WHERE id = ? AND user_id = ? AND deleted_at IS NULL`,
+    )
+    .bind(ctx.now.toISOString(), id, ctx.userId)
+    .run();
+  return (res.meta.changes ?? 0) > 0;
+}

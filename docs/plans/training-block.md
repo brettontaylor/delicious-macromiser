@@ -323,7 +323,7 @@ principle is that conversation is the entry interface.
 
 | Phase | Ships | Depends on | Risk | Verification |
 |---|---|---|---|---|
-| **1 — The prescription** | `0006` (prescriptions + prescribed_sets only), `prescribe_session`, `get_session`, homepage strip, Skill rules | none | **Structural** | S-5, S-7 end to end: prescribe → `get_session` returns it → it renders. |
+| ~~1~~ **The prescription** ✅ **2026-08-24** | Shipped as `0007_prescriptions.sql` (not `0006` — events took that number). `prescribe_session`, `get_session`, `delete_prescription`, `log_workout(prescription_id)`, homepage block, Skill rules. Reconciliation came along with it rather than waiting for Phase 3, because linking the workout was the natural place for it. | none | **Structural** | Done: `npm run verify:session`, 50 assertions, including the negative one. |
 | **2 — The block** | programs tables, `set_program`, `end_program`, `materialize()`, `week_of` | 1 | **Structural** | S-6: store the transcript's real two-week A/B/C block; assert week 1 gives 175 and week 2 gives 185. |
 | **3 — Reconciliation** | `log_workout(prescription_id)`, `reconcile()`, adherence in `get_week_summary`, `logged` chip | 1 | **Mechanical** | S-19: prescribe, log a partial session, assert `adherence_pct` and `unplanned[]`. |
 | **4 — Session append** | `log_workout` merges into the same day's workout instead of inserting a second row | 3 | **Risky** — changes a shipped write path | S-18: two calls, one date, assert exactly one `workouts` row. Back up first. |

@@ -113,6 +113,20 @@ h2{font-family:var(--display);font-size:17px;font-weight:600;margin:0}
 .t-notes{margin:0;font-size:14px;line-height:1.45}
 .t-next{margin:0;font-family:var(--mono);font-size:12px;color:var(--muted)}
 
+/* today's prescribed session — readable one-handed, in a gym */
+.session{display:flex;flex-direction:column;gap:8px;border:1px solid var(--line);
+  border-left:3px solid var(--ink);border-radius:10px;padding:12px 14px;background:var(--surface)}
+.s-head{display:flex;align-items:baseline;gap:8px}
+.s-title{font-family:var(--display);font-size:18px;font-weight:600}
+.s-status{margin-left:auto;font-family:var(--mono);font-size:10px;letter-spacing:.08em;
+  text-transform:uppercase;border:1px solid var(--line-firm);border-radius:9999px;
+  padding:2px 8px;color:var(--muted)}
+.s-completed{border-color:var(--ink);background:var(--accent);color:#111}
+.s-notes{margin:0;font-size:13px;color:var(--muted);line-height:1.45}
+.s-list{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:5px}
+.s-list li{font-size:15px;font-variant-numeric:tabular-nums}
+.s-note{display:block;font-family:var(--mono);font-size:11px;color:var(--muted)}
+
 /* pace — today against the same hour on other days */
 .pace{display:flex;align-items:baseline;gap:8px;border:1px solid var(--line);
   border-radius:10px;padding:10px 13px;background:var(--surface)}

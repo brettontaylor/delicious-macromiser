@@ -318,7 +318,7 @@ ring.
 |---|---|---|---|---|
 | ~~1~~ | **Events & annotations** — ✅ **shipped 2026-08-24** | S-15, S-20, S-21, S-22 | done | See below. |
 | ~~2~~ | **Pacing & milestones** — ✅ **shipped 2026-08-24** | S-12, S-23, S-25 | done | See below. |
-| 3 | **Prescribed session & block** | S-5 … S-8, S-18, S-19, S-24, S-31 | The epic | [plans/training-block.md](plans/training-block.md). Two entities: a **program** (the standing block) and a **prescription** (one dated session with real loads). The comparison between prescription and log is adherence, and nothing else in this space has it. |
+| ~~3~~ | **Prescribed session** — ✅ **Phase 1 shipped 2026-08-24**; the multi-week block is what remains | S-5 … S-8, S-18, S-19, S-24, S-31 | The epic | [plans/training-block.md](plans/training-block.md). Two entities: a **program** (the standing block) and a **prescription** (one dated session with real loads). The comparison between prescription and log is adherence, and nothing else in this space has it. |
 | 4 | **The weekly budget** | S-11, S-16, S-30 | Medium | Weekly kcal target beside the daily one, week-to-date pacing, and a goal horizon so "week 6 of 16" is answerable. The framing that survives a bad Friday. |
 | 5 | **Supplements & standing rules** | S-14, S-17, S-19 | Medium | A stack the user defines, plus one daily checkbox per commitment. Absorbs "walk 10,000 steps" and "no alcohol" — already written in `training_plan.notes` and never checked off — without needing a steps integration. |
 | 6 | **Athlete profile & onboarding** | S-1 … S-4, M-1 | Medium | Today the answer to "who is this person" lives in Claude's private memory: not portable, not ours, and invisible to a second client. Worth most on user #2. |
@@ -400,6 +400,48 @@ way out.
       existed since Phase 3 and nothing in the UI mentioned it. Shown only to
       the edit capability, with what it does and does not grant.
 - [x] 12 unit tests plus `npm run verify:pacing` — 32 end-to-end assertions.
+
+---
+
+## The prescribed session — ✅ Phase 1 done 2026-08-24
+
+The largest gap the transcript exposed, and the first phase of
+[plans/training-block.md](plans/training-block.md). `0007_prescriptions.sql`.
+
+- [x] `prescriptions` + `prescribed_sets`, **deliberately separate from
+      `workouts` and `sets`.** Intent and fact must never share a table: a
+      planned 185 that becomes the base for the next progression is a lifter
+      programmed off a session they never did, and `get_last_performance` drives
+      every load in the product. Keeping them apart means `getSetsForExercise`
+      cannot see a prescription by construction rather than by a `WHERE` clause
+      someone can forget. **A test asserts exactly this** — after writing a
+      six-exercise plan, `get_last_performance` still reports zero sessions and
+      the `sets` table is empty.
+- [x] `prescriptions.workout_id` is a plain column, not a foreign key —
+      GOTCHAS records what the mutual `captures`↔`meals` keys did to
+      `restore.mjs`.
+- [x] `prescribe_session` — the model writes down what it just proposed, and
+      the tool reads it back ("Romanian deadlift 3×8 @ 115") so a wrong load can
+      be corrected in the same breath. Re-prescribing a **planned** date
+      replaces it; a **completed** one is left alone.
+- [x] `get_session` — the plan **and** `last` / `best_ever` per lift in one
+      round trip, so adjusting a session does not cost a second call. Returns
+      no recommendation. `no_prescription` is distinct from a rest day, the
+      same distinction `get_training_plan`'s `no_plan_set` makes.
+- [x] `log_workout` accepts `prescription_id`, marks the plan completed and
+      returns **reconciliation** — planned against done — in the same call. Two
+      calls would double the approval prompts, which `log_meal` + `capture_id`
+      already settled. Omit the id and the day's prescription links itself.
+- [x] Exercise names are normalized on **both** write paths, so a plan saying
+      "RDL" reconciles against a log saying "Romanian Deadlifts". Tested, because
+      without it reconciliation silently reports 0%.
+- [x] The session renders above the ring, one-handed, with a `logged` chip once
+      reconciled.
+- [x] 15 unit tests plus `npm run verify:session` — 50 end-to-end assertions.
+
+**Still open in this epic:** the multi-week block (`programs`, `set_program`,
+`materialize`), session append for logging between sets, and surfacing movement
+patterns on `get_last_performance`. Phases 2, 4 and 5 of the plan.
 
 ---
 

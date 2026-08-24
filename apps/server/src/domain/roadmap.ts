@@ -40,6 +40,17 @@ export interface RoadmapItem {
 export const ROADMAP: RoadmapItem[] = [
   // ---------- shipped, newest first ----------
   {
+    id: 'session',
+    epic: 'E1',
+    title: 'Today’s session, written down',
+    blurb:
+      'The actual lifts with actual loads, agreed once and kept — then compared ' +
+      'against what you really did.',
+    status: 'shipped',
+    shipped_on: '2026-08-24',
+    stories: ['S-5', 'S-7', 'S-19'],
+  },
+  {
     id: 'pacing',
     epic: 'E6',
     title: 'Pacing and milestones',
@@ -128,16 +139,16 @@ export const ROADMAP: RoadmapItem[] = [
 
   // ---------- next, in order ----------
   {
-    id: 'session',
+    id: 'program',
     epic: 'E1',
-    title: 'Today’s session, written down',
+    title: 'The multi-week block',
     blurb:
-      'The actual lifts with actual loads, agreed once and kept — plus the multi-week ' +
-      'block behind them. Then what you planned is compared against what you did.',
+      'A two-week A/B/C rotation agreed once, with the progression rule written down, ' +
+      'generating each day’s session instead of re-deriving it.',
     status: 'next',
     rank: 1,
-    size: 'the epic',
-    stories: ['S-5', 'S-6', 'S-7', 'S-19'],
+    size: 'medium',
+    stories: ['S-6', 'S-22'],
   },
   {
     id: 'weekly-budget',

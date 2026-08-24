@@ -18,7 +18,8 @@
     "recipes:build": "node scripts/build-recipe-catalog.mjs",
     "prepare": "node scripts/build-recipe-catalog.mjs",
     "verify:events": "npm run verify:events --workspace @dm/server",
-    "verify:pacing": "npm run verify:pacing --workspace @dm/server"
+    "verify:pacing": "npm run verify:pacing --workspace @dm/server",
+    "verify:session": "npm run verify:session --workspace @dm/server"
   },
   "engines": {
     "node": ">=22"

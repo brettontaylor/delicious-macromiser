@@ -11,7 +11,7 @@ test('every id the app stubs actually resolves', () => {
   // The ids hard-coded in app/page.ts and app/recipes.ts. A stub whose id has
   // been renamed renders nothing at all, which is a silent failure — so the
   // list is asserted here rather than discovered on the phone.
-  for (const id of ['session', 'weekly-budget', 'adherence', 'shopping-list']) {
+  for (const id of ['weekly-budget', 'adherence', 'shopping-list']) {
     assert.notEqual(roadmapItem(id), null, `stub id "${id}" has no roadmap row`);
   }
 });
@@ -29,7 +29,7 @@ test('planned items come back in rank order', () => {
 test('a shipped item is no longer in the planned list', () => {
   // Guards the move: an item left in both places renders as "planned" on
   // /roadmap while its inline stub is already gone.
-  for (const id of ['events', 'pacing']) {
+  for (const id of ['events', 'pacing', 'session']) {
     assert.equal(byStatus('next').some((r) => r.id === id), false, `${id} still planned`);
     assert.equal(byStatus('shipped').some((r) => r.id === id), true, `${id} not shipped`);
   }

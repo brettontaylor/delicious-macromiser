@@ -134,7 +134,7 @@ schema permits.
 
 | Epic | Stories | Cost | The argument |
 |---|---|---|---|
-| **E1 — Prescribed session & training block** | S-5, S-6, S-7, S-8, S-18, S-19, S-22, S-24, S-31, M-2 | Large | The transcript's highest-value output has nowhere to live. [PRODUCT.md](../PRODUCT.md) §2 names training history *the* differentiator; a prescription is that differentiator pointed forward instead of back. |
+| **E1 — Prescribed session & training block** — 🟡 **Phase 1 shipped 2026-08-24** (S-5, S-7, S-19, M-2); block, append and patterns remain | S-5, S-6, S-7, S-8, S-18, S-19, S-22, S-24, S-31, M-2 | Large | The transcript's highest-value output has nowhere to live. [PRODUCT.md](../PRODUCT.md) §2 names training history *the* differentiator; a prescription is that differentiator pointed forward instead of back. |
 | ~~**E2 — Events & annotations**~~ ✅ **shipped 2026-08-24** | S-15, S-20, S-21, S-22 | Small | Fixed the correctness defect. `0006_events.sql`, four tools, chart markers, and the caveat surfaced in `get_briefing` and `get_week_summary`. S-30's goal horizon was **not** covered — it belongs with E3. |
 | **E3 — The weekly budget** | S-11, S-16, S-30 | Medium | The framing the coach actually teaches, absent from schema and UI. Directly targets the live adherence problem: 4 of 7 days logged. |
 | **E4 — Athlete profile & guided onboarding** | S-1, S-2, S-3, S-4, M-1 | Medium | What the model must never be re-told. Today it lives in Claude's private memory, which is neither portable nor ours. |
@@ -171,7 +171,7 @@ Ranked by value; sequenced by value ÷ cost, with the correctness defect first.
 |---|---|---|
 | ~~1~~ | ~~**E2 — Events**~~ | ✅ **Shipped 2026-08-24.** |
 | ~~2~~ | ~~**E6 — Pacing & milestones**~~ | ✅ **Shipped 2026-08-24.** |
-| 3 | **E1 — Prescribed session & block** | The epic. Detailed in [training-block.md](training-block.md). |
+| 🟡 3 | **E1 — Prescribed session & block** | **Phase 1 shipped 2026-08-24.** The block (Phase 2), session append (Phase 4) and pattern surfacing (Phase 5) remain. [training-block.md](training-block.md). |
 | 4 | **E3 — Weekly budget** | Reframes the primary surface. Wants E2's events so a travel week can be excluded honestly. |
 | 5 | **E5 — Supplements & rules** | Self-contained. Benefits from E2 — a stack start date *is* an event. |
 | 6 | **E4 — Profile & onboarding** | Highest value on the *second* user, not the first — the first is already onboarded, in Claude's memory. |
