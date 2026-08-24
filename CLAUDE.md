@@ -13,7 +13,7 @@ recipe UI in roadmap Phase 5. Run everything from the repo root.
 
 | Path | What |
 |---|---|
-| `apps/server/` | Cloudflare Worker, 29 MCP tools over D1. Stateless — no session objects |
+| `apps/server/` | Cloudflare Worker, 32 MCP tools over D1. Stateless — no session objects |
 | `content/recipes/` | Recipe HTML cards, the format spec, and the base template |
 | `apps/server/src/app/` | The read-only web view at `/app/<view secret>` |
 | `scripts/check-recipes.mjs` | Recipe conformance — dependency-free on purpose |
@@ -24,13 +24,14 @@ recipe UI in roadmap Phase 5. Run everything from the repo root.
 
 ```bash
 npm run typecheck        # tsc --noEmit
-npm test                 # 107 unit tests
+npm test                 # 117 unit tests
 npm run recipes:check    # recipe format conformance
 npm run dev              # wrangler dev on :8787
 npm run smoke            # 51-check E2E against a running server
 npm run verify:events    # 33-check E2E — events and the trend caveat
 npm run verify:pacing    # 32-check E2E — pace, PRs, the share link
 npm run verify:session   # 50-check E2E — the prescribed session
+npm run verify:program   # 46-check E2E — the multi-week block
 npm run deploy:prod      # manual, deliberately not in CI
 ```
 

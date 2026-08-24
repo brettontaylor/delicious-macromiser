@@ -10,6 +10,7 @@ import {
   recentWorkoutIds,
   getMealsForRange,
   getEventsInRange,
+  getPrescription,
 } from '../../db/queries.ts';
 import { sumMeals, remainingVsGoals } from '../../domain/totals.ts';
 import { planView, weekdayIndex, WEEKDAY_NAMES } from '../../domain/plan.ts';
@@ -35,7 +36,7 @@ export async function getBriefing(ctx: Ctx, _args: ToolArgs): Promise<unknown> {
   const today = localDate(ctx.now, ctx.tz);
   const weekAgo = shiftDate(today, -6);
 
-  const [meals, goals, lastWorkout, portions, pending, plan, bw, sessions, weekMeals, events, monthMeals] =
+  const [meals, goals, lastWorkout, portions, pending, plan, bw, sessions, weekMeals, events, monthMeals, session] =
     await Promise.all([
       getMealsForDate(ctx, today),
       getGoalsAsOf(ctx, today),
@@ -48,6 +49,7 @@ export async function getBriefing(ctx: Ctx, _args: ToolArgs): Promise<unknown> {
       getMealsForRange(ctx, weekAgo, today),
       getEventsInRange(ctx, shiftDate(today, -180), today),
       getMealsForRange(ctx, shiftDate(today, -29), shiftDate(today, -1)),
+      getPrescription(ctx, today),
     ]);
 
   const totals = sumMeals(meals);
@@ -125,6 +127,17 @@ export async function getBriefing(ctx: Ctx, _args: ToolArgs): Promise<unknown> {
         sets: w.set_count,
       })),
       plan: plan.map((d) => ({ ...d, weekday_name: WEEKDAY_NAMES[d.weekday] })),
+      // A summary, not the session. §0 of the Skill makes this the first call
+      // and inlining seven exercises with their history would undo the one
+      // round trip it exists for — call get_session for the detail.
+      session: session
+        ? {
+            prescription_id: session.id,
+            label: session.label,
+            exercises: session.sets.length,
+            status: session.status,
+          }
+        : null,
     },
 
     week: {

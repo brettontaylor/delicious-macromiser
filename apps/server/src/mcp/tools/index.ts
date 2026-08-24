@@ -28,6 +28,7 @@ import { setPantry, getPantryTool } from './pantry.ts';
 import { getBriefing } from './get_briefing.ts';
 import { logEvent, getEvents, correctEvent, deleteEvent } from './events.ts';
 import { prescribeSession, getSession, deletePrescription } from './prescriptions.ts';
+import { setProgram, getProgram, endProgram } from './programs.ts';
 
 export type ToolArgs = Record<string, unknown>;
 export type ToolHandler = (ctx: Ctx, args: ToolArgs) => Promise<unknown>;
@@ -509,6 +510,12 @@ export const TOOLS: ToolDef[] = [
       properties: {
         date: str('YYYY-MM-DD the session is for. Omit for today.'),
         label: str('What the day is, e.g. "Day A" or "Hinge + pull".'),
+        from_program: {
+          type: 'boolean',
+          description:
+            'Take the session from the active block instead of sending exercises. ' +
+            'Use after showing the user what the block prescribes for today.',
+        },
         exercises: {
           type: 'array',
           description: 'In the order they should be performed.',
@@ -557,6 +564,85 @@ export const TOOLS: ToolDef[] = [
       additionalProperties: false,
     },
     handler: deletePrescription,
+  },
+  {
+    name: 'set_program',
+    description: DESCRIPTIONS.set_program,
+    inputSchema: {
+      type: 'object',
+      properties: {
+        name: str('What the block is, e.g. "Hinge + hypertrophy block".'),
+        weeks: { type: 'integer', description: 'How many weeks it runs. Omit for open-ended.' },
+        started_on: str('YYYY-MM-DD. Omit for today.'),
+        progression_rule: str(
+          'The rule VERBATIM, in plain words. "All reps on all sets → +5 lb upper / ' +
+            '+10 lb lower. Miss reps → repeat the weight." Never parsed by the server.',
+        ),
+        days: {
+          type: 'array',
+          description: 'One entry per weekday the block trains. Rest days are simply absent.',
+          items: {
+            type: 'object',
+            properties: {
+              weekday: str('Weekday name ("Tuesday") or 0-6 with 0 = Sunday.'),
+              day_key: str('How the user refers to it, e.g. "A", "B", "C".'),
+              label: str('What the day is, e.g. "Squat + vertical push + core".'),
+              exercises: {
+                type: 'array',
+                description: 'In execution order.',
+                items: {
+                  type: 'object',
+                  properties: {
+                    exercise: str('The lift, as you would say it.'),
+                    sets: { type: 'integer', description: 'Working sets.' },
+                    rep_low: { type: 'integer', description: 'Target reps, or bottom of a range.' },
+                    rep_high: { type: 'integer', description: 'Top of a rep range. Omit if fixed.' },
+                    target_weight_lb: num('Working load in pounds. Omit for bodyweight.'),
+                    week: {
+                      type: 'integer',
+                      description:
+                        'Applies to THIS week only, 1-based. Omit for every week. Send the ' +
+                        'lift twice — once plain, once with week: 2 — for a week-2 load bump.',
+                    },
+                    block: str('Superset grouping, e.g. "C1" and "C2".'),
+                    notes: str('Anything specific to this lift.'),
+                  },
+                  required: ['exercise'],
+                  additionalProperties: false,
+                },
+              },
+            },
+            required: ['weekday', 'exercises'],
+            additionalProperties: false,
+          },
+        },
+      },
+      required: ['name', 'days'],
+      additionalProperties: false,
+    },
+    handler: setProgram,
+  },
+  {
+    name: 'get_program',
+    description: DESCRIPTIONS.get_program,
+    inputSchema: { type: 'object', properties: {}, additionalProperties: false },
+    handler: getProgram,
+  },
+  {
+    name: 'end_program',
+    description: DESCRIPTIONS.end_program,
+    inputSchema: {
+      type: 'object',
+      properties: {
+        status: {
+          type: 'string',
+          enum: ['completed', 'abandoned'],
+          description: 'Defaults to "completed".',
+        },
+      },
+      additionalProperties: false,
+    },
+    handler: endProgram,
   },
   {
     name: 'log_event',

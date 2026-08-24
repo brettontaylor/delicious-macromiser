@@ -132,3 +132,104 @@ export function reconcile(targets: PrescribedTarget[], logged: LoggedSet[]): Rec
 export function normalizeTargetName(raw: string): string {
   return normalizeExercise(raw);
 }
+
+// ---------- programs ----------
+
+export interface ProgramExerciseTemplate {
+  ordinal: number;
+  exercise: string;
+  exercise_raw: string | null;
+  block: string | null;
+  sets: number | null;
+  rep_low: number | null;
+  rep_high: number | null;
+  target_weight_lb: number | null;
+  /** null = every week; 0,1,2… = that week only. */
+  week_offset: number | null;
+  notes: string | null;
+}
+
+export interface ProgramDayTemplate {
+  weekday: number;
+  day_key: string | null;
+  label: string | null;
+  exercises: ProgramExerciseTemplate[];
+}
+
+export interface ProgramShape {
+  weeks: number | null;
+  started_on: string;
+  ends_on: string | null;
+  days: ProgramDayTemplate[];
+}
+
+function dayNumber(iso: string): number {
+  return (
+    Date.UTC(Number(iso.slice(0, 4)), Number(iso.slice(5, 7)) - 1, Number(iso.slice(8, 10))) /
+    86_400_000
+  );
+}
+
+/**
+ * Which week of the block a date falls in, 0-based. Null when the date is
+ * outside it.
+ *
+ * Returning null rather than clamping is the point: a two-week block read on
+ * day 20 should say "this block is over", not silently serve week 2 forever.
+ * A stale programme that keeps prescribing is worse than none.
+ */
+export function weekOfProgram(p: ProgramShape, date: string): number | null {
+  if (date < p.started_on) return null;
+  if (p.ends_on !== null && date > p.ends_on) return null;
+  return Math.floor((dayNumber(date) - dayNumber(p.started_on)) / 7);
+}
+
+export function programDayFor(p: ProgramShape, weekday: number): ProgramDayTemplate | null {
+  return p.days.find((d) => d.weekday === weekday) ?? null;
+}
+
+/**
+ * Template → concrete targets for one week.
+ *
+ * A row with `week_offset` matching this week overrides the every-week row for
+ * the same exercise. That is how "Wk 1: 175 / Wk 2: 185" is stored without
+ * duplicating the whole day. Everything else passes through untouched — no
+ * load is invented here, because inventing one would be coaching.
+ */
+export function materialize(day: ProgramDayTemplate, weekIndex: number): PrescribedTarget[] {
+  const overrides = new Map<string, ProgramExerciseTemplate>();
+  for (const e of day.exercises) {
+    if (e.week_offset === weekIndex) overrides.set(e.exercise, e);
+  }
+
+  const seen = new Set<string>();
+  const out: PrescribedTarget[] = [];
+  for (const e of day.exercises) {
+    // Week-specific rows are folded into the base row, not listed twice.
+    if (e.week_offset !== null && e.week_offset !== weekIndex) continue;
+    if (seen.has(e.exercise)) continue;
+    seen.add(e.exercise);
+
+    const chosen = overrides.get(e.exercise) ?? e;
+    out.push({
+      ordinal: e.ordinal,
+      exercise: e.exercise,
+      exercise_raw: chosen.exercise_raw ?? e.exercise_raw,
+      block: chosen.block ?? e.block,
+      sets: chosen.sets ?? e.sets,
+      rep_low: chosen.rep_low ?? e.rep_low,
+      rep_high: chosen.rep_high ?? e.rep_high,
+      target_weight_lb: chosen.target_weight_lb ?? e.target_weight_lb,
+      notes: chosen.notes ?? e.notes,
+    });
+  }
+  return out.sort((a, b) => a.ordinal - b.ordinal);
+}
+
+/** Every weekday the block trains, in week order, for "what does my week look
+ *  like" without a second call. */
+export function programWeekShape(p: ProgramShape): { weekday: number; label: string | null; exercises: number }[] {
+  return [...p.days]
+    .sort((a, b) => a.weekday - b.weekday)
+    .map((d) => ({ weekday: d.weekday, label: d.label, exercises: materialize(d, 0).length }));
+}

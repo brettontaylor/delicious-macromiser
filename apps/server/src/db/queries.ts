@@ -1025,3 +1025,159 @@ export async function softDeletePrescription(ctx: Ctx, id: string): Promise<bool
     .run();
   return (res.meta.changes ?? 0) > 0;
 }
+
+// ---------- programs ----------
+
+export interface NewProgramExercise {
+  ordinal: number;
+  exercise: string;
+  exercise_raw: string | null;
+  block: string | null;
+  sets: number | null;
+  rep_low: number | null;
+  rep_high: number | null;
+  target_weight_lb: number | null;
+  week_offset: number | null;
+  notes: string | null;
+}
+
+export interface NewProgramDay {
+  weekday: number;
+  day_key: string | null;
+  label: string | null;
+  exercises: NewProgramExercise[];
+}
+
+export interface ProgramRow {
+  id: string;
+  name: string;
+  weeks: number | null;
+  progression_rule: string | null;
+  started_on: string;
+  ends_on: string | null;
+  status: string;
+}
+
+export interface ProgramDayRow {
+  id: string;
+  weekday: number;
+  day_key: string | null;
+  label: string | null;
+  exercises: NewProgramExercise[];
+}
+
+export interface ProgramDetail extends ProgramRow {
+  days: ProgramDayRow[];
+}
+
+/**
+ * Write a whole block in one batch, retiring any currently-active program.
+ *
+ * One active program at a time: two would make "what am I doing today"
+ * ambiguous, and the answer to a new block is that the old one is over. The
+ * retired row keeps status 'completed' so history stays inspectable.
+ */
+export async function insertProgram(
+  ctx: Ctx,
+  p: {
+    name: string;
+    weeks: number | null;
+    progression_rule: string | null;
+    started_on: string;
+    ends_on: string | null;
+  },
+  days: NewProgramDay[],
+): Promise<{ id: string; retired: number }> {
+  const id = crypto.randomUUID();
+
+  const retired = await ctx.db
+    .prepare(`UPDATE programs SET status = 'completed' WHERE user_id = ? AND status = 'active'`)
+    .bind(ctx.userId)
+    .run();
+
+  const stmts = [
+    ctx.db
+      .prepare(
+        `INSERT INTO programs (id, user_id, name, weeks, progression_rule, started_on, ends_on, status, created_at)
+         VALUES (?,?,?,?,?,?,?, 'active', ?)`,
+      )
+      .bind(id, ctx.userId, p.name, p.weeks, p.progression_rule, p.started_on, p.ends_on, ctx.now.toISOString()),
+  ];
+
+  for (const d of days) {
+    const dayId = crypto.randomUUID();
+    stmts.push(
+      ctx.db
+        .prepare(`INSERT INTO program_days (id, program_id, weekday, day_key, label) VALUES (?,?,?,?,?)`)
+        .bind(dayId, id, d.weekday, d.day_key, d.label),
+    );
+    for (const e of d.exercises) {
+      stmts.push(
+        ctx.db
+          .prepare(
+            `INSERT INTO program_exercises (id, program_day_id, ordinal, exercise, exercise_raw,
+               block, sets, rep_low, rep_high, target_weight_lb, week_offset, notes)
+             VALUES (?,?,?,?,?,?,?,?,?,?,?,?)`,
+          )
+          .bind(
+            crypto.randomUUID(), dayId, e.ordinal, e.exercise, e.exercise_raw, e.block,
+            e.sets, e.rep_low, e.rep_high, e.target_weight_lb, e.week_offset, e.notes,
+          ),
+      );
+    }
+  }
+
+  await ctx.db.batch(stmts);
+  return { id, retired: retired.meta.changes ?? 0 };
+}
+
+/** The active block, with every day and every target. Null when none is set. */
+export async function getActiveProgram(ctx: Ctx): Promise<ProgramDetail | null> {
+  const prog = await ctx.db
+    .prepare(
+      `SELECT id, name, weeks, progression_rule, started_on, ends_on, status
+         FROM programs WHERE user_id = ? AND status = 'active'
+        ORDER BY created_at DESC LIMIT 1`,
+    )
+    .bind(ctx.userId)
+    .first<ProgramRow>();
+  if (!prog) return null;
+
+  const dayRes = await ctx.db
+    .prepare(`SELECT id, weekday, day_key, label FROM program_days WHERE program_id = ? ORDER BY weekday ASC`)
+    .bind(prog.id)
+    .all<{ id: string; weekday: number; day_key: string | null; label: string | null }>();
+  const days = dayRes.results ?? [];
+  if (days.length === 0) return { ...prog, days: [] };
+
+  const holes = days.map(() => '?').join(',');
+  const exRes = await ctx.db
+    .prepare(
+      `SELECT program_day_id, ordinal, exercise, exercise_raw, block, sets, rep_low, rep_high,
+              target_weight_lb, week_offset, notes
+         FROM program_exercises WHERE program_day_id IN (${holes})
+        ORDER BY ordinal ASC`,
+    )
+    .bind(...days.map((d) => d.id))
+    .all<NewProgramExercise & { program_day_id: string }>();
+
+  const byDay = new Map<string, NewProgramExercise[]>();
+  for (const e of exRes.results ?? []) {
+    const { program_day_id, ...rest } = e;
+    byDay.set(program_day_id, [...(byDay.get(program_day_id) ?? []), rest]);
+  }
+
+  return { ...prog, days: days.map((d) => ({ ...d, exercises: byDay.get(d.id) ?? [] })) };
+}
+
+export async function setProgramStatus(
+  ctx: Ctx,
+  id: string,
+  status: 'completed' | 'abandoned',
+): Promise<boolean> {
+  const res = await ctx.db
+    .prepare(`UPDATE programs SET status = ? WHERE id = ? AND user_id = ? AND status = 'active'`)
+    .bind(status, id, ctx.userId)
+    .run();
+  return (res.meta.changes ?? 0) > 0;
+}

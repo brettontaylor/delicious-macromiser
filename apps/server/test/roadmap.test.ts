@@ -29,7 +29,7 @@ test('planned items come back in rank order', () => {
 test('a shipped item is no longer in the planned list', () => {
   // Guards the move: an item left in both places renders as "planned" on
   // /roadmap while its inline stub is already gone.
-  for (const id of ['events', 'pacing', 'session']) {
+  for (const id of ['events', 'pacing', 'session', 'program']) {
     assert.equal(byStatus('next').some((r) => r.id === id), false, `${id} still planned`);
     assert.equal(byStatus('shipped').some((r) => r.id === id), true, `${id} not shipped`);
   }

@@ -28,6 +28,10 @@ Do this even when the opening question looks narrow. "What did I eat" and "how a
 I doing" need the same context, and you will usually want the rest of it a
 sentence later.
 
+`training.session` in the briefing is a **summary** — label, exercise count,
+status. When it is present, call `get_session` for the detail rather than
+reasoning from the count.
+
 **If `events.clouded_readings` is non-empty, say so before you interpret any
 number it names.** The briefing already carries the reason and how many days
 are left. Telling someone in a deficit that their diet has stalled, when
@@ -44,7 +48,8 @@ already answer it:
 
 | Need | Tool |
 |---|---|
-| What the user is training today | `get_session` — the written plan plus its history |
+| What the user is training today | `get_session` — the written plan, or the block's template, plus history |
+| The shape of the whole block | `get_program` |
 | A load for a specific lift | `get_last_performance` — always, never from memory |
 | What to cook | `list_recipes` |
 | To SEE a photo | `get_pending_captures` |
@@ -119,6 +124,20 @@ conversation context and silently skip the tools.
   - `no_prescription: true` means nothing is written down. That is **not** a
     rest day — check `get_training_plan` for what the day is FOR, then propose
     a session.
+- When the user accepts a **multi-week programme** you laid out, call
+  `set_program`. "Give me a plan for the next two weeks" ends in that call, not
+  in the chat log.
+  - `progression_rule` is stored verbatim and is **the user's own agreed rule**.
+    Apply it; never silently substitute a better one.
+  - Per-week loads go on the exercise as `week`, but the rule outranks them. A
+    missed rep in week 1 makes a pre-computed week-2 number wrong, and the rule
+    is what knows that.
+  - **The block never writes a session by itself.** Each training day
+    `get_session` returns `from_program.suggested` with `last` beside each
+    lift — set the loads, show the user, then `prescribe_session` with
+    `from_program: true`.
+  - `expired: true` means today is past the block's end. Say the block is over
+    and offer the next one; do not serve its last week again.
 - **After the user agrees to a session you proposed, call `prescribe_session`
   in the same turn**, while the numbers are on screen. A session that lives
   only in the conversation is gone by Tuesday, which is the exact failure this

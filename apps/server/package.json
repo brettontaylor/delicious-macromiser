@@ -20,7 +20,8 @@
     "restore": "node scripts/restore.mjs",
     "verify:events": "bash scripts/verify-events.sh",
     "verify:pacing": "bash scripts/verify-pacing.sh",
-    "verify:session": "bash scripts/verify-session.sh"
+    "verify:session": "bash scripts/verify-session.sh",
+    "verify:program": "bash scripts/verify-program.sh"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^5.20260820.1",

@@ -125,6 +125,26 @@ Everything written here is marked source="import", because a reconstructed entry
 
 This is NOT idempotent for meals and workouts — calling it twice writes everything twice. Confirm the full list with the user before calling it, and never retry a call that may have partly succeeded.`,
 
+  set_program: `Store a multi-week training block: which weekday is which session, what is in each one, and the progression rule the user agreed to.
+
+Call this when the user accepts a programme you laid out — "give me a plan for the next two weeks" ends here, not in the chat log. Without it the block is re-derived from scratch every session, differently each time, which is the single most common way structured training quietly stops being structured.
+
+progression_rule is stored VERBATIM and never parsed. Write it the way you would say it: "all reps on all sets, add 5 lb upper / 10 lb lower; miss reps, repeat the weight." You are the one who applies it later.
+
+Per-week loads go on the exercise as \`week\`: send the same lift twice, once with no week (the default) and once with week: 2 and a heavier target, rather than duplicating the whole day. The rule still wins when reality diverges — a missed rep in week 1 makes a pre-computed week-2 number wrong.
+
+Setting a new block retires the current one. THE BLOCK DOES NOT WRITE SESSIONS BY ITSELF — each training day, get_session returns the template with real history so you can set the load and call prescribe_session.`,
+
+  get_program: `The active training block: the week's shape, which week of it today falls in, and the user's own progression rule.
+
+Call this for "what's my programme", "how far into the block am I", or before changing anything structural about training.
+
+no_program_set: true means none has been set up — offer to build one rather than implying nothing is planned. expired: true means today is past the block's end; say the block is over rather than serving its last week again.
+
+Returns facts and the rule verbatim. Applying the rule is yours.`,
+
+  end_program: `Finish or abandon the active block. Use "abandoned" when it stopped working or life got in the way and "completed" when it ran its course — the distinction is worth keeping honestly. Sessions already logged are untouched either way.`,
+
   log_event: `Record something that changes how the user's OWN NUMBERS should be read — starting or stopping a supplement, travel, an injury, illness, a deload week, a stretch of unusual work stress.
 
 Call this whenever the user mentions one of those. The case this exists for: creatine pulls water into muscle, so the scale climbs 2-4 lb over two to three weeks while the diet is working perfectly. Without a marker, the trend chart shows a rising line during a deficit and the user concludes it stopped working. Same for a week away, where intake is guesswork and the weigh-ins are hotel-scale noise.

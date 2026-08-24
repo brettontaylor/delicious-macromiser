@@ -27,6 +27,7 @@ import {
   type PrescribedTarget,
 } from '../../domain/prescription.ts';
 import { localDate } from '../../util/date.ts';
+import { todaysTemplate } from './programs.ts';
 import type { ToolArgs } from './index.ts';
 import { ArgError, reqString, optString, optLocalDate } from './args.ts';
 
@@ -89,7 +90,30 @@ function parseTargets(raw: unknown): NewPrescribedSet[] {
 
 export async function prescribeSession(ctx: Ctx, args: ToolArgs): Promise<unknown> {
   const date = optLocalDate(args, 'date', ctx.now, ctx.tz);
-  const targets = parseTargets(args['exercises']);
+
+  // `from_program: true` materializes the block's template for this date
+  // instead of requiring the whole list to be re-sent. Still an explicit write:
+  // the model asked for it, having presumably shown the user what it is about
+  // to commit to.
+  let targets: NewPrescribedSet[];
+  let fromProgram: string | null = null;
+  if (args['from_program'] === true && args['exercises'] === undefined) {
+    const tpl = await todaysTemplate(ctx, date);
+    if (!tpl) {
+      throw new ArgError('NOT SAVED — no active block to take a session from. Call set_program first, or send exercises.');
+    }
+    if (tpl.week === null) {
+      throw new ArgError('NOT SAVED — that date falls outside the block. Set a new one, or send exercises.');
+    }
+    if (!tpl.day || tpl.targets.length === 0) {
+      throw new ArgError('NOT SAVED — the block does not train that weekday. Send exercises if this is an extra session.');
+    }
+    targets = tpl.targets.map((t) => ({ ...t })) as unknown as NewPrescribedSet[];
+    fromProgram = tpl.program.name;
+    if (!args['label'] && tpl.day.label) args['label'] = tpl.day.label;
+  } else {
+    targets = parseTargets(args['exercises']);
+  }
 
   const { id, replaced } = await insertPrescription(
     ctx,
@@ -112,6 +136,9 @@ export async function prescribeSession(ctx: Ctx, args: ToolArgs): Promise<unknow
     // Non-zero means an earlier plan for this date was superseded, not that two
     // sessions now exist.
     replaced_previous: replaced > 0,
+    // Non-null means this came from the standing block rather than being
+    // improvised, which is worth saying back.
+    from_program: fromProgram,
     reminder:
       'This is a plan, not a record. When the session actually happens, call log_workout ' +
       'with prescription_id so what was done is compared against what was planned.',
@@ -124,15 +151,62 @@ export async function getSession(ctx: Ctx, args: ToolArgs): Promise<unknown> {
 
   const presc = await getPrescription(ctx, date);
   if (!presc) {
+    // Nothing written down — but the standing block may already say what this
+    // day is. Offer the template WITHOUT writing it: a session the user has
+    // not agreed to is not a plan, and auto-writing would make the log full of
+    // sessions nobody ever intended to do.
+    const tpl = await todaysTemplate(ctx, date);
+    const keys = tpl ? [...new Set(tpl.targets.map((t) => t.exercise))] : [];
+    const [hist, best] = await Promise.all([
+      Promise.all(
+        keys.map(async (k) => [k, buildHistory(k, await getSetsForExercise(ctx, k, 4), today)] as const),
+      ),
+      getBestSets(ctx, keys),
+    ]);
+    const hByKey = new Map(hist);
+    const bByKey = new Map(best.map((b) => [b.exercise, b]));
+
     return {
       local_date: date,
       no_prescription: true,
       // Distinguished from "today is a rest day" for the same reason
       // get_training_plan distinguishes no_plan_set: they read the same on
       // screen and mean opposite things.
-      note: 'Nothing has been written down for this date. Propose a session and call prescribe_session to keep it.',
+      note: tpl?.targets.length
+        ? 'Nothing is written down yet, but the block says what this day is. Set the loads from `last` and the programme’s rule, show the user, then call prescribe_session with from_program true.'
+        : 'Nothing has been written down for this date. Propose a session and call prescribe_session to keep it.',
       prescription: null,
       exercises: [],
+      from_program: tpl
+        ? {
+            name: tpl.program.name,
+            week_of: tpl.week === null ? null : tpl.week + 1,
+            weeks: tpl.program.weeks,
+            expired: tpl.week === null,
+            progression_rule: tpl.program.progression_rule,
+            label: tpl.day?.label ?? null,
+            trains_today: tpl.targets.length > 0,
+            suggested: tpl.targets.map((t) => ({
+              exercise: t.exercise,
+              as_written: t.exercise_raw,
+              block: t.block,
+              reads_as: describeTarget(t),
+              target: {
+                sets: t.sets,
+                rep_low: t.rep_low,
+                rep_high: t.rep_high,
+                target_weight_lb: t.target_weight_lb,
+              },
+              last: hByKey.get(t.exercise)?.last ?? null,
+              best_ever: bByKey.get(t.exercise)
+                ? {
+                    weight_lb: bByKey.get(t.exercise)!.weight_lb,
+                    local_date: bByKey.get(t.exercise)!.local_date,
+                  }
+                : null,
+            })),
+          }
+        : null,
     };
   }
 

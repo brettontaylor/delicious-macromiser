@@ -439,9 +439,41 @@ The largest gap the transcript exposed, and the first phase of
       reconciled.
 - [x] 15 unit tests plus `npm run verify:session` — 50 end-to-end assertions.
 
-**Still open in this epic:** the multi-week block (`programs`, `set_program`,
-`materialize`), session append for logging between sets, and surfacing movement
-patterns on `get_last_performance`. Phases 2, 4 and 5 of the plan.
+---
+
+## The multi-week block — ✅ Phase 2 done 2026-08-24
+
+`0008_programs.sql`. The other half of the transcript's programme: not just
+"Tuesday is Day A" but the whole two-week A/B/C rotation, with the progression
+rule the model itself called *"the part people skip and the part that works"*.
+
+- [x] `programs` / `program_days` / `program_exercises`. Days are **keyed by
+      weekday**, mirroring `training_plan` for the reason that migration already
+      defends: people say "lower body on Tuesday", and a rotating N-day cycle
+      would be more general and less usable.
+- [x] `progression_rule` stored **verbatim and never parsed**. It is coaching,
+      it changes weekly, and the Skill applies it.
+- [x] `week_offset` carries the transcript's "Wk 1: 175 / Wk 2: 185" without
+      duplicating the day — send the lift twice, once plain and once with
+      `week: 2`. The rule still outranks it: a missed rep in week 1 makes a
+      pre-computed week-2 number wrong.
+- [x] **`weekOfProgram` returns null past the end rather than clamping.** A
+      two-week block read on day 15 says the block is over; serving its last
+      week forever is worse than having no block at all. Tested, and
+      `prescribe_session(from_program)` refuses on an expired date.
+- [x] `get_session` offers `from_program.suggested` — today's template with
+      `last` and `best_ever` beside each lift — **without writing it.** A
+      session the user never agreed to is not a plan, and auto-writing would
+      fill the log with sessions nobody intended.
+- [x] `prescribe_session(from_program: true)` materializes it once the user
+      agrees, taking the day's label with it.
+- [x] `set_program` retires the active block; `end_program` distinguishes
+      *completed* from *abandoned*, which is worth recording honestly.
+- [x] 10 unit tests plus `npm run verify:program` — 46 end-to-end assertions
+      against the transcript's real block.
+
+**Still open in this epic:** session append for logging between sets (Phase 4),
+and surfacing movement patterns on `get_last_performance` (Phase 5).
 
 ---
 

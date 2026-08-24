@@ -117,6 +117,8 @@ try {
     'log_event', 'get_events', 'correct_event', 'delete_event',
     // prescriptions — the planned session, kept apart from logged history
     'prescribe_session', 'get_session', 'delete_prescription',
+    // programs — the standing block a session comes from
+    'set_program', 'get_program', 'end_program',
   ];
   const missing = EXPECTED_TOOLS.filter((t) => !names.includes(t));
   const extra = names.filter((t) => !EXPECTED_TOOLS.includes(t));

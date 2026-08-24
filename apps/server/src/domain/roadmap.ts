@@ -40,6 +40,17 @@ export interface RoadmapItem {
 export const ROADMAP: RoadmapItem[] = [
   // ---------- shipped, newest first ----------
   {
+    id: 'program',
+    epic: 'E1',
+    title: 'The multi-week block',
+    blurb:
+      'A two-week A/B/C rotation agreed once, with the progression rule kept verbatim — ' +
+      'so each training day starts from the plan instead of re-deriving it.',
+    status: 'shipped',
+    shipped_on: '2026-08-24',
+    stories: ['S-6', 'S-22'],
+  },
+  {
     id: 'session',
     epic: 'E1',
     title: 'Today’s session, written down',
@@ -139,18 +150,6 @@ export const ROADMAP: RoadmapItem[] = [
 
   // ---------- next, in order ----------
   {
-    id: 'program',
-    epic: 'E1',
-    title: 'The multi-week block',
-    blurb:
-      'A two-week A/B/C rotation agreed once, with the progression rule written down, ' +
-      'generating each day’s session instead of re-deriving it.',
-    status: 'next',
-    rank: 1,
-    size: 'medium',
-    stories: ['S-6', 'S-22'],
-  },
-  {
     id: 'weekly-budget',
     epic: 'E3',
     title: 'The weekly budget',
@@ -158,7 +157,7 @@ export const ROADMAP: RoadmapItem[] = [
       'Budget the week, not the meal. A big Friday is fine if Thursday and Saturday ' +
       'run light — but only if you can see the week.',
     status: 'next',
-    rank: 2,
+    rank: 1,
     size: 'medium',
     stories: ['S-11', 'S-16', 'S-30'],
   },
@@ -170,7 +169,7 @@ export const ROADMAP: RoadmapItem[] = [
       'Set up your stack once, then one checkbox a day — alongside the rules you ' +
       'already wrote for yourself, like the 10,000 steps and the zero-alcohol day.',
     status: 'next',
-    rank: 3,
+    rank: 2,
     size: 'medium',
     stories: ['S-14', 'S-17'],
   },
@@ -182,7 +181,7 @@ export const ROADMAP: RoadmapItem[] = [
       'Your history, your constraints, your goal horizon — kept here rather than in ' +
       'one chat client’s private memory.',
     status: 'next',
-    rank: 4,
+    rank: 3,
     size: 'medium',
     stories: ['S-1', 'S-3', 'M-1'],
   },
@@ -192,7 +191,7 @@ export const ROADMAP: RoadmapItem[] = [
     title: 'Shopping list',
     blurb: 'A week of recipes, diffed against the pantry.',
     status: 'next',
-    rank: 5,
+    rank: 4,
     size: 'small',
     stories: ['S-27'],
   },
