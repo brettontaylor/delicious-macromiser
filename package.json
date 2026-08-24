@@ -21,7 +21,8 @@
     "verify:pacing": "npm run verify:pacing --workspace @dm/server",
     "verify:session": "npm run verify:session --workspace @dm/server",
     "verify:program": "npm run verify:program --workspace @dm/server",
-    "skill:build": "node scripts/build-skill.mjs"
+    "skill:build": "node scripts/build-skill.mjs",
+    "skill:install": "node scripts/install-skill.mjs"
   },
   "engines": {
     "node": ">=22"

@@ -11,6 +11,20 @@ say what the symptom looked like, because that is how you will recognise it.
 
 ## Deploying
 
+**Skills install differently on every surface, and do not sync.** Claude Code
+takes a **directory** under `~/.claude/skills/` or `.claude/skills/` — there is
+no zip and no upload. claude.ai takes a zip through Settings. The API takes
+`/v1/skills`. Uploading to one does nothing for the others. `npm run
+skill:install` does the Claude Code half; `npm run skill:build` produces the zip
+for the other two.
+
+**A supporting file only works where Claude can read the filesystem.** Level-3
+resources like `REFERENCE.md` are read with bash at the moment they are needed,
+which on claude.ai requires **code execution enabled**. With it off, `SKILL.md`
+still loads but the appendix is never opened. `skill:build` therefore also emits
+`dist/macromiser-coach-single.zip` with the reference inlined — worse in theory,
+correct everywhere.
+
 **The Skill is two files, and the packer enforces the link.** `SKILL.md` is
 injected on every trigger; `REFERENCE.md` holds per-tool semantics the model
 loads on demand, which is what keeps the pantry-null rule out of context when

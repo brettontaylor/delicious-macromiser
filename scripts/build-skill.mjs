@@ -3,6 +3,22 @@
  * Pack skill/ into dist/macromiser-coach.zip, ready to upload to claude.ai as
  * a Claude Skill.
  *
+ * Emits TWO artifacts, because the surfaces differ:
+ *
+ *   dist/macromiser-coach.zip         two files, spec-correct progressive
+ *                                     disclosure. For claude.ai with code
+ *                                     execution on, and for the API.
+ *   dist/macromiser-coach-single.zip  REFERENCE.md inlined as an appendix.
+ *                                     For any surface where Claude cannot read
+ *                                     a Level-3 file from the filesystem — on
+ *                                     claude.ai that needs code execution
+ *                                     enabled, and if it is off the split file
+ *                                     is simply never opened.
+ *
+ * Claude Code needs NEITHER: skills there are directories on disk under
+ * ~/.claude/skills/ or .claude/skills/, with no upload step at all. Run
+ * `npm run skill:install` for that.
+ *
  * Packs EVERY .md in skill/, not just SKILL.md. Claude Skills support
  * supporting files loaded on demand, which is how REFERENCE.md keeps the
  * per-tool semantics out of the always-injected prompt. A packer that shipped
@@ -173,6 +189,64 @@ function build() {
   console.log('Replace the existing "macromiser-coach"; do not add a second one.');
   console.log('The zip FILENAME does not matter — identity comes from the');
   console.log('frontmatter name and the folder inside the archive.');
+
+  buildSingle(files, text, NL);
+}
+
+/**
+ * Fallback: one file, REFERENCE.md folded in as an appendix.
+ *
+ * Loses progressive disclosure — everything is in context on every trigger —
+ * but that is strictly better than a supporting file the surface can never
+ * open. Same frontmatter and same folder name, so it updates the same Skill.
+ */
+function buildSingle(files, entryText, NL) {
+  const extras = files.filter((f) => f !== 'SKILL.md');
+  if (extras.length === 0) return;
+
+  let merged = entryText;
+
+  // The split-file pointer is wrong once everything is in one file. Plain
+  // string surgery rather than a regex — the escaping is easier to keep right.
+  const pStart = merged.indexOf('**`REFERENCE.md` sits alongside');
+  const pEnd = merged.indexOf('what to bench.', pStart);
+  if (pStart >= 0 && pEnd > pStart) {
+    merged =
+      merged.slice(0, pStart) +
+      '**Appendix A below holds the per-tool semantics** — what a null means, ' +
+      'which fields are traps, how each write behaves. Consult it when you are ' +
+      'about to use a tool you have not used this session, rather than reading ' +
+      'it end to end.' +
+      merged.slice(pEnd + 'what to bench.'.length);
+  }
+  merged = merged.split('`REFERENCE.md` covers').join('Appendix A covers');
+  merged = merged.split('See `REFERENCE.md` for').join('See Appendix A for');
+
+  for (const f of extras) {
+    const body = readFileSync(join(SRC_DIR, f), 'utf8');
+    // Drop the appendix's own H1 and re-title it in place.
+    const firstBreak = body.indexOf(NL);
+    const stripped = body.startsWith('#') ? body.slice(firstBreak + 1) : body;
+    merged += NL + '---' + NL + NL + '# Appendix A — tool reference' + NL + stripped;
+  }
+
+  const out = join(OUT_DIR, 'macromiser-coach-single.zip');
+  const e = zipOne(`${SKILL_DIR}/SKILL.md`, Buffer.from(merged, 'utf8'), new Date());
+  e.central.writeUInt32LE(0, 42);
+  const local = Buffer.concat([e.local, e.nameBuf, e.deflated]);
+  const central = Buffer.concat([e.central, e.nameBuf]);
+  const end = Buffer.alloc(22);
+  end.writeUInt32LE(0x06054b50, 0);
+  end.writeUInt16LE(1, 8);
+  end.writeUInt16LE(1, 10);
+  end.writeUInt32LE(central.length, 12);
+  end.writeUInt32LE(local.length, 16);
+  writeFileSync(out, Buffer.concat([local, central, end]));
+
+  console.log('');
+  console.log(`Fallback: dist/macromiser-coach-single.zip (${merged.split(NL).length} lines, one file).`);
+  console.log('Use it if the split version never reads its appendix — on claude.ai');
+  console.log('that means code execution is disabled.');
 }
 
 build();
