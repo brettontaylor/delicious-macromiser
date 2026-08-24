@@ -102,6 +102,9 @@ try {
   const names = tools.map((t) => t.name).sort();
   // Assert the exact surface, not a count — a count assertion only tells you
   // the number changed, never which tool went missing.
+  // Exact, not a subset. A tool that appears without being added here is a
+  // tool nobody decided to ship — and the surface is meant to stay small
+  // (ARCHITECTURE.md §5).
   const EXPECTED_TOOLS = [
     'correct_meal', 'correct_workout', 'get_briefing', 'delete_meal', 'delete_workout', 'get_history', 'get_last_performance',
     'get_next_meal', 'get_pantry', 'get_pending_captures', 'get_today', 'get_training_plan',
@@ -110,6 +113,10 @@ try {
     'list_recipes',
     'log_bodyweight', 'log_meal', 'log_workout', 'resolve_capture',
     'set_goals', 'set_pantry', 'set_training_plan',
+    // events — annotations that change how a reading should be read
+    'log_event', 'get_events', 'correct_event', 'delete_event',
+    // prescriptions — the planned session, kept apart from logged history
+    'prescribe_session', 'get_session', 'delete_prescription',
   ];
   const missing = EXPECTED_TOOLS.filter((t) => !names.includes(t));
   const extra = names.filter((t) => !EXPECTED_TOOLS.includes(t));
