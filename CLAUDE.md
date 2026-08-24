@@ -13,7 +13,7 @@ recipe UI in roadmap Phase 5. Run everything from the repo root.
 
 | Path | What |
 |---|---|
-| `apps/server/` | Cloudflare Worker, 27 MCP tools over D1. Stateless — no session objects |
+| `apps/server/` | Cloudflare Worker, 29 MCP tools over D1. Stateless — no session objects |
 | `content/recipes/` | Recipe HTML cards, the format spec, and the base template |
 | `apps/server/src/app/` | The read-only web view at `/app/<view secret>` |
 | `scripts/check-recipes.mjs` | Recipe conformance — dependency-free on purpose |
