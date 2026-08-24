@@ -164,7 +164,7 @@ snapshot predates.
 Custom connectors require Pro/Max/Team/Enterprise, and must be **added on
 claude.ai web** — mobile inherits the connector but cannot add one.
 
-1. claude.ai → Settings → Connectors → **Add custom connector**
+1. claude.ai → Settings → **Customize** → Connectors → **Add custom connector**
 2. URL: `https://macromiser-prod.<subdomain>.workers.dev/mcp/<secret>`
 3. No auth (v1 is authless — the URL *is* the credential)
 4. Start a chat, confirm the tools appear, then check Claude mobile

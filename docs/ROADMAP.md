@@ -3,10 +3,12 @@
 Sequenced so the thing is *usable* at the end of week one and every phase after
 that is driven by real data rather than speculation.
 
-**Status (2026-08-23):** Phases 0-2 built and **deployed**. Both D1 instances
-created, prod migrated (schema only), Worker live at
-`macromiser-prod.macromiser.workers.dev`, 51/51 smoke checks passing against
-production, 66 unit tests green. See [DEV.md](DEV.md) to run or deploy it.
+**Status (2026-08-24):** **Deployed and delivered.** Prod Worker on version
+`0caa6aff` with **32 MCP tools** over D1, migrations through `0008`, 117 unit
+tests and 51 smoke checks green, plus 161 end-to-end assertions across four
+`verify:*` suites. The Skill is installed and the connector refreshed, so
+everything below is reachable from a chat — not just running. Use
+[`/ship`](../.claude/skills/ship/SKILL.md) to deploy; see [DEV.md](DEV.md) to run it.
 
 What remains in Phases 0-2 is claude.ai-side only: add the custom connector,
 confirm a tool call from the phone, install the Skill.
@@ -22,9 +24,9 @@ Prove the connection before building anything.
 
 - [x] Cloudflare Worker with a single MCP tool: `ping` → `"pong"`
 - [x] Streamable HTTP at `/mcp/<random>`
-- [x] Add as a custom connector in claude.ai (Settings → Connectors → Add custom)
+- [x] Add as a custom connector in claude.ai (Settings → **Customize** → Connectors → Add custom)
 - [x] Confirm the tool is callable from a chat
-- [ ] Confirm it also appears on Claude mobile
+- [ ] Confirm it also appears on Claude mobile — desktop refresh verified 2026-08-24 (all 11 new tools appeared after reconnecting)
 
 **Exit:** Claude on your phone can call a tool on your Worker.
 
@@ -68,13 +70,18 @@ Where the actual value is.
 - [x] Write `SKILL.md` (see `COACHING-LAYER.md`)
 - [x] Encode: macro targets, progressive-overload rule, recovery spacing,
       alcohol-adjusted food-calorie check, protein-priority ordering
-- [ ] Install as a Claude Skill or Project instructions. `npm run skill:build`
-      packs `skill/SKILL.md` into `dist/macromiser-coach.zip` (gitignored).
-      **Re-upload needed** — and this is the step that quietly undoes a deploy:
-      on 2026-08-24 the uploaded zip was found 91 lines behind, carrying no
-      rules for events, pace, personal records, prescriptions or programs, all
-      of which had just shipped. It was hand-zipped, which is why it drifted;
-      there is a build script now.
+- [x] **Installed as a Claude Skill 2026-08-24.** `npm run skill:build` packs
+      `skill/SKILL.md` into `dist/macromiser-coach.zip` (gitignored); upload at
+      Settings → **Customize** → Skills.
+
+      This is the step that quietly undoes a deploy. On 2026-08-24 the uploaded
+      zip was found 91 lines behind, carrying no rules for events, pace,
+      personal records, prescriptions or programs — every feature shipping that
+      day. It was hand-zipped, which is why it drifted. There is a build script
+      now, and `/ship` runs it rather than reminding anyone to.
+
+      The zip's *filename* is irrelevant; identity comes from the frontmatter
+      `name` and the folder inside the archive, both `macromiser-coach`.
 - [ ] Iterate on the prompt for a week — it's a text file, not a deploy
 
 **Exit:** you ask "gym today?" and get a session with correct loads, correct

@@ -205,7 +205,7 @@ silently blocked features in this repo before:
 
 | Step | Why it matters |
 |---|---|
-| **Reconnect the connector** in claude.ai → Settings → Connectors | The client caches the tool list. New tools are invisible in chat until it refetches — `get_briefing` shipped and went unused for a full session because of this |
+| **Reconnect the connector** in claude.ai → Settings → **Customize** → Connectors | The client caches the tool list. New tools are invisible in chat until it refetches — `get_briefing` shipped and went unused for a full session because of this |
 | **Re-upload the Skill** — `dist/macromiser-coach.zip` | A tool nothing tells the model to call is a tool that does not exist. **Run `npm run skill:build` yourself** so the operator is handed a current artifact, never asked to remember to rebuild it |
 
 Check whether the Skill changed and mention it if so:

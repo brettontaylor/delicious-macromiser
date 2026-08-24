@@ -131,8 +131,12 @@ function build() {
   console.log(`  -> ${OUT.replace(ROOT + '\\', '').replace(ROOT + '/', '')} as ${SKILL_DIR}/SKILL.md`);
   console.log(`  ${statSync(OUT).size} bytes packed`);
   console.log('');
-  console.log('Upload at claude.ai -> Settings -> Capabilities -> Skills.');
+  // Settings moved: Skills and Connectors now live under Customize, not
+  // Capabilities (confirmed in the UI 2026-08-24).
+  console.log('Upload at claude.ai -> Settings -> Customize -> Skills.');
   console.log('Replace the existing "macromiser-coach"; do not add a second one.');
+  console.log('The zip FILENAME does not matter — identity comes from the');
+  console.log('frontmatter name and the folder inside the archive.');
 }
 
 build();
