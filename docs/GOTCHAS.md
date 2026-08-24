@@ -89,6 +89,22 @@ succeeded on retry, with no change in credentials. Retry before debugging.
 
 ## The MCP surface
 
+**Round trips are the latency, not the server.** Individual calls run 120-250ms;
+what a user feels is four of them in sequence, each with its own approval prompt
+and its own pause. `get_briefing` collapsed the orient case from 1209ms across
+four calls to 200ms in one. When adding a tool, ask how many calls a normal
+question will now cost.
+
+**A Skill instruction to "check X at the start of a session" does not reliably
+fire.** The rule to check `pending_captures` on session start did not run on its
+own — the queue was only noticed because the user happened to ask about a meal
+and `get_today` reported it in passing. Put the thing you need noticed into the
+payload the model already reads, rather than relying on an instruction to make an
+extra call.
+
+**Await everything you can in one `Promise.all`.** `get_today` had two queries
+sitting outside its `Promise.all` and cost 651ms instead of 233ms for no reason.
+
 **A new tool is invisible to an already-connected client.** The tool list is
 resolved when the connector is added, not per conversation, so opening a fresh
 chat is not enough — the connector needs toggling off and on. Shipping a tool is

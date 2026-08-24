@@ -25,6 +25,7 @@ import { getPendingCaptures, resolveCapture } from './captures.ts';
 import { correctWorkout, deleteWorkout } from './correct_workout.ts';
 import { setTrainingPlan, getTrainingPlanTool } from './training_plan.ts';
 import { setPantry, getPantryTool } from './pantry.ts';
+import { getBriefing } from './get_briefing.ts';
 
 export type ToolArgs = Record<string, unknown>;
 export type ToolHandler = (ctx: Ctx, args: ToolArgs) => Promise<unknown>;
@@ -40,6 +41,12 @@ const num = (description: string) => ({ type: 'number', description });
 const str = (description: string) => ({ type: 'string', description });
 
 export const TOOLS: ToolDef[] = [
+  {
+    name: 'get_briefing',
+    description: DESCRIPTIONS.get_briefing,
+    inputSchema: { type: 'object', properties: {}, additionalProperties: false },
+    handler: getBriefing,
+  },
   {
     name: 'log_meal',
     description: DESCRIPTIONS.log_meal,

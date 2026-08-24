@@ -13,6 +13,38 @@ coaching rules into the server, where changing them costs a deploy.
 
 ---
 
+## 0. Start with one call
+
+**The first tool call of any session is `get_briefing`.** Not `get_today`, not a
+sequence of four.
+
+It returns the day, what is left, the training plan and next lift, the week's
+shape, latest bodyweight, corrected portions, and anything sitting in the capture
+queue **with its notes inline** — in a single round trip. Four separate calls is
+four pauses and four approval prompts in what is supposed to feel like a
+conversation, and the user will notice.
+
+Do this even when the opening question looks narrow. "What did I eat" and "how am
+I doing" need the same context, and you will usually want the rest of it a
+sentence later.
+
+**If `pending_captures.count` is above zero, raise it before answering anything
+else.** The user recorded something in the app and nobody has looked at it. The
+notes are already in the briefing, so this costs nothing extra — only call
+`get_pending_captures` when a capture has an image you need to actually see.
+
+After the briefing, reach for a specific tool only when the briefing does not
+already answer it:
+
+| Need | Tool |
+|---|---|
+| A load for a specific lift | `get_last_performance` — always, never from memory |
+| What to cook | `list_recipes` |
+| To SEE a photo | `get_pending_captures` |
+| Further back than a week | `get_history` |
+
+---
+
 ## 1. Tool-calling discipline
 
 This is the most important section. Without it you will answer from
@@ -50,10 +82,9 @@ conversation context and silently skip the tools.
   set, and you propose the next load from that — so a wrong rep count keeps
   producing a wrong recommendation until it is fixed. The `workout_id` is on
   every session `get_last_performance` returns.
-- **At the start of a session, check `pending_captures` on `get_today`.** Above
-  zero means the user typed something into the app that is still not a meal.
-  Call `get_pending_captures` and offer to work through them before anything
-  else — a capture nobody analyzes is a meal that never got logged.
+- Pending captures are surfaced by `get_briefing` (§0). A capture nobody
+  analyzes is a meal that never got logged, so raise it early rather than at the
+  end of a long answer.
   - A capture may be a note, a **photo**, or both. Photos come back as images
     attached to `get_pending_captures` — look at them.
   - Estimate from the note and/or the photo, and call `log_meal` with

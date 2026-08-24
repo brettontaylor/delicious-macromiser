@@ -29,6 +29,14 @@ Use the exercise name the user actually said; the server normalizes it (so "squa
 
   set_goals: `Set or change the user's daily calorie and macro targets, goal bodyweight, or weekly session count. Call this when the user states or revises a target. Goals are versioned by date and never overwritten, so past days keep being scored against the targets that were actually in force at the time.`,
 
+  get_briefing: `Where the user stands, in ONE call: today's totals and what is left, anything waiting in the capture queue (with the notes inline), today's training plan and the next lift day, the week's shape, latest bodyweight, and portions they have already corrected.
+
+**Call this FIRST in any session that starts with an open question** — "how am I doing", "what should I eat", "catch me up", or any greeting that implies looking at the log. It replaces get_today + get_training_plan + get_week_summary + get_pending_captures, which is four round trips and four pauses in what should feel like a conversation.
+
+If pending_captures.count is above zero, the user logged something in the app that nobody analyzed — offer to work through it before anything else. Only call get_pending_captures when a capture has an image you need to SEE; the notes are already here.
+
+Follow up with a specific tool only when you need more: get_last_performance before recommending a load, list_recipes for what to cook.`,
+
   get_today: `Call this before answering ANY question about remaining calories, remaining macros, or what the user has eaten today. Never compute a running total from the conversation — meals may have been logged in an earlier session or from another device, and the conversation is not the source of truth.
 
 Returns: every meal logged today (each with its id, for correct_meal), the totals, the remaining amount against the active goals, and food calories excluding alcohol. Also returns known_portions — phrases the user has already corrected once, whose figures you should reuse instead of re-estimating — and pending_captures, the number of things logged in the app that still need analyzing. If that is above zero, call get_pending_captures and offer to work through them. Also returns the user's local date, weekday and time, so you can judge whether protein is behind pace for the hour rather than guessing what time it is.`,

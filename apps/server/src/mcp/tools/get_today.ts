@@ -16,21 +16,19 @@ import { optLocalDate } from './args.ts';
 export async function getToday(ctx: Ctx, args: ToolArgs): Promise<unknown> {
   const date = optLocalDate(args, 'date', ctx.now, ctx.tz);
 
-  const [meals, goals, lastWorkout] = await Promise.all([
+  // Everything in one round of queries. These were sequential and cost ~450ms
+  // of pure waiting for no reason — D1 round trips add up fast when a chat is
+  // waiting on the answer.
+  const [meals, goals, lastWorkout, portions, pending] = await Promise.all([
     getMealsForDate(ctx, date),
     getGoalsAsOf(ctx, date),
     getLastWorkoutDate(ctx),
+    lookupPortions(ctx, 15),
+    countPendingCaptures(ctx),
   ]);
 
   const totals = sumMeals(meals);
 
-  // Corrected portions, so an estimate for a repeat meal starts from the number
-  // the user already fixed rather than from scratch. This is the loop that makes
-  // corrections worth making.
-  const portions = await lookupPortions(ctx, 15);
-  // Surfaced here because get_today is called constantly — it is the cheapest
-  // place for the model to notice the app queue without a dedicated poll.
-  const pending = await countPendingCaptures(ctx);
 
   return {
     local_date: date,
