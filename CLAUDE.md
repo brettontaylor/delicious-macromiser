@@ -62,6 +62,31 @@ Output one self-contained `.html` into `content/recipes/`. Rules:
 4. Every card needs: ingredients, numbered steps, chef's note, meta row, footer
 5. Run `npm run recipes:check` before committing
 
+## Docs map
+
+Keep this in sync with `/start-session`'s read list — a doc nothing points at is
+a doc nobody reads.
+
+| Doc | What it holds |
+|---|---|
+| [`docs/ROADMAP.md`](docs/ROADMAP.md) | Phases, what shipped, what is open. The map |
+| [`docs/GOTCHAS.md`](docs/GOTCHAS.md) | The how-we-build ledger. Read the top before debugging anything that feels familiar |
+| [`docs/plans/`](docs/plans/) | Design plans and their open decisions |
+| [`docs/PRODUCT.md`](docs/PRODUCT.md) | Problem, thesis, user objectives, explicit non-objectives |
+| [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | The boundary: what the server does and does not do |
+| [`docs/DEV.md`](docs/DEV.md) | Run it, deploy it, back it up, restore it |
+
+## Session workflow
+
+| Skill | Use |
+|---|---|
+| `/start-session` | Briefing: git, prod health, **and the live log** — pending captures, whether today is logged, whether a plan exists |
+| `/save-session` | Full check suite, prod backup, verify it actually shipped, write the state-of-record, commit, confirm CI |
+
+`/save-session` appends to `docs/GOTCHAS.md`. If something cost more than ten
+minutes to work out, it goes there — that ledger is the difference between
+learning a lesson once and learning it every session.
+
 ## Planning workflow
 
 Ported from D-I Wine and adapted for this stack. Plans live in `docs/plans/`.

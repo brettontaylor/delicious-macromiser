@@ -1,0 +1,133 @@
+# Gotchas
+
+The how-we-build ledger. Every entry cost real time to discover once; reading
+this is how it stops costing time twice.
+
+`/save-session` appends here. `/start-session` reads the top. Newest first —
+add to the top of the relevant section, keep entries short and concrete, and
+say what the symptom looked like, because that is how you will recognise it.
+
+---
+
+## Local development
+
+**`--file=/dev/null` creates a real file called `nul` on Windows.** It then
+breaks every subsequent `git add -A` with `unable to index file 'apps/server/nul'`
+— and because the failure is on `add`, a chained `&& git commit` never runs while
+a separately-chained `git push` still reports success. The symptom is a commit
+that silently did not happen. Gitignored now; use a real temp path instead.
+
+**Stopping a `wrangler dev` task does not stop its children.** `TaskStop` kills
+the wrapper; the `workerd` and `node` processes keep running and keep holding
+the port. The symptom is brutal and quiet: you test against the OLD build and
+conclude your change did nothing, or worse, that it works. Kill them by name
+before starting a new one:
+
+```bash
+Get-CimInstance Win32_Process -Filter "Name='workerd.exe' OR Name='node.exe'" |
+  Where-Object { $_.CommandLine -like '*delicious-macromiser*' } |
+  ForEach-Object { Stop-Process -Id $_.ProcessId -Force }
+```
+
+This has caused a wrong conclusion at least twice. Both times the tell was a
+result that made no sense given the code.
+
+**A `.dev.vars` written with CRLF makes the secret read as unset.** Wrangler
+keeps the trailing `\r`, so the comparison fails. The symptom is maximally
+confusing: startup logs show `env.MCP_PATH_SECRET ("(hidden)")` as if it loaded,
+and every request returns `server misconfigured`. Write it with LF.
+
+**The generated recipe catalog is gitignored.** `src/domain/recipes.ts` imports
+`src/generated/recipes.json`, which is built, not committed. A fresh clone fails
+`tsc` with "Cannot find module" until `npm install` runs the `prepare` hook. CI
+runs `recipes:build` explicitly as well, so a change to `prepare` cannot break
+the build silently.
+
+**The smoke test is not idempotent.** Several assertions assume an empty log —
+"one session is not enough to progress", the bodyweight rolling average, the
+meal counts. Running it twice produces confident nonsense. Clear the tables
+first, and if a run fails on counts, suspect the database before the code.
+
+---
+
+## Schema and data
+
+**Never create a circular foreign key.** `captures.meal_id` referencing
+`meals(id)` while `meals.capture_id` referenced `captures(id)` meant NEITHER
+table could be deleted — both failed with `FOREIGN KEY constraint failed`. That
+also breaks `restore.mjs --replace`, which is the only undo this project has.
+Pick the direction that carries provenance and make the other a plain column.
+
+Symptom: a `DELETE` that reports success but leaves the rows, because the batch
+aborted.
+
+**`import_days` and `log_meal` are not idempotent.** Re-running writes
+duplicates. Only `log_bodyweight` (upsert on user+date) and the pantry
+self-correct. Confirm the list before calling, and never retry a call that may
+have partly succeeded.
+
+**Backfilled rows carry the time they were WRITTEN, not the time they happened.**
+`logged_at` is set at write time; `local_date` is the day it belongs to. Anything
+learning from timing must use only rows where those agree — see
+`src/domain/mealtimes.ts`. Otherwise the model learns that you eat lunch at the
+moment you ran the import.
+
+**A partial migration failure is silent-ish.** `wrangler d1 migrations apply`
+against prod has failed with `account is not authorized [code: 7403]` twice and
+succeeded on retry, with no change in credentials. Retry before debugging.
+
+---
+
+## The MCP surface
+
+**A new tool is invisible to an already-connected client.** The tool list is
+resolved when the connector is added, not per conversation, so opening a fresh
+chat is not enough — the connector needs toggling off and on. Shipping a tool is
+not the same as shipping a feature.
+
+**A tool with an empty `properties: {}` may be dropped by a client.** Unproven
+but suspected: `spike_image` was the only parameterless tool in the surface and
+the only one a client failed to list. It now carries one ignored optional
+property. Give every tool at least one.
+
+**Tool results are text-only unless a handler opts out.** `toolResult` returns
+`{type:'text'}` plus `structuredContent`. A handler that needs an image returns
+`RawContent` (`src/mcp/server.ts`). Whether a client shows that image to the
+model is still unverified — see the Phase 0 spike.
+
+**Every tool call is a separate approval prompt for the user.** This is a
+product constraint, not a detail. It is why `import_days` exists, and why
+`log_meal` closes a capture itself instead of requiring `resolve_capture`. When
+adding a tool, ask how many approvals a normal task will cost.
+
+**A tool description is the model's UI.** It is the only thing steering
+behaviour. State what the model must NOT do, not just what it can — "never
+invent numbers to clear the queue" does more work than any schema constraint.
+
+---
+
+## The web view
+
+**Three secrets, three capabilities, never widened.** `MCP_PATH_SECRET`
+(connector, writes), `APP_EDIT_SECRET` (page, writes), `APP_VIEW_SECRET` (page,
+read-only, the only one safe to share). Capability comes from which secret opened
+the request. A read link hitting a write path gets 403; a wrong secret gets 404.
+
+**Test rendered content, not status codes.** A 200 proves nothing. Assert on the
+number on the page. And grep for rendered markup (`pend-list">`), never a bare
+class name — CSS class names appear in the `<style>` block and will match, which
+produced a false "the read link leaks notes" scare.
+
+**`curl -I` sends HEAD.** If a route only handles GET you are testing a 405 and
+reading its headers. Use `curl -D -` on a GET.
+
+---
+
+## Deploys
+
+**Verify after propagation, not immediately.** A probe run seconds after
+`deploy` hit the previous version and reported a 405 that had already been fixed.
+Poll until the new behaviour appears before concluding anything.
+
+**Back up before any prod migration.** `POST /backup/<MCP_PATH_SECRET>`. It takes
+a second and it is the only undo.
