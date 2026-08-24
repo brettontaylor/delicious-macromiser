@@ -11,6 +11,15 @@ say what the symptom looked like, because that is how you will recognise it.
 
 ## Deploying
 
+**A stale Skill zip silently undoes a deploy.** `dist/macromiser-coach.zip` was
+produced by hand and drifted 91 lines behind `skill/SKILL.md` — it reached
+production day carrying no rules for any of the four features being shipped. The
+server was perfect and the model would not have called a single new tool.
+`npm run skill:build` now packs it; rebuild and re-upload whenever `skill/`
+changes. The folder inside the zip must stay `macromiser-coach`, matching the
+frontmatter `name` — a different one uploads a SECOND skill instead of updating
+the existing one, and the build script refuses if they disagree.
+
 **`git push` deploys nothing.** CI has no deploy job on purpose. On 2026-08-24
 seven commits were pushed and CI went green while production carried on serving
 a build from the previous night — 22 tools, migrations stopping at `0005`. Use

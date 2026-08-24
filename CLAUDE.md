@@ -32,6 +32,7 @@ npm run verify:events    # 33-check E2E — events and the trend caveat
 npm run verify:pacing    # 32-check E2E — pace, PRs, the share link
 npm run verify:session   # 50-check E2E — the prescribed session
 npm run verify:program   # 46-check E2E — the multi-week block
+npm run skill:build      # pack skill/SKILL.md -> dist/macromiser-coach.zip
 npm run deploy:prod      # manual, deliberately not in CI
 ```
 

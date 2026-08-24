@@ -68,10 +68,13 @@ Where the actual value is.
 - [x] Write `SKILL.md` (see `COACHING-LAYER.md`)
 - [x] Encode: macro targets, progressive-overload rule, recovery spacing,
       alcohol-adjusted food-calorie check, protein-priority ordering
-- [ ] Install as a Claude Skill or Project instructions — zip is built at
-      `dist/macromiser-coach.zip` (gitignored; `npm run` nothing, it is produced
-      by hand). **Re-upload needed:** the Skill has changed twice since it was
-      first sent — photos, and §0 `get_briefing`
+- [ ] Install as a Claude Skill or Project instructions. `npm run skill:build`
+      packs `skill/SKILL.md` into `dist/macromiser-coach.zip` (gitignored).
+      **Re-upload needed** — and this is the step that quietly undoes a deploy:
+      on 2026-08-24 the uploaded zip was found 91 lines behind, carrying no
+      rules for events, pace, personal records, prescriptions or programs, all
+      of which had just shipped. It was hand-zipped, which is why it drifted;
+      there is a build script now.
 - [ ] Iterate on the prompt for a week — it's a text file, not a deploy
 
 **Exit:** you ask "gym today?" and get a session with correct loads, correct
