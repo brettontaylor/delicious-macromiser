@@ -23,6 +23,7 @@ import {
   getMealsForRange,
   listPendingCaptures,
   getTrainingPlan,
+  getEventsInRange,
 } from '../db/queries.ts';
 import { sumMeals, remainingVsGoals } from '../domain/totals.ts';
 import { localDate, shiftDate } from '../util/date.ts';
@@ -89,7 +90,7 @@ export async function renderApp(
   const date = dateParam ?? today;
   const windowStart = shiftDate(date, -29);
 
-  const [meals, goals, bw, workouts, rangeMeals, pendingCaptures, plan] = await Promise.all([
+  const [meals, goals, bw, workouts, rangeMeals, pendingCaptures, plan, events] = await Promise.all([
     getMealsForDate(ctx, date),
     getGoalsAsOf(ctx, date),
     getBodyweightRange(ctx, shiftDate(date, -89), date),
@@ -97,6 +98,9 @@ export async function renderApp(
     getMealsForRange(ctx, windowStart, date),
     listPendingCaptures(ctx, 10),
     getTrainingPlan(ctx),
+    // Same 90-day window the chart draws over, so a marker can never point at
+    // a date outside the frame.
+    getEventsInRange(ctx, shiftDate(date, -89), date),
   ]);
 
   const totals = sumMeals(meals);
@@ -460,16 +464,7 @@ export async function renderApp(
     <div class="head"><h2>Bodyweight</h2><span class="count">${
       latestWeight ? n0(latestWeight.weight_lb) + ' lb' : 'no readings'
     }${goals?.target_weight_lb ? ` · target ${Math.round(goals.target_weight_lb)}` : ''}</span></div>
-    ${trendChart(bw, goals?.target_weight_lb ?? null)}
-    ${
-      opts.canEdit
-        ? stub(
-            'events',
-            opts.secret,
-            'Aug 24 &mdash; creatine started &middot; disregard three weeks of scale',
-          )
-        : ''
-    }
+    ${trendChart(bw, goals?.target_weight_lb ?? null, events)}
   </section>
 
   <footer>

@@ -135,7 +135,7 @@ schema permits.
 | Epic | Stories | Cost | The argument |
 |---|---|---|---|
 | **E1 — Prescribed session & training block** | S-5, S-6, S-7, S-8, S-18, S-19, S-22, S-24, S-31, M-2 | Large | The transcript's highest-value output has nowhere to live. [PRODUCT.md](../PRODUCT.md) §2 names training history *the* differentiator; a prescription is that differentiator pointed forward instead of back. |
-| **E2 — Events & annotations** | S-15, S-20, S-21, S-22, S-30 | Small | Fixes an active correctness defect in a shipped feature. The model asked for it by name. One migration, one tool pair, one chart change. |
+| ~~**E2 — Events & annotations**~~ ✅ **shipped 2026-08-24** | S-15, S-20, S-21, S-22 | Small | Fixed the correctness defect. `0006_events.sql`, four tools, chart markers, and the caveat surfaced in `get_briefing` and `get_week_summary`. S-30's goal horizon was **not** covered — it belongs with E3. |
 | **E3 — The weekly budget** | S-11, S-16, S-30 | Medium | The framing the coach actually teaches, absent from schema and UI. Directly targets the live adherence problem: 4 of 7 days logged. |
 | **E4 — Athlete profile & guided onboarding** | S-1, S-2, S-3, S-4, M-1 | Medium | What the model must never be re-told. Today it lives in Claude's private memory, which is neither portable nor ours. |
 | **E5 — Daily adherence: supplements & standing rules** | S-14, S-17, S-19 | Medium | Operator-specified. A stack the user defines, plus one daily checkbox per commitment. Absorbs steps-as-a-rule without a steps integration. |
@@ -169,7 +169,7 @@ Ranked by value; sequenced by value ÷ cost, with the correctness defect first.
 
 | # | Epic | Why here |
 |---|---|---|
-| 1 | **E2 — Events** | An evening. Repairs a shipped feature that will otherwise mislead. Unblocks the honest reading of every trend downstream. |
+| ~~1~~ | ~~**E2 — Events**~~ | ✅ **Shipped 2026-08-24.** |
 | 2 | **E6 — Pacing & milestones** | An evening. Pure exposure of data already stored. Makes the product feel like it is paying attention, which is what sustains logging. |
 | 3 | **E1 — Prescribed session & block** | The epic. Detailed in [training-block.md](training-block.md). |
 | 4 | **E3 — Weekly budget** | Reframes the primary surface. Wants E2's events so a travel week can be excluded honestly. |

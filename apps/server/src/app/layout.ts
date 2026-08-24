@@ -129,6 +129,14 @@ h2{font-family:var(--display);font-size:17px;font-weight:600;margin:0}
 .c-dot{fill:var(--line-firm)}
 .c-avg{stroke:var(--fill);stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .c-last{fill:var(--fill);stroke:var(--surface);stroke-width:1.5}
+/* event markers — a rule where something started, a band while it clouds the
+   reading. Faint on purpose: annotation, not data. */
+.c-caveat{fill:var(--scrim)}
+.c-mark{stroke:var(--line-firm);stroke-width:1;stroke-dasharray:2 2}
+.c-events{display:flex;flex-wrap:wrap;gap:4px 8px}
+.c-event{font-family:var(--mono);font-size:10px;color:var(--muted);
+  border-left:2px solid var(--line-firm);padding-left:6px}
+.c-event.lit{border-left-color:var(--ink);color:var(--ink)}
 .c-legend{display:flex;flex-wrap:wrap;gap:4px 14px;font-family:var(--mono);font-size:11px;color:var(--muted)}
 .c-legend b{color:var(--ink);font-weight:500;font-family:var(--ui);font-size:13px}
 .c-down{color:var(--ink)}

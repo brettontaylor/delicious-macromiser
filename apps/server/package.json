@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "Macromiser MCP server \u2014 Cloudflare Worker over D1.",
+  "description": "Macromiser MCP server — Cloudflare Worker over D1.",
   "scripts": {
     "dev": "wrangler dev",
     "deploy": "wrangler deploy",
@@ -17,7 +17,8 @@
     "test": "node --test \"test/**/*.test.ts\"",
     "typecheck": "tsc --noEmit",
     "smoke": "node scripts/smoke.mjs",
-    "restore": "node scripts/restore.mjs"
+    "restore": "node scripts/restore.mjs",
+    "verify:events": "bash scripts/verify-events.sh"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^5.20260820.1",

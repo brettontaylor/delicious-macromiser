@@ -23,7 +23,20 @@ test('an unknown id resolves to null rather than throwing', () => {
 test('planned items come back in rank order', () => {
   const ranks = byStatus('next').map((r) => r.rank);
   assert.deepEqual(ranks, [...ranks].sort((a, b) => (a ?? 99) - (b ?? 99)));
-  assert.equal(byStatus('next')[0]?.id, 'events', 'events is ranked first — it repairs a shipped feature');
+  assert.equal(byStatus('next')[0]?.rank, 1, 'the head of the list is rank 1');
+});
+
+test('a shipped item is no longer in the planned list', () => {
+  // Events shipped 2026-08-24. This guards the move: an item left in both
+  // places renders as "planned" on /roadmap while its stub is already gone.
+  assert.equal(
+    byStatus('next').some((r) => r.id === 'events'),
+    false,
+  );
+  assert.equal(
+    byStatus('shipped').some((r) => r.id === 'events'),
+    true,
+  );
 });
 
 test('every planned item has a rank, and nothing else does', () => {

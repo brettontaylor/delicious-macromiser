@@ -4,8 +4,10 @@ import {
   getGoalsAsOf,
   getBodyweightRange,
   countSessionsInRange,
+  getEventsInRange,
 } from '../../db/queries.ts';
 import { summarizeWeek } from '../../domain/totals.ts';
+import { activeOn, cloudedReadings } from '../../domain/events.ts';
 import type { MealRow } from '../../domain/totals.ts';
 import { shiftDate, dateRange, isValidDate, localDate } from '../../util/date.ts';
 import type { ToolArgs } from './index.ts';
@@ -27,11 +29,12 @@ export async function getWeekSummary(ctx: Ctx, args: ToolArgs): Promise<unknown>
   const end = endRaw ?? localDate(ctx.now, ctx.tz);
   const start = shiftDate(end, -(days - 1));
 
-  const [meals, goals, bodyweights, sessions] = await Promise.all([
+  const [meals, goals, bodyweights, sessions, events] = await Promise.all([
     getMealsForRange(ctx, start, end),
     getGoalsAsOf(ctx, end),
     getBodyweightRange(ctx, start, end),
     countSessionsInRange(ctx, start, end),
+    getEventsInRange(ctx, start, end),
   ]);
 
   const byDate = new Map<string, MealRow[]>();
@@ -64,6 +67,20 @@ export async function getWeekSummary(ctx: Ctx, args: ToolArgs): Promise<unknown>
       firstHalf !== null && secondHalf !== null
         ? { first_half_avg_lb: firstHalf, second_half_avg_lb: secondHalf, delta_lb: Math.round((secondHalf - firstHalf) * 10) / 10 }
         : null,
+    // Anything overlapping this window that undermines a reading in it. A
+    // trend is the single easiest number to misread, and "the diet stopped
+    // working" is the wrong conclusion to let someone reach on their own when
+    // the answer is a supplement or a week away from home.
+    events_in_window: activeOn(events, end).map((e) => ({
+      event_id: e.id,
+      kind: e.kind,
+      label: e.label,
+      starts_on: e.starts_on,
+      affects: e.affects,
+      caveat_active: e.caveat_active,
+      caveat_days_left: e.caveat_days_left,
+    })),
+    clouded_readings: cloudedReadings(events, end),
     // Stated plainly so a thin week is reported as thin, not as a result.
     data_quality:
       summary.days_with_data === 0

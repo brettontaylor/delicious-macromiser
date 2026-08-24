@@ -40,6 +40,17 @@ export interface RoadmapItem {
 export const ROADMAP: RoadmapItem[] = [
   // ---------- shipped, newest first ----------
   {
+    id: 'events',
+    epic: 'E2',
+    title: 'Events and annotations',
+    blurb:
+      'Creatine, travel, injury and deloads marked on the trend, so a rising scale ' +
+      'during a deficit explains itself.',
+    status: 'shipped',
+    shipped_on: '2026-08-24',
+    stories: ['S-15', 'S-20', 'S-21'],
+  },
+  {
     id: 'briefing',
     epic: null,
     title: 'One-call briefing',
@@ -106,19 +117,6 @@ export const ROADMAP: RoadmapItem[] = [
 
   // ---------- next, in order ----------
   {
-    id: 'events',
-    epic: 'E2',
-    title: 'Events and annotations',
-    blurb:
-      'Creatine, travel, injury, a deload — marked on the trend so the scale reads ' +
-      'true. Starting creatine adds water weight for three weeks; without a marker ' +
-      'that looks like the diet stopped working.',
-    status: 'next',
-    rank: 1,
-    size: 'one evening',
-    stories: ['S-15', 'S-20', 'S-21'],
-  },
-  {
     id: 'pacing',
     epic: 'E6',
     title: 'Pacing and milestones',
@@ -126,7 +124,7 @@ export const ROADMAP: RoadmapItem[] = [
       '“100 g of protein by 2pm — your best pace yet.” Compares today against the ' +
       'same hour on other days, and marks a lift you have never hit before.',
     status: 'next',
-    rank: 2,
+    rank: 1,
     size: 'one evening',
     stories: ['S-12', 'S-23', 'S-25'],
   },
@@ -138,7 +136,7 @@ export const ROADMAP: RoadmapItem[] = [
       'The actual lifts with actual loads, agreed once and kept — plus the multi-week ' +
       'block behind them. Then what you planned is compared against what you did.',
     status: 'next',
-    rank: 3,
+    rank: 2,
     size: 'the epic',
     stories: ['S-5', 'S-6', 'S-7', 'S-19'],
   },
@@ -150,7 +148,7 @@ export const ROADMAP: RoadmapItem[] = [
       'Budget the week, not the meal. A big Friday is fine if Thursday and Saturday ' +
       'run light — but only if you can see the week.',
     status: 'next',
-    rank: 4,
+    rank: 3,
     size: 'medium',
     stories: ['S-11', 'S-16', 'S-30'],
   },
@@ -162,7 +160,7 @@ export const ROADMAP: RoadmapItem[] = [
       'Set up your stack once, then one checkbox a day — alongside the rules you ' +
       'already wrote for yourself, like the 10,000 steps and the zero-alcohol day.',
     status: 'next',
-    rank: 5,
+    rank: 4,
     size: 'medium',
     stories: ['S-14', 'S-17'],
   },
@@ -174,7 +172,7 @@ export const ROADMAP: RoadmapItem[] = [
       'Your history, your constraints, your goal horizon — kept here rather than in ' +
       'one chat client’s private memory.',
     status: 'next',
-    rank: 6,
+    rank: 5,
     size: 'medium',
     stories: ['S-1', 'S-3', 'M-1'],
   },
@@ -184,7 +182,7 @@ export const ROADMAP: RoadmapItem[] = [
     title: 'Shopping list',
     blurb: 'A week of recipes, diffed against the pantry.',
     status: 'next',
-    rank: 7,
+    rank: 6,
     size: 'small',
     stories: ['S-27'],
   },

@@ -9,6 +9,10 @@
  * value for a day with no reading; gaps stay gaps.
  */
 
+import type { EventRow } from '../domain/events.ts';
+import { caveatActive, inWindow } from '../domain/events.ts';
+import { esc } from './layout.ts';
+
 export interface Reading {
   local_date: string;
   weight_lb: number | null;
@@ -53,7 +57,11 @@ function series(readings: Reading[], key: 'weight_lb' | 'waist_in') {
     .map((r) => ({ d: dayNumber(r.local_date), v: r[key] as number, date: r.local_date }));
 }
 
-export function trendChart(readings: Reading[], targetWeight: number | null): string {
+export function trendChart(
+  readings: Reading[],
+  targetWeight: number | null,
+  events: EventRow[] = [],
+): string {
   const weight = series(readings, 'weight_lb');
   const waist = series(readings, 'waist_in');
 
@@ -87,6 +95,46 @@ export function trendChart(readings: Reading[], targetWeight: number | null): st
 
   const x = (d: number) => PAD_L + ((d - dMin) / dSpan) * (W - PAD_L - PAD_R);
   const y = (v: number) => PAD_T + (1 - (v - vMin) / vSpan) * (H - PAD_T - PAD_B);
+
+  // Event markers. The whole reason events exist: a rising 7-day average during
+  // a deficit is alarming until you can see that creatine started two weeks ago.
+  // Only events that touch weight are drawn — an injury does not explain the
+  // scale, and a chart that implies it would be worse than no marker at all.
+  const firstDate = weight[0]!.date;
+  const lastDate = weight[weight.length - 1]!.date;
+  const marks = inWindow(events, firstDate, lastDate)
+    .filter((e) => e.affects === 'weight' || e.affects === 'all')
+    .map((e) => {
+      const at = e.starts_on < firstDate ? firstDate : e.starts_on;
+      // The caveat window, clipped to the drawn range.
+      const until = e.caveat_until && e.caveat_until < lastDate ? e.caveat_until : lastDate;
+      return {
+        e,
+        x1: x(dayNumber(at)),
+        x2: e.caveat_until ? x(dayNumber(until)) : null,
+        onScale: e.starts_on >= firstDate,
+      };
+    });
+
+  const bands = marks
+    .filter((m) => m.x2 !== null && m.x2! > m.x1)
+    .map(
+      (m) =>
+        `<rect class="c-caveat" x="${m.x1.toFixed(1)}" y="${PAD_T}" width="${(
+          m.x2! - m.x1
+        ).toFixed(1)}" height="${(H - PAD_T - PAD_B).toFixed(1)}"/>`,
+    )
+    .join('');
+
+  const rules = marks
+    .filter((m) => m.onScale)
+    .map(
+      (m) =>
+        `<line class="c-mark" x1="${m.x1.toFixed(1)}" x2="${m.x1.toFixed(1)}" y1="${PAD_T}" y2="${
+          H - PAD_B
+        }"/>`,
+    )
+    .join('');
 
   const pts: Point[] = weight.map((p) => ({ x: x(p.d), y: y(p.v), value: p.v, date: p.date }));
   const avgPath = avg.map((p, i) => `${i ? 'L' : 'M'}${x(p.d).toFixed(1)} ${y(p.v).toFixed(1)}`).join(' ');
@@ -134,6 +182,8 @@ export function trendChart(readings: Reading[], targetWeight: number | null): st
       <text class="c-tick" x="${PAD_L - 5}" y="${(y(vMin + 1) + 3).toFixed(1)}" text-anchor="end">${Math.round(
         vMin + 1,
       )}</text>
+      ${bands}
+      ${rules}
       ${targetLine}
       ${pts.map((p) => `<circle class="c-dot" cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="2"/>`).join('')}
       <path class="c-avg" d="${avgPath}" fill="none"/>
@@ -148,5 +198,17 @@ export function trendChart(readings: Reading[], targetWeight: number | null): st
       } over ${Math.round(dSpan)} days</span>
       ${waistNote}
     </div>
+    ${
+      marks.length > 0
+        ? `<div class="c-events">${marks
+            .map((m) => {
+              const open = caveatActive(m.e, lastDate);
+              return `<span class="c-event${open ? ' lit' : ''}">${esc(m.e.label)}${
+                open ? ' — scale still settling' : ''
+              }</span>`;
+            })
+            .join('')}</div>`
+        : ''
+    }
   </div>`;
 }

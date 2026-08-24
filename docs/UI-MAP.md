@@ -34,7 +34,7 @@ Legend   ████  filled / active        ····  disabled placeholder (ro
 | `/app/<secret>/capture` | POST | **edit only** | `app/write.ts` | live |
 | `/app/<secret>/save` | POST | **edit only** | `app/write.ts` | live |
 | `/app/<secret>/remove` | POST | **edit only** | `app/write.ts` | live |
-| `/app/<secret>/roadmap` | GET | view or edit | `app/roadmap.ts` | **new — this change** |
+| `/app/<secret>/roadmap` | GET | view or edit | `app/roadmap.ts` | live |
 
 Three secrets, three capabilities, resolved server-side from the path
 (`index.ts:94-102`). Nothing in §5 changes that; a public site would need its own
@@ -159,13 +159,15 @@ finished product, not a construction site.
 │ ·  [ ] creatine 5g                      ·  │     from the supplement stack
 │ └ · · · · · · · · · · · · · · · · · · · ·┘ │
 │                                            │
-│ Bodyweight              no readings · 190  │
+│ Bodyweight              210.1 lb · 190     │  ← E2 SHIPPED 2026-08-24
 │ ┌────────────────────────────────────────┐ │
-│ │        ·  ·      ┊                     │ │  ← E2 stub  (event marker)
-│ │     ·      ╲___  ┊                     │ │     vertical rule + label
-│ │              ╲___┊_·                   │ │
-│ │                  ┊ creatine started    │ │     "disregard 3 weeks of scale"
+│ │        ·  ·      ┊▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒ │ │  .c-caveat  band while clouded
+│ │     ·      ╲___  ┊▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒ │ │  .c-mark    dashed rule at start
+│ │              ╲___┊__·▒▒▒▒▒▒·▒▒▒▒▒▒▒▒▒▒ │ │
 │ └────────────────────────────────────────┘ │
+│ 210.1 lb 7-day avg   +2.1 lb over 12 days  │  .c-legend
+│ ▏Started creatine, 5 g daily —             │  .c-event.lit
+│  scale still settling                      │     only weight-affecting events
 ```
 
 ---

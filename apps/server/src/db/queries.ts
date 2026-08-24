@@ -706,3 +706,132 @@ export async function clearCaptureObject(ctx: Ctx, id: string): Promise<void> {
     .bind(id, ctx.userId)
     .run();
 }
+
+// ---------- events ----------
+
+export interface NewEvent {
+  kind: string;
+  label: string;
+  starts_on: string;
+  ends_on?: string | null;
+  caveat_until?: string | null;
+  affects?: string;
+  notes?: string | null;
+}
+
+export interface EventRowDb {
+  id: string;
+  kind: string;
+  label: string;
+  starts_on: string;
+  ends_on: string | null;
+  caveat_until: string | null;
+  affects: string;
+  notes: string | null;
+}
+
+const EVENT_COLS =
+  'id, kind, label, starts_on, ends_on, caveat_until, affects, notes';
+
+export async function insertEvent(ctx: Ctx, e: NewEvent): Promise<string> {
+  const id = crypto.randomUUID();
+  await ctx.db
+    .prepare(
+      `INSERT INTO events (id, user_id, kind, label, starts_on, ends_on,
+         caveat_until, affects, notes, created_at)
+       VALUES (?,?,?,?,?,?,?,?,?,?)`,
+    )
+    .bind(
+      id, ctx.userId, e.kind, e.label, e.starts_on, e.ends_on ?? null,
+      e.caveat_until ?? null, e.affects ?? 'none', e.notes ?? null,
+      ctx.now.toISOString(),
+    )
+    .run();
+  return id;
+}
+
+/**
+ * Events overlapping [start, end]. An open-ended event (ends_on NULL) is
+ * ongoing and must be included whenever it started on or before `end` — an
+ * `ends_on BETWEEN` filter would drop exactly the supplement rows this table
+ * was built for.
+ */
+export async function getEventsInRange(
+  ctx: Ctx,
+  start: string,
+  end: string,
+): Promise<EventRowDb[]> {
+  const res = await ctx.db
+    .prepare(
+      `SELECT ${EVENT_COLS} FROM events
+        WHERE user_id = ? AND deleted_at IS NULL
+          AND starts_on <= ?
+          AND (ends_on IS NULL OR ends_on >= ?)
+        ORDER BY starts_on DESC`,
+    )
+    .bind(ctx.userId, end, start)
+    .all<EventRowDb>();
+  return res.results ?? [];
+}
+
+/** Everything not soft-deleted, newest first. For the tool's full listing. */
+export async function getAllEvents(ctx: Ctx, limit = 50): Promise<EventRowDb[]> {
+  const res = await ctx.db
+    .prepare(
+      `SELECT ${EVENT_COLS} FROM events
+        WHERE user_id = ? AND deleted_at IS NULL
+        ORDER BY starts_on DESC LIMIT ?`,
+    )
+    .bind(ctx.userId, limit)
+    .all<EventRowDb>();
+  return res.results ?? [];
+}
+
+export async function getEventById(ctx: Ctx, id: string): Promise<EventRowDb | null> {
+  const row = await ctx.db
+    .prepare(`SELECT ${EVENT_COLS} FROM events WHERE id = ? AND user_id = ? AND deleted_at IS NULL`)
+    .bind(id, ctx.userId)
+    .first<EventRowDb>();
+  return row ?? null;
+}
+
+export interface EventPatch {
+  label?: string;
+  starts_on?: string;
+  /** null clears the column — "it never ended after all". undefined leaves it. */
+  ends_on?: string | null;
+  caveat_until?: string | null;
+  affects?: string;
+  notes?: string | null;
+}
+
+/**
+ * Partial update, mirroring updateMeal: only the keys actually present are
+ * written, so correcting an end date cannot blank a label.
+ */
+export async function updateEvent(ctx: Ctx, id: string, patch: EventPatch): Promise<boolean> {
+  const sets: string[] = [];
+  const vals: unknown[] = [];
+  for (const key of ['label', 'starts_on', 'ends_on', 'caveat_until', 'affects', 'notes'] as const) {
+    if (key in patch && patch[key] !== undefined) {
+      sets.push(`${key} = ?`);
+      vals.push(patch[key]);
+    }
+  }
+  if (sets.length === 0) return false;
+  const res = await ctx.db
+    .prepare(`UPDATE events SET ${sets.join(', ')} WHERE id = ? AND user_id = ? AND deleted_at IS NULL`)
+    .bind(...vals, id, ctx.userId)
+    .run();
+  return (res.meta.changes ?? 0) > 0;
+}
+
+export async function softDeleteEvent(ctx: Ctx, id: string): Promise<boolean> {
+  const res = await ctx.db
+    .prepare(
+      `UPDATE events SET deleted_at = ? WHERE id = ? AND user_id = ? AND deleted_at IS NULL`,
+    )
+    .bind(ctx.now.toISOString(), id, ctx.userId)
+    .run();
+  return (res.meta.changes ?? 0) > 0;
+}

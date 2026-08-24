@@ -125,6 +125,26 @@ Everything written here is marked source="import", because a reconstructed entry
 
 This is NOT idempotent for meals and workouts — calling it twice writes everything twice. Confirm the full list with the user before calling it, and never retry a call that may have partly succeeded.`,
 
+  log_event: `Record something that changes how the user's OWN NUMBERS should be read — starting or stopping a supplement, travel, an injury, illness, a deload week, a stretch of unusual work stress.
+
+Call this whenever the user mentions one of those. The case this exists for: creatine pulls water into muscle, so the scale climbs 2-4 lb over two to three weeks while the diet is working perfectly. Without a marker, the trend chart shows a rising line during a deficit and the user concludes it stopped working. Same for a week away, where intake is guesswork and the weigh-ins are hotel-scale noise.
+
+Set \`affects\` to what the event actually clouds — "weight" for creatine (waist stays trustworthy, which is what makes it the better measure during that window), "nutrition" for travel, "training" for an injury, "all" for something that wrecks everything. Leave it "none" for an event worth marking on the chart that does not undermine any reading.
+
+Set \`caveat_until\` to the date the distortion lifts, which is NOT the same as \`ends_on\`. Creatine taken daily is ongoing forever — \`ends_on\` stays null — but its effect on the scale is done in about three weeks. That is what \`caveat_until\` records.
+
+This is not a diary. An event earns a row only if it changes the reading of a number already in the log. Anything else is a note on the meal or the workout it belongs to.`,
+
+  get_events: `Annotations on the log — supplements, travel, injuries, deloads — and which of today's readings they make unreliable.
+
+Call this before interpreting bodyweight or a trend, and before telling the user that something is or is not working. \`clouded_readings\` lists what currently has an open caveat window; \`active\` is the events behind it, each with how many days are left. A weight trend read without checking this is how you tell someone in a deficit that their diet has stalled when they are two weeks into creatine.
+
+Facts only. Whether to discount a reading, and by how much, is your call.`,
+
+  correct_event: `Fix an event that was recorded wrong — the date, the label, what it affects, or when the caveat lifts. Partial: send only what is wrong. Send null for \`ends_on\` or \`caveat_until\` to clear one ("it turns out I never stopped"). Get event_id from get_events.`,
+
+  delete_event: `Remove an event that never happened. Soft-deleted and recoverable. Prefer correct_event when the event was real but recorded wrong — deleting it loses the annotation on every reading in its window.`,
+
   get_history: `Retrieve meals, workouts and bodyweight for an explicit date range. Use this for questions that reach further back than the current week, for export, and for "how was last month". Prefer get_today for today and get_week_summary for the current week — both are cheaper and shaped for the question.`,
 } as const;
 

@@ -316,7 +316,7 @@ ring.
 
 | # | Epic | Stories | Size | Why here |
 |---|---|---|---|---|
-| 1 | **Events & annotations** | S-15, S-20, S-21, S-22, S-30 | 1 evening | Repairs the trend chart. Creatine, travel, injury and deload each become a dated marker with an optional end, so a window can be read differently or excluded. The model asked for this by name. |
+| ~~1~~ | **Events & annotations** — ✅ **shipped 2026-08-24** | S-15, S-20, S-21, S-22 | done | See below. |
 | 2 | **Pacing & milestones** | S-12, S-23, S-25 | 1 evening | `meals.logged_at` is already stored and `get_today` does not return it. "100 g of protein by 2pm — best pace yet" is free. Also surfaces best-ever per lift, and the share link, which exists and has no affordance in the UI. |
 | 3 | **Prescribed session & block** | S-5 … S-8, S-18, S-19, S-24, S-31 | The epic | [plans/training-block.md](plans/training-block.md). Two entities: a **program** (the standing block) and a **prescription** (one dated session with real loads). The comparison between prescription and log is adherence, and nothing else in this space has it. |
 | 4 | **The weekly budget** | S-11, S-16, S-30 | Medium | Weekly kcal target beside the daily one, week-to-date pacing, and a goal horizon so "week 6 of 16" is answerable. The framing that survives a bad Friday. |
@@ -334,6 +334,42 @@ Health / Whoop, which is OAuth-gated and correctly sits in Phase 5.
 
 Every item above renders as a greyed placeholder where it will live, plus a row
 on `/app/<secret>/roadmap`. Page-by-page wireframes: [UI-MAP.md](UI-MAP.md).
+
+---
+
+## Events and annotations — ✅ done 2026-08-24
+
+The first item off the re-prioritized list, and the one that repaired something
+already shipped. `0006_events.sql`.
+
+- [x] `events` table with **three** dates, each doing a distinct job.
+      `starts_on` when the thing began; `ends_on` when it stopped, NULL for
+      ongoing; `caveat_until` for how long it distorts the readings. Creatine
+      taken daily never ends but stops moving the scale in about three weeks —
+      collapsing those two into one column loses one of them.
+- [x] `affects` — `weight | training | nutrition | all | none`. The transcript's
+      advice was exactly this shape: "track waist instead during that window."
+      Weight is clouded, waist is not, and the model needs to know which.
+- [x] `log_event`, `get_events`, `correct_event`, `delete_event` — soft delete,
+      partial correction, and `null` to clear a date, matching `correct_meal`.
+- [x] **Surfaced where it will actually be read.** `get_briefing` carries
+      `events.clouded_readings` and `bodyweight.clouded_by`;
+      `get_week_summary` carries `events_in_window`. The latency work already
+      taught us this: an instruction to make an extra call is weaker than a
+      field in a payload the model already reads.
+- [x] Chart markers — a dashed rule where it started, a faint band while the
+      caveat holds, and the event named underneath. **Only events affecting
+      weight are drawn**; an injury does not explain the scale, and a marker
+      implying it would be worse than none.
+- [x] 15 unit tests, and `npm run verify:events` — 33 end-to-end assertions
+      against a running server, including the negative one that matters: a
+      non-weight event must not appear on the weight chart. Unlike the smoke
+      test, it clears its own tables first.
+
+The Skill learned the rule that makes it worth anything: never read a weight
+trend without checking `clouded_readings`, lead with the reason rather than the
+number, switch to waist for the duration, and never recommend a calorie cut on
+a clouded trend.
 
 ---
 

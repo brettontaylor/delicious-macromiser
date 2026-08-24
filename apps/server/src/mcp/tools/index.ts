@@ -26,6 +26,7 @@ import { correctWorkout, deleteWorkout } from './correct_workout.ts';
 import { setTrainingPlan, getTrainingPlanTool } from './training_plan.ts';
 import { setPantry, getPantryTool } from './pantry.ts';
 import { getBriefing } from './get_briefing.ts';
+import { logEvent, getEvents, correctEvent, deleteEvent } from './events.ts';
 
 export type ToolArgs = Record<string, unknown>;
 export type ToolHandler = (ctx: Ctx, args: ToolArgs) => Promise<unknown>;
@@ -493,6 +494,87 @@ export const TOOLS: ToolDef[] = [
     description: DESCRIPTIONS.get_training_plan,
     inputSchema: { type: 'object', properties: {}, additionalProperties: false },
     handler: getTrainingPlanTool,
+  },
+  {
+    name: 'log_event',
+    description: DESCRIPTIONS.log_event,
+    inputSchema: {
+      type: 'object',
+      properties: {
+        kind: {
+          type: 'string',
+          enum: ['supplement', 'travel', 'injury', 'illness', 'deload', 'life', 'other'],
+          description: 'What sort of thing this is. Use "life" for a stretch of unusual stress or disrupted routine.',
+        },
+        label: str('What happened, in the user’s own words. "Started creatine, 5g daily".'),
+        starts_on: str('YYYY-MM-DD. Omit for today.'),
+        ends_on: str(
+          'YYYY-MM-DD when it stopped. Omit or null for something ongoing — which is ' +
+            'the normal state for a supplement being taken daily.',
+        ),
+        caveat_until: str(
+          'YYYY-MM-DD the distortion lifts. NOT the same as ends_on: creatine is ongoing ' +
+            'but only clouds the scale for about three weeks. Omit when nothing is distorted.',
+        ),
+        affects: {
+          type: 'string',
+          enum: ['weight', 'training', 'nutrition', 'all', 'none'],
+          description:
+            'Which readings this makes unreliable. "weight" for creatine — waist stays ' +
+            'trustworthy. Defaults to "none".',
+        },
+        notes: str('Anything else worth keeping. Optional.'),
+      },
+      required: ['kind', 'label'],
+      additionalProperties: false,
+    },
+    handler: logEvent,
+  },
+  {
+    name: 'get_events',
+    description: DESCRIPTIONS.get_events,
+    inputSchema: {
+      type: 'object',
+      properties: {
+        days: num('How far back to look, 1-400. Defaults to 90.'),
+      },
+      additionalProperties: false,
+    },
+    handler: getEvents,
+  },
+  {
+    name: 'correct_event',
+    description: DESCRIPTIONS.correct_event,
+    inputSchema: {
+      type: 'object',
+      properties: {
+        event_id: str('From get_events.'),
+        label: str('Corrected label. Optional.'),
+        starts_on: str('Corrected YYYY-MM-DD. Optional.'),
+        ends_on: str('Corrected end date, or null to clear it. Optional.'),
+        caveat_until: str('Corrected caveat date, or null to clear it. Optional.'),
+        affects: {
+          type: 'string',
+          enum: ['weight', 'training', 'nutrition', 'all', 'none'],
+          description: 'Corrected. Optional.',
+        },
+        notes: str('Corrected notes. Optional.'),
+      },
+      required: ['event_id'],
+      additionalProperties: false,
+    },
+    handler: correctEvent,
+  },
+  {
+    name: 'delete_event',
+    description: DESCRIPTIONS.delete_event,
+    inputSchema: {
+      type: 'object',
+      properties: { event_id: str('From get_events.') },
+      required: ['event_id'],
+      additionalProperties: false,
+    },
+    handler: deleteEvent,
   },
   {
     name: 'set_pantry',

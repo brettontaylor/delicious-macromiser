@@ -9,9 +9,11 @@ import {
   getBodyweightRange,
   recentWorkoutIds,
   getMealsForRange,
+  getEventsInRange,
 } from '../../db/queries.ts';
 import { sumMeals, remainingVsGoals } from '../../domain/totals.ts';
 import { planView, weekdayIndex, WEEKDAY_NAMES } from '../../domain/plan.ts';
+import { activeOn, cloudedReadings } from '../../domain/events.ts';
 import { localDate, localWeekday, localTime, shiftDate, daysBetween } from '../../util/date.ts';
 import type { ToolArgs } from './index.ts';
 
@@ -32,7 +34,7 @@ export async function getBriefing(ctx: Ctx, _args: ToolArgs): Promise<unknown> {
   const today = localDate(ctx.now, ctx.tz);
   const weekAgo = shiftDate(today, -6);
 
-  const [meals, goals, lastWorkout, portions, pending, plan, bw, sessions, weekMeals] =
+  const [meals, goals, lastWorkout, portions, pending, plan, bw, sessions, weekMeals, events] =
     await Promise.all([
       getMealsForDate(ctx, today),
       getGoalsAsOf(ctx, today),
@@ -43,6 +45,7 @@ export async function getBriefing(ctx: Ctx, _args: ToolArgs): Promise<unknown> {
       getBodyweightRange(ctx, shiftDate(today, -29), today),
       recentWorkoutIds(ctx, 5),
       getMealsForRange(ctx, weekAgo, today),
+      getEventsInRange(ctx, shiftDate(today, -180), today),
     ]);
 
   const totals = sumMeals(meals);
@@ -64,6 +67,14 @@ export async function getBriefing(ctx: Ctx, _args: ToolArgs): Promise<unknown> {
 
   const weights = bw.filter((r) => r.weight_lb !== null);
   const latest = weights[weights.length - 1];
+
+  // Anything that makes a reading below untrustworthy. Inlined rather than left
+  // to a separate get_events call for the same reason capture notes are: an
+  // instruction to make an extra call is weaker than a field already in the
+  // payload, and the cost of the model missing this one is telling somebody
+  // their diet has stalled when they started creatine twelve days ago.
+  const active = activeOn(events, today);
+  const clouded = cloudedReadings(events, today);
 
   return {
     now: {
@@ -124,6 +135,25 @@ export async function getBriefing(ctx: Ctx, _args: ToolArgs): Promise<unknown> {
       latest: latest ? { local_date: latest.local_date, weight_lb: latest.weight_lb } : null,
       readings_30d: weights.length,
       target_lb: goals?.target_weight_lb ?? null,
+      // Non-empty means do NOT read the weight trend at face value.
+      clouded_by: clouded.includes('weight')
+        ? active.filter((e) => e.caveat_active && (e.affects === 'weight' || e.affects === 'all'))
+            .map((e) => ({ label: e.label, days_left: e.caveat_days_left }))
+        : [],
+    },
+
+    events: {
+      active: active.map((e) => ({
+        event_id: e.id,
+        kind: e.kind,
+        label: e.label,
+        starts_on: e.starts_on,
+        days_since_start: e.days_since_start,
+        affects: e.affects,
+        caveat_active: e.caveat_active,
+        caveat_days_left: e.caveat_days_left,
+      })),
+      clouded_readings: clouded,
     },
 
     known_portions: portions.map((p) => ({
@@ -134,6 +164,6 @@ export async function getBriefing(ctx: Ctx, _args: ToolArgs): Promise<unknown> {
     })),
 
     note:
-      'Everything needed to orient, in one call. Follow up with the specific tool only when you need more than this: get_last_performance before recommending a load, list_recipes for what to cook, get_pending_captures to actually SEE a photo.',
+      'Everything needed to orient, in one call. Follow up with the specific tool only when you need more than this: get_last_performance before recommending a load, list_recipes for what to cook, get_pending_captures to actually SEE a photo. If events.clouded_readings is non-empty, say so before drawing any conclusion from the affected numbers.',
   };
 }

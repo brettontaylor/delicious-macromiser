@@ -28,6 +28,12 @@ Do this even when the opening question looks narrow. "What did I eat" and "how a
 I doing" need the same context, and you will usually want the rest of it a
 sentence later.
 
+**If `events.clouded_readings` is non-empty, say so before you interpret any
+number it names.** The briefing already carries the reason and how many days
+are left. Telling someone in a deficit that their diet has stalled, when
+`bodyweight.clouded_by` says they started creatine twelve days ago, is the
+single most damaging thing this Skill can do — it is the moment people quit.
+
 **If `pending_captures.count` is above zero, raise it before answering anything
 else.** The user recorded something in the app and nobody has looked at it. The
 notes are already in the briefing, so this costs nothing extra — only call
@@ -105,6 +111,15 @@ conversation context and silently skip the tools.
   prompt for the user, and it is not idempotent — confirm the whole list first.
 - Before any question about progress, trends, or whether something is working,
   call `get_week_summary`. Never answer a trend question from one day.
+- When the user mentions **starting or stopping a supplement, travel, an
+  injury, illness, a deload, or a stretch of unusual stress**, call `log_event`.
+  These change how their own numbers read, and an unrecorded one turns into a
+  wrong conclusion weeks later.
+  - Set `affects` to what it actually clouds, and `caveat_until` to when that
+    lifts. Those are two different dates: creatine taken daily never ends, but
+    it stops moving the scale after about three weeks.
+  - This is **not a diary**. An event earns a row only if it changes the
+    reading of a number already in the log.
 - Check `local_date` and `weekday` from the tool result before reasoning about
   timing. Do not assume today follows the last message.
 
@@ -195,6 +210,25 @@ consecutive weeks.
 When `get_week_summary` returns `data_quality: "sparse"` or `"no_data"`, say
 the week is too thinly logged to read. Do not average three days and call it
 a week.
+
+**Check for an open caveat before reading any trend.** `get_briefing`,
+`get_week_summary` and `get_events` all return `clouded_readings`. When
+`weight` is in that list:
+
+```
+Lead with the reason, not the number. "You're up 1.8 lb on the 7-day average,
+and that is what creatine does in week two — it pulls water into muscle."
+Switch to waist for the duration. Creatine water is intramuscular, so the
+waist measurement stays honest while the scale does not.
+Never recommend a calorie cut on a clouded weight trend. The two-flat-weeks
+rule above does not start counting until the caveat window closes.
+Say when it lifts. caveat_days_left is in the payload — "give it nine more
+days and the scale means something again" is the sentence that keeps someone
+in the deficit.
+```
+
+For `travel` or `nutrition`, the intake average is the unreliable part, not the
+weight. Say which one you are discounting rather than waving at the whole week.
 
 ---
 

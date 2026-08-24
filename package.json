@@ -2,7 +2,7 @@
   "name": "delicious-macromiser",
   "version": "0.1.0",
   "private": true,
-  "description": "Recipes + Macros \u2014 structured memory for AI-assisted cooking, training, and nutrition.",
+  "description": "Recipes + Macros — structured memory for AI-assisted cooking, training, and nutrition.",
   "type": "module",
   "workspaces": [
     "apps/*"
@@ -16,7 +16,8 @@
     "recipes:check": "node scripts/check-recipes.mjs",
     "backup:restore": "npm run restore --workspace @dm/server --",
     "recipes:build": "node scripts/build-recipe-catalog.mjs",
-    "prepare": "node scripts/build-recipe-catalog.mjs"
+    "prepare": "node scripts/build-recipe-catalog.mjs",
+    "verify:events": "npm run verify:events --workspace @dm/server"
   },
   "engines": {
     "node": ">=22"
