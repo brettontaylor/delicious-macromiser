@@ -154,6 +154,20 @@ reading its headers. Use `curl -D -` on a GET.
 
 ---
 
+## This repo is public
+
+**Never `git add -A` without reading what it staged.** On 2026-08-24 it swept up
+an untracked personal health transcript sitting in `docs/` and pushed it public.
+Caught within ~2.5 minutes and purged from the branch with an amend plus
+`--force-with-lease`, but note what a force-push does NOT do: the orphaned commit
+stayed readable from GitHub's API by SHA, because GitHub retains unreachable
+objects until it garbage-collects. Removing a secret or a personal file from a
+public repo is not the same as un-publishing it.
+
+`Claude-Chat*` and `*transcript*.txt` are gitignored now, but the real fix is
+reading `git status --short` before staging. The save-session protocol already
+says to; the failure was not following it.
+
 ## Deploys
 
 **Verify after propagation, not immediately.** A probe run seconds after
