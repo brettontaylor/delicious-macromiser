@@ -11,6 +11,13 @@ say what the symptom looked like, because that is how you will recognise it.
 
 ## Deploying
 
+**The Skill is two files, and the packer enforces the link.** `SKILL.md` is
+injected on every trigger; `REFERENCE.md` holds per-tool semantics the model
+loads on demand, which is what keeps the pantry-null rule out of context when
+someone asks what to bench. `npm run skill:build` packs every `.md` in `skill/`
+and **refuses to build if a supporting file is never referenced from
+SKILL.md** — an unreferenced file is one the model will never open.
+
 **A stale Skill zip silently undoes a deploy.** `dist/macromiser-coach.zip` was
 produced by hand and drifted 91 lines behind `skill/SKILL.md` — it reached
 production day carrying no rules for any of the four features being shipped. The

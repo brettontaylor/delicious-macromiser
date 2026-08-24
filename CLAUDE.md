@@ -157,7 +157,7 @@ the highest-confidence source of food entries in the log. See `docs/ROADMAP.md`.
 <!-- gitnexus:start -->
 # GitNexus — Code Intelligence
 
-This project is indexed by GitNexus as **delicious-macromiser** (694 symbols, 1810 relationships, 54 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
+This project is indexed by GitNexus as **delicious-macromiser** (706 symbols, 1824 relationships, 55 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
 
 > If any GitNexus tool warns the index is stale, run `npx gitnexus analyze` in terminal first.
 

@@ -1,7 +1,12 @@
 #!/usr/bin/env node
 /**
- * Pack skill/SKILL.md into dist/macromiser-coach.zip, ready to upload to
- * claude.ai as a Claude Skill.
+ * Pack skill/ into dist/macromiser-coach.zip, ready to upload to claude.ai as
+ * a Claude Skill.
+ *
+ * Packs EVERY .md in skill/, not just SKILL.md. Claude Skills support
+ * supporting files loaded on demand, which is how REFERENCE.md keeps the
+ * per-tool semantics out of the always-injected prompt. A packer that shipped
+ * only SKILL.md would leave every cross-reference to it dangling.
  *
  * This exists because the zip was previously "produced by hand" (ROADMAP,
  * Phase 2) and drifted badly: by 2026-08-24 the uploaded artifact was 91 lines
@@ -15,13 +20,13 @@
  * pulling in an archiver for one 18 KB text file would be the wrong trade.
  */
 
-import { readFileSync, writeFileSync, mkdirSync, statSync } from 'node:fs';
+import { readFileSync, writeFileSync, mkdirSync, statSync, readdirSync } from 'node:fs';
 import { deflateRawSync } from 'node:zlib';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
-const SRC = join(ROOT, 'skill', 'SKILL.md');
+const SRC_DIR = join(ROOT, 'skill');
 const OUT_DIR = join(ROOT, 'dist');
 const OUT = join(OUT_DIR, 'macromiser-coach.zip');
 
@@ -89,16 +94,20 @@ function zipOne(name, data, mtime) {
 }
 
 function build() {
-  const md = readFileSync(SRC);
+  const entryFile = join(SRC_DIR, 'SKILL.md');
+  const md = readFileSync(entryFile);
 
   // A Claude Skill needs YAML frontmatter with a name and a description; the
   // description is what decides whether the Skill triggers at all. Fail loudly
   // rather than shipping an artifact that silently never fires.
   const text = md.toString('utf8');
-  if (!text.startsWith('---\n')) {
+  const NL = String.fromCharCode(10);
+  if (!text.startsWith('---' + NL)) {
     throw new Error('skill/SKILL.md must open with YAML frontmatter (---).');
   }
-  const fm = text.slice(4, text.indexOf('\n---', 4));
+  const fmEnd = text.indexOf(NL + '---', 4);
+  if (fmEnd < 0) throw new Error('skill/SKILL.md frontmatter is not closed.');
+  const fm = text.slice(4, fmEnd);
   for (const key of ['name:', 'description:']) {
     if (!fm.includes(key)) throw new Error(`skill/SKILL.md frontmatter is missing "${key}"`);
   }
@@ -110,26 +119,53 @@ function build() {
     );
   }
 
-  const entry = zipOne(`${SKILL_DIR}/SKILL.md`, md, statSync(SRC).mtime);
-  entry.central.writeUInt32LE(0, 42); // single entry, so offset is 0
+  // SKILL.md first, then the rest alphabetically — a reader unzipping this by
+  // hand should meet the entry point before its appendices.
+  const files = readdirSync(SRC_DIR)
+    .filter((f) => f.endsWith('.md'))
+    .sort((a, b) => (a === 'SKILL.md' ? -1 : b === 'SKILL.md' ? 1 : a.localeCompare(b)));
 
-  const localPart = Buffer.concat([entry.local, entry.nameBuf, entry.deflated]);
-  const centralPart = Buffer.concat([entry.central, entry.nameBuf]);
+  // Every supporting file must be referenced from SKILL.md, or it is dead
+  // weight the model will never open.
+  for (const f of files) {
+    if (f === 'SKILL.md') continue;
+    if (!text.includes(f)) {
+      throw new Error(`skill/${f} is never referenced from SKILL.md — the model would never read it.`);
+    }
+  }
+
+  const locals = [];
+  const centrals = [];
+  let offset = 0;
+
+  for (const f of files) {
+    const data = readFileSync(join(SRC_DIR, f));
+    const e = zipOne(`${SKILL_DIR}/${f}`, data, statSync(join(SRC_DIR, f)).mtime);
+    e.central.writeUInt32LE(offset, 42); // where this entry's local header starts
+    const local = Buffer.concat([e.local, e.nameBuf, e.deflated]);
+    offset += local.length;
+    locals.push(local);
+    centrals.push(Buffer.concat([e.central, e.nameBuf]));
+  }
+
+  const localPart = Buffer.concat(locals);
+  const centralPart = Buffer.concat(centrals);
 
   const end = Buffer.alloc(22);
   end.writeUInt32LE(0x06054b50, 0); // end of central directory
-  end.writeUInt16LE(1, 8); // entries on this disk
-  end.writeUInt16LE(1, 10); // total entries
+  end.writeUInt16LE(files.length, 8); // entries on this disk
+  end.writeUInt16LE(files.length, 10); // total entries
   end.writeUInt32LE(centralPart.length, 12);
   end.writeUInt32LE(localPart.length, 16);
 
   mkdirSync(OUT_DIR, { recursive: true });
   writeFileSync(OUT, Buffer.concat([localPart, centralPart, end]));
 
-  const lines = text.split('\n').length;
-  console.log(`skill/SKILL.md (${lines} lines, ${md.length} bytes)`);
-  console.log(`  -> ${OUT.replace(ROOT + '\\', '').replace(ROOT + '/', '')} as ${SKILL_DIR}/SKILL.md`);
-  console.log(`  ${statSync(OUT).size} bytes packed`);
+  for (const f of files) {
+    const n = readFileSync(join(SRC_DIR, f), 'utf8').split(NL).length;
+    console.log(`  ${SKILL_DIR}/${f.padEnd(14)} ${String(n).padStart(4)} lines`);
+  }
+  console.log(`-> dist/macromiser-coach.zip, ${statSync(OUT).size} bytes packed`);
   console.log('');
   // Settings moved: Skills and Connectors now live under Customize, not
   // Capabilities (confirmed in the UI 2026-08-24).
