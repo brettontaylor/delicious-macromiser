@@ -8,6 +8,8 @@ import type { MealRow, GoalRow } from '../domain/totals.ts';
 import type { SetRow } from '../domain/progression.ts';
 
 export interface Ctx {
+  /** Meal photos. Optional — text capture works without it. */
+  captures?: R2Bucket;
   db: D1Database;
   userId: string;
   tz: string;
@@ -671,4 +673,36 @@ export async function clearPantryKind(ctx: Ctx, kind: string): Promise<number> {
     .bind(ctx.userId, kind)
     .run();
   return res.meta.changes ?? 0;
+}
+
+/** How many captures already exist for a day — backs the per-day upload cap. */
+export async function countCapturesToday(ctx: Ctx, date: string): Promise<number> {
+  const row = await ctx.db
+    .prepare(`SELECT COUNT(*) AS n FROM captures WHERE user_id = ? AND local_date = ?`)
+    .bind(ctx.userId, date)
+    .first<{ n: number }>();
+  return row?.n ?? 0;
+}
+
+/** Photo captures older than `days`, whatever their state — the object is
+ *  deleted on expiry while the row stays, so the log keeps its history. */
+export async function expiredPhotoCaptures(
+  ctx: Ctx,
+  beforeDate: string,
+): Promise<{ id: string; object_key: string }[]> {
+  const res = await ctx.db
+    .prepare(
+      `SELECT id, object_key FROM captures
+        WHERE user_id = ? AND object_key IS NOT NULL AND local_date < ?`,
+    )
+    .bind(ctx.userId, beforeDate)
+    .all<{ id: string; object_key: string }>();
+  return res.results ?? [];
+}
+
+export async function clearCaptureObject(ctx: Ctx, id: string): Promise<void> {
+  await ctx.db
+    .prepare(`UPDATE captures SET object_key = NULL WHERE id = ? AND user_id = ?`)
+    .bind(id, ctx.userId)
+    .run();
 }

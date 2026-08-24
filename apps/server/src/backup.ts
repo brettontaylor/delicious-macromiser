@@ -16,6 +16,8 @@
  */
 
 import type { Env } from './index.ts';
+import { expiredPhotoCaptures, clearCaptureObject } from './db/queries.ts';
+import { shiftDate, localDate } from './util/date.ts';
 
 /** Every table in migrations/0001_init.sql. Adding a table here is required — a
  *  backup that silently omits one is worse than no backup, because it is
@@ -93,6 +95,26 @@ export async function runBackup(env: Env, now: Date): Promise<BackupResult> {
   return { key, bytes: body.length, rows, total_rows: total, pruned };
 }
 
+/** Photos are personal in a way a row of numbers is not, so they expire sooner
+ *  than the snapshots do. The capture ROW survives — the log keeps its history,
+ *  the picture does not linger. */
+const PHOTO_RETENTION_DAYS = 14;
+
+export async function prunePhotos(env: Env, now: Date): Promise<number> {
+  if (!env.CAPTURES) return 0;
+  const userId = env.OWNER_USER_ID || 'owner';
+  const tz = env.DEFAULT_TZ || 'America/New_York';
+  const ctx = { db: env.DB, userId, tz, now, captures: env.CAPTURES };
+  const cutoff = shiftDate(localDate(now, tz), -PHOTO_RETENTION_DAYS);
+
+  const expired = await expiredPhotoCaptures(ctx, cutoff);
+  for (const c of expired) {
+    await env.CAPTURES.delete(c.object_key);
+    await clearCaptureObject(ctx, c.id);
+  }
+  return expired.length;
+}
+
 /**
  * Cron entrypoint. Logs a structured line either way — a backup that fails
  * silently is indistinguishable from one that never ran.
@@ -101,6 +123,7 @@ export async function scheduledBackup(env: Env, now: Date): Promise<void> {
   const started = Date.now();
   try {
     const r = await runBackup(env, now);
+    const photosPruned = await prunePhotos(env, now);
     console.log(
       JSON.stringify({
         event: 'backup_ok',
@@ -108,6 +131,7 @@ export async function scheduledBackup(env: Env, now: Date): Promise<void> {
         bytes: r.bytes,
         rows: r.total_rows,
         pruned: r.pruned.length,
+        photos_pruned: photosPruned,
         ms: Date.now() - started,
       }),
     );

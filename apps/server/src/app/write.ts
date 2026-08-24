@@ -16,6 +16,7 @@ import {
   getMealById, updateMeal, softDeleteMeal, rememberPortion, insertCapture,
 } from '../db/queries.ts';
 import { localDate } from '../util/date.ts';
+import { storePhoto, MAX_PHOTO_BYTES } from './photo.ts';
 
 function seeOther(location: string): Response {
   return new Response(null, { status: 303, headers: { location } });
@@ -39,6 +40,7 @@ export async function handleAppCapture(
   ctx: Ctx,
   request: Request,
   secret: string,
+  bucket?: R2Bucket,
 ): Promise<Response> {
   let form: FormData;
   try {
@@ -54,6 +56,15 @@ export async function handleAppCapture(
     typeof date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(date) ? `?date=${date}` : ''
   }`;
   const sep = back.includes('?') ? '&' : '?';
+
+  // A photo, if one came with the form. A picture plus a note is one capture,
+  // not two — the note is context for the photo.
+  const file = form.get('photo');
+  if (file instanceof File && file.size > 0) {
+    const r = await storePhoto(ctx, bucket, file, note || null);
+    if (r.ok) return seeOther(`${back}${sep}ok=photo`);
+    return seeOther(`${back}${sep}ok=${r.reason}`);
+  }
 
   // A blank note captures nothing. Fail quietly back to the page rather than
   // queuing an empty row the model would then have to decline.

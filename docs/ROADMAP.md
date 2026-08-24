@@ -237,13 +237,18 @@ lists rather than an inventory.
       time it was *written*, so including it would learn the time of the import.
       Below three observations it returns null with a reason rather than
       guessing. 10 unit tests.
-- [ ] Phase 0 — spike: can the connector client show an image from a tool result?
+- [x] **Phase 0 — spike: PASSED.** A fresh chat read a 3x3 grid back exactly
+      (1 in 512). The client does pass an image content block to the model.
 - [x] **Phase 1 — the capture queue.** `captures` table, text capture in the
       app, `get_pending_captures` + `resolve_capture`, pending count on
       `get_today`, pending strip in the view. `log_meal` takes a `capture_id`
       and closes the capture in the SAME call — two calls would double the
       approval prompts the user sees
-- [ ] Phase 2 — photo upload to R2, size and count caps, retention
+- [x] **Phase 2 — photo capture.** File input on the app (opens the camera on a
+      phone), stored in R2, returned to the model as an image content block by
+      `get_pending_captures`. 4 MB cap, 40/day cap, 14-day retention on the
+      OBJECT while the capture row survives — the log keeps its history, the
+      picture does not linger. Verified byte-identical round-trip on prod.
 - [x] **Phase 4 — the kitchen, as two lists.** `pantry` table with `staple` and
       `fresh`, no quantities and nothing decrementing. `list_recipes` now
       reports `have`/`missing` per recipe and sorts best-covered first;

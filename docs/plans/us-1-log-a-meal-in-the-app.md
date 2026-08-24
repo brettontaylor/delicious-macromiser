@@ -1,6 +1,6 @@
 # US-1 — Log a meal from the app
 
-**Date:** 2026-08-23 · **Status:** Phases 1 and 3 shipped 2026-08-23; Phase 0 spike outstanding
+**Date:** 2026-08-23 · **Status:** Phase 0 spike PASSED; Phases 1 and 3 shipped 2026-08-23
 **Triggered by:** "I want to add a meal via the app… it should use the user's
 connected Claude (OpenAI, Gemini, etc.) connector to analyze and add the meal,
 rather than our app's tokens."
@@ -140,7 +140,7 @@ be a guess.
 | Server can emit a non-text content block | **Yes.** `toolResult` gained a `RawContent` escape hatch; everything else keeps the text+structured shape |
 | Wire format is correct | **Yes.** Response carries `['text','image']`, `mimeType: image/png`, 1536 base64 chars |
 | The test image is legible and unambiguous | **Yes.** Read independently and matched the sealed answer exactly — `[0,0,1, 0,0,0, 0,1,1]` |
-| A connected client passes the image to the model | **Outstanding.** Needs a client that has reconnected since deploy |
+| A connected client passes the image to the model | **YES — verified 2026-08-24.** A fresh chat read the grid back exactly: `[0,0,1, 0,0,0, 0,1,1]`. 1 in 512, so not a guess |
 
 **Incidental finding, operationally relevant:** a newly added tool is invisible
 to an already-connected session. The client resolves the tool list at connect
@@ -148,7 +148,16 @@ time and does not refresh, so any new tool needs the chat restarted before it
 appears. Worth knowing before shipping Phase 1 — the queue is useless if the
 model cannot see `get_pending_captures` until a reconnect.
 
-The answer key is `[0,0,1, 0,0,0, 0,1,1]` — top row empty/empty/filled, middle
+**Outcome: the image path works.** US-1.2 proceeds as designed, and in-chat
+macro visualisation becomes feasible on the same mechanism.
+
+One caveat on attribution: the tool was invisible to a client until *two* things
+changed together — it gained a non-empty `inputSchema`, and the connector was
+toggled off and on. Both were changed at once, so which fixed it is unproven.
+The safe practice is both: give every tool at least one property, and expect a
+reconnect before a new tool appears.
+
+The answer key was `[0,0,1, 0,0,0, 0,1,1]` — top row empty/empty/filled, middle
 row all empty, bottom row empty/filled/filled. If a fresh chat reports that, the
 image path works and US-1.2 proceeds as designed. If it reports seeing no image,
 the fallback is a short-lived signed URL; if that also fails, US-1.2 becomes

@@ -87,6 +87,11 @@ h2{font-family:var(--display);font-size:17px;font-weight:600;margin:0}
 .capture{display:flex;flex-direction:column;gap:8px;border:1px solid var(--line);
   border-radius:10px;padding:13px;background:var(--surface)}
 .cap-label{font-family:var(--display);font-size:16px;font-weight:600}
+.cap-photo{display:flex;align-items:center;justify-content:center;gap:8px;
+  border:1px dashed var(--line-firm);border-radius:8px;padding:11px;cursor:pointer;
+  font-size:14px;color:var(--muted)}
+.cap-photo input{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
+.cap-photo:focus-within{outline:2px solid var(--ink);outline-offset:2px}
 .capture input{font-size:16px;border:1px solid var(--line-firm);border-radius:4px;
   padding:11px;background:var(--ground);color:var(--ink);width:100%;-webkit-appearance:none}
 .capture input:focus-visible{outline:2px solid var(--ink);outline-offset:1px}

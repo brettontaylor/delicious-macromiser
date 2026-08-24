@@ -146,6 +146,12 @@ export async function renderApp(
             gone: 'That entry is already gone.',
             missing: 'That form was missing an entry id.',
             captured: 'Captured. Your coach will pick it up next time you open a chat.',
+            photo: 'Photo saved. Your coach reads it next time you open a chat.',
+            toolarge: 'That photo is too big — 4 MB is the limit.',
+            badtype: 'That file is not an image we can read.',
+            dailycap: 'That is a lot of captures for one day. Work through the queue first.',
+            nobucket: 'Photo storage is not configured. The note was not saved.',
+            nofile: 'No photo came through. Try again.',
             emptynote: 'Nothing to capture — write what you ate first.',
             longnote: 'That note is too long. Keep it under 500 characters.',
           }[opts.notice] ?? 'Done.'
@@ -279,11 +285,15 @@ export async function renderApp(
 
   ${
     opts.canEdit
-      ? `<form class="capture" method="post" action="/app/${esc(opts.secret)}/capture">
+      ? `<form class="capture" method="post" enctype="multipart/form-data" action="/app/${esc(opts.secret)}/capture">
           <input type="hidden" name="date" value="${esc(date)}">
           <label class="cap-label" for="cap-note">Log a meal</label>
           <input id="cap-note" name="note" maxlength="500" autocomplete="off"
                  placeholder="8oz chicken, cup of rice, big salad">
+          <label class="cap-photo">
+            <input id="cap-photo" name="photo" type="file" accept="image/*" capture="environment">
+            <span>Add a photo</span>
+          </label>
           <button class="btn btn-primary" type="submit">Capture</button>
           <p class="hint">The app does no analysis of its own — your coach reads this
           next time you open a chat and works out the macros on your own model.</p>

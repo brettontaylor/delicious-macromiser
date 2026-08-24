@@ -21,7 +21,6 @@ import { importDays } from './import_days.ts';
 import { listRecipes } from './list_recipes.ts';
 import { correctMeal, deleteMeal } from './correct_meal.ts';
 import { getNextMeal } from './get_next_meal.ts';
-import { spikeImage } from './spike_image.ts';
 import { getPendingCaptures, resolveCapture } from './captures.ts';
 import { correctWorkout, deleteWorkout } from './correct_workout.ts';
 import { setTrainingPlan, getTrainingPlanTool } from './training_plan.ts';
@@ -372,24 +371,6 @@ export const TOOLS: ToolDef[] = [
       additionalProperties: false,
     },
     handler: getNextMeal,
-  },
-  {
-    // TEMPORARY — US-1 Phase 0. Remove once the finding is recorded.
-    name: 'spike_image',
-    description:
-      'Diagnostic. Returns a test image so we can find out whether this client ' +
-      'passes image content blocks through to the model. Describe exactly what ' +
-      'you see, and say plainly if you see nothing.',
-    // Deliberately carries one optional property. spike_image was the only
-    // parameterless tool in the surface and did not appear in a client that
-    // listed every other tool — an empty `properties` object is a plausible
-    // reason a client would drop it, and this rules that out cheaply.
-    inputSchema: {
-      type: 'object',
-      properties: { note: str('Optional. Ignored — present only so the schema is not empty.') },
-      additionalProperties: false,
-    },
-    handler: spikeImage,
   },
   {
     name: 'get_pending_captures',

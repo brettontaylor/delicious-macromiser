@@ -6,8 +6,9 @@ import {
 } from '../../db/queries.ts';
 import type { ToolArgs } from './index.ts';
 import { ArgError, reqString, optString, optNumber, reqEnum } from './args.ts';
-import { daysBetween } from '../../util/date.ts';
-import { localDate } from '../../util/date.ts';
+import { daysBetween, localDate } from '../../util/date.ts';
+import { toBase64 } from '../../app/photo.ts';
+import type { RawContent } from '../server.ts';
 
 /**
  * The queue of things the user recorded in the app that are not yet meals.
@@ -18,12 +19,17 @@ import { localDate } from '../../util/date.ts';
  * subscription rather than an API key. The app captures; this hands the capture
  * over.
  */
+/** At most this many images in one response. Each is a few hundred KB of base64
+ *  and a real chunk of the model's attention; a queue of twenty photos should
+ *  arrive in batches, not as one enormous payload. */
+const MAX_IMAGES_PER_CALL = 3;
+
 export async function getPendingCaptures(ctx: Ctx, args: ToolArgs): Promise<unknown> {
   const limit = Math.min(Math.max(optNumber(args, 'limit') ?? 20, 1), 50);
   const rows = await listPendingCaptures(ctx, limit);
   const today = localDate(ctx.now, ctx.tz);
 
-  return {
+  const summary = {
     count: rows.length,
     captures: rows.map((c) => ({
       capture_id: c.id,
@@ -40,6 +46,40 @@ export async function getPendingCaptures(ctx: Ctx, args: ToolArgs): Promise<unkn
         ? 'Nothing waiting.'
         : 'For each: estimate the macros and call log_meal with capture_id set — that logs the meal AND closes the capture in one call. If one is too vague to estimate, call resolve_capture with state "unusable" and say why. Never guess numbers to clear the queue.',
   };
+
+  // Attach the photos themselves. Verified 2026-08-24 that the client passes an
+  // image content block to the model, so no signed URL is needed.
+  const withPhotos = rows.filter((c) => c.object_key).slice(0, MAX_IMAGES_PER_CALL);
+  if (withPhotos.length === 0 || !ctx.captures) return summary;
+
+  const blocks: unknown[] = [];
+  const shown: string[] = [];
+  for (const c of withPhotos) {
+    const obj = await ctx.captures.get(c.object_key!);
+    if (!obj) continue;   // pruned by retention; the row stays, the picture is gone
+    blocks.push({
+      type: 'image',
+      data: toBase64(await obj.arrayBuffer()),
+      mimeType: c.mime_type ?? 'image/jpeg',
+    });
+    shown.push(c.id);
+  }
+  if (blocks.length === 0) return summary;
+
+  const result: RawContent = {
+    text: JSON.stringify(
+      {
+        ...summary,
+        images_attached: shown,
+        image_note:
+          'The images below are in the same order as images_attached. Estimate from what you can actually see; if a photo is too dark or too ambiguous to judge portions, say so and call resolve_capture rather than guessing.',
+      },
+      null,
+      2,
+    ),
+    __mcpContent: blocks,
+  };
+  return result;
 }
 
 /**

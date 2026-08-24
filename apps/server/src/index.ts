@@ -36,6 +36,8 @@ export interface Env {
   APP_EDIT_SECRET?: string;
   /** Nightly D1 snapshots. Unbound simply disables backup. */
   BACKUPS?: R2Bucket;
+  /** Meal photos from the app. Unbound disables photo capture; text still works. */
+  CAPTURES?: R2Bucket;
   DEFAULT_TZ?: string;
   OWNER_USER_ID?: string;
 }
@@ -102,7 +104,10 @@ export default {
       const userId = env.OWNER_USER_ID || 'owner';
       const now = new Date();
       const stored = await getUserTz(env.DB, userId);
-      const ctx: Ctx = { db: env.DB, userId, tz: stored ?? (env.DEFAULT_TZ || 'America/New_York'), now };
+      const ctx: Ctx = {
+        db: env.DB, userId, tz: stored ?? (env.DEFAULT_TZ || 'America/New_York'), now,
+        captures: env.CAPTURES,
+      };
 
       const isRead = request.method === 'GET' || request.method === 'HEAD';
 
@@ -120,7 +125,7 @@ export default {
 
       if (request.method === 'POST' && action === '/capture') {
         if (!canEdit) return new Response('This link is read-only.', { status: 403 });
-        return handleAppCapture(ctx, request, given);
+        return handleAppCapture(ctx, request, given, env.CAPTURES);
       }
 
       if (request.method === 'POST' && (action === '/save' || action === '/remove')) {
@@ -201,7 +206,7 @@ async function handleMcp(request: Request, env: Env): Promise<Response> {
   const makeCtx = async (): Promise<Ctx> => {
     const now = new Date();
     const stored = await getUserTz(env.DB, userId);
-    const ctx: Ctx = { db: env.DB, userId, tz: stored ?? defaultTz, now };
+    const ctx: Ctx = { db: env.DB, userId, tz: stored ?? defaultTz, now, captures: env.CAPTURES };
     if (stored === null) await ensureUser(ctx);
     return ctx;
   };

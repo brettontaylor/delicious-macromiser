@@ -47,7 +47,9 @@ Returns 7-day (or requested-window) averages for calories, food calories excludi
 
 The app has no AI of its own by design — it captures, and you analyze. That is what keeps this running on the model the user already pays for rather than on ours.
 
-For each capture: estimate the macros from the note and call log_meal with capture_id set. That logs the meal AND closes the capture in a single call. If a note is genuinely too vague to estimate, call resolve_capture with state "unusable" and say why — never invent numbers to clear the queue, because a made-up entry corrupts the very averages the user is tracking.`,
+A capture may be a typed note, a PHOTO, or both. Photos arrive as images attached to this tool's result, in the order given by images_attached — look at them and estimate from what you can actually see. If a photo is too dark or too ambiguous to judge portions, say so and resolve it as unusable rather than guessing; a made-up number is worse than an unlogged meal.
+
+For each capture: estimate the macros and call log_meal with capture_id set. That logs the meal AND closes the capture in a single call. If a note is genuinely too vague to estimate, call resolve_capture with state "unusable" and say why — never invent numbers to clear the queue, because a made-up entry corrupts the very averages the user is tracking.`,
 
   resolve_capture: `Close a capture that will not become a meal — one too vague to estimate from. Requires a reason, and you should repeat that reason to the user rather than letting the entry vanish quietly.
 

@@ -11,6 +11,15 @@ say what the symptom looked like, because that is how you will recognise it.
 
 ## Local development
 
+**`wrangler dev` uses the TOP-LEVEL config, not `[env.prod]`.** A binding added
+only under `[[env.prod.r2_buckets]]` is simply absent locally, and the feature
+that needs it cannot be tested at all. Add bindings in both places.
+
+**curl here is a Windows binary and cannot read an MSYS path.** `-F "f=@/c/Users/..."`
+fails with a bare `000` and no error; use `C:/Users/...`. The same upload
+succeeded immediately once the path changed. A `000` is curl failing, not the
+server.
+
 **`--file=/dev/null` creates a real file called `nul` on Windows.** It then
 breaks every subsequent `git add -A` with `unable to index file 'apps/server/nul'`
 — and because the failure is on `add`, a chained `&& git commit` never runs while
@@ -85,10 +94,16 @@ resolved when the connector is added, not per conversation, so opening a fresh
 chat is not enough — the connector needs toggling off and on. Shipping a tool is
 not the same as shipping a feature.
 
-**A tool with an empty `properties: {}` may be dropped by a client.** Unproven
-but suspected: `spike_image` was the only parameterless tool in the surface and
-the only one a client failed to list. It now carries one ignored optional
-property. Give every tool at least one.
+**A tool with an empty `properties: {}` may be dropped by a client.** Still
+unproven: `spike_image` was the only parameterless tool and the only one a client
+failed to list, but it became visible after BOTH gaining a property and a
+connector reconnect. Two variables changed at once, so neither is confirmed as
+the cause. Do both — give every tool at least one property, and expect a
+reconnect.
+
+**An MCP client DOES pass an `image` content block through to the model.**
+Verified 2026-08-24 against claude.ai: a fresh chat read back a 3x3 grid exactly
+(1 in 512). Photo capture and in-chat visualisation both rest on this.
 
 **Tool results are text-only unless a handler opts out.** `toolResult` returns
 `{type:'text'}` plus `structuredContent`. A handler that needs an image returns

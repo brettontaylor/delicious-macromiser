@@ -10,6 +10,14 @@ database_name = "macromiser"
 database_id = "e0d98283-a88d-4035-a3a4-65a9f127c1d8"
 migrations_dir = "migrations"
 
+[[r2_buckets]]
+binding = "BACKUPS"
+bucket_name = "macromiser-backups"
+
+[[r2_buckets]]
+binding = "CAPTURES"
+bucket_name = "macromiser-captures"
+
 [vars]
 # Non-secret defaults. MCP_PATH_SECRET is a *secret* — set it with:
 #   npx wrangler secret put MCP_PATH_SECRET
@@ -28,6 +36,12 @@ crons = ["10 7 * * *"]
 [[env.prod.r2_buckets]]
 binding = "BACKUPS"
 bucket_name = "macromiser-backups"
+
+# Meal photos captured in the app. Separate from backups so retention and
+# access can differ — a photo is personal in a way a row of numbers is not.
+[[env.prod.r2_buckets]]
+binding = "CAPTURES"
+bucket_name = "macromiser-captures"
 
 [[env.prod.d1_databases]]
 binding = "DB"

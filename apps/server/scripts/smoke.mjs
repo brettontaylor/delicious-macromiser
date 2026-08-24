@@ -109,7 +109,7 @@ try {
     'import_days',
     'list_recipes',
     'log_bodyweight', 'log_meal', 'log_workout', 'resolve_capture',
-    'set_goals', 'set_pantry', 'set_training_plan', 'spike_image',
+    'set_goals', 'set_pantry', 'set_training_plan',
   ];
   const missing = EXPECTED_TOOLS.filter((t) => !names.includes(t));
   const extra = names.filter((t) => !EXPECTED_TOOLS.includes(t));
