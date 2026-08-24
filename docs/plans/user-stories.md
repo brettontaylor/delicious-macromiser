@@ -139,7 +139,7 @@ schema permits.
 | **E3 — The weekly budget** | S-11, S-16, S-30 | Medium | The framing the coach actually teaches, absent from schema and UI. Directly targets the live adherence problem: 4 of 7 days logged. |
 | **E4 — Athlete profile & guided onboarding** | S-1, S-2, S-3, S-4, M-1 | Medium | What the model must never be re-told. Today it lives in Claude's private memory, which is neither portable nor ours. |
 | **E5 — Daily adherence: supplements & standing rules** | S-14, S-17, S-19 | Medium | Operator-specified. A stack the user defines, plus one daily checkbox per commitment. Absorbs steps-as-a-rule without a steps integration. |
-| **E6 — Pacing, momentum & milestones** | S-12, S-23, S-25 | Small | Data already in the tables, nothing exposed. Highest perceived intelligence per hour of work in the catalog. |
+| ~~**E6 — Pacing, momentum & milestones**~~ ✅ **shipped 2026-08-24** | S-12, S-23, S-25 | Small | All three. `pace` on `get_today`/`get_briefing`, `best_ever` + `personal_records`, and the share link surfaced. No new table — it was all already stored. |
 | **E7 — Wearables** | S-28 | Large, gated | Apple Health / Whoop. OAuth per vendor. Correctly Phase 5. |
 | **E8 — Multi-user** | S-29 | Large | Phase 4, unchanged. |
 
@@ -170,7 +170,7 @@ Ranked by value; sequenced by value ÷ cost, with the correctness defect first.
 | # | Epic | Why here |
 |---|---|---|
 | ~~1~~ | ~~**E2 — Events**~~ | ✅ **Shipped 2026-08-24.** |
-| 2 | **E6 — Pacing & milestones** | An evening. Pure exposure of data already stored. Makes the product feel like it is paying attention, which is what sustains logging. |
+| ~~2~~ | ~~**E6 — Pacing & milestones**~~ | ✅ **Shipped 2026-08-24.** |
 | 3 | **E1 — Prescribed session & block** | The epic. Detailed in [training-block.md](training-block.md). |
 | 4 | **E3 — Weekly budget** | Reframes the primary surface. Wants E2's events so a travel week can be excluded honestly. |
 | 5 | **E5 — Supplements & rules** | Self-contained. Benefits from E2 — a stack start date *is* an event. |

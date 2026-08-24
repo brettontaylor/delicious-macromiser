@@ -127,7 +127,13 @@ export default {
       if (isRead) {
         const requested = url.searchParams.get('date');
         const date = requested && /^\d{4}-\d{2}-\d{2}$/.test(requested) ? requested : null;
-        return renderApp(ctx, date, { canEdit, secret: given, notice: url.searchParams.get('ok') });
+        return renderApp(ctx, date, {
+          canEdit,
+          secret: given,
+          notice: url.searchParams.get('ok'),
+          // Only the owner is shown the shareable secret.
+          viewSecret: canEdit ? (env.APP_VIEW_SECRET ?? null) : null,
+        });
       }
 
       if (request.method === 'POST' && action === '/capture') {

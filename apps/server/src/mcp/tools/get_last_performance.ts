@@ -1,5 +1,5 @@
 import type { Ctx } from '../../db/queries.ts';
-import { getSetsForExercise } from '../../db/queries.ts';
+import { getSetsForExercise, getBestSets } from '../../db/queries.ts';
 import { buildHistory } from '../../domain/progression.ts';
 import { normalizeExercise } from '../../domain/exercise.ts';
 import { localDate } from '../../util/date.ts';
@@ -34,13 +34,21 @@ export async function getLastPerformance(ctx: Ctx, args: ToolArgs): Promise<unkn
 
   // Distinct keys only — "squat" and "squats" resolve to the same history.
   const uniqueKeys = [...new Set(requested.map((r) => r.key))];
-  const histories = await Promise.all(
-    uniqueKeys.map(async (key) => {
-      const rows = await getSetsForExercise(ctx, key, 4);
-      return [key, buildHistory(key, rows, today)] as const;
-    }),
-  );
+  // Lifetime bests alongside the recent window. getSetsForExercise deliberately
+  // looks at the last four sessions only, so it can never see a PR set in
+  // February — and "have I ever hit this" is a different question from "what
+  // did I do last time".
+  const [histories, bests] = await Promise.all([
+    Promise.all(
+      uniqueKeys.map(async (key) => {
+        const rows = await getSetsForExercise(ctx, key, 4);
+        return [key, buildHistory(key, rows, today)] as const;
+      }),
+    ),
+    getBestSets(ctx, uniqueKeys),
+  ]);
   const byKey = new Map(histories);
+  const bestByKey = new Map(bests.map((b) => [b.exercise, b]));
 
   return {
     as_of: today,
@@ -57,6 +65,16 @@ export async function getLastPerformance(ctx: Ctx, args: ToolArgs): Promise<unkn
         enough_history_to_progress: h.sessions_logged >= 2,
         last: h.last,
         previous: h.previous,
+        // Heaviest completed set ever, dated to when it was FIRST hit. Null
+        // when the lift has only ever been done at bodyweight.
+        best_ever: bestByKey.get(r.key)
+          ? {
+              weight_lb: bestByKey.get(r.key)!.weight_lb,
+              reps: bestByKey.get(r.key)!.reps,
+              local_date: bestByKey.get(r.key)!.local_date,
+              is_today: bestByKey.get(r.key)!.local_date === today,
+            }
+          : null,
       };
     }),
   };

@@ -17,7 +17,8 @@
     "backup:restore": "npm run restore --workspace @dm/server --",
     "recipes:build": "node scripts/build-recipe-catalog.mjs",
     "prepare": "node scripts/build-recipe-catalog.mjs",
-    "verify:events": "npm run verify:events --workspace @dm/server"
+    "verify:events": "npm run verify:events --workspace @dm/server",
+    "verify:pacing": "npm run verify:pacing --workspace @dm/server"
   },
   "engines": {
     "node": ">=22"

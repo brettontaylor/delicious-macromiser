@@ -18,7 +18,8 @@
     "typecheck": "tsc --noEmit",
     "smoke": "node scripts/smoke.mjs",
     "restore": "node scripts/restore.mjs",
-    "verify:events": "bash scripts/verify-events.sh"
+    "verify:events": "bash scripts/verify-events.sh",
+    "verify:pacing": "bash scripts/verify-pacing.sh"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^5.20260820.1",

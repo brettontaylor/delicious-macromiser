@@ -835,3 +835,46 @@ export async function softDeleteEvent(ctx: Ctx, id: string): Promise<boolean> {
     .run();
   return (res.meta.changes ?? 0) > 0;
 }
+
+// ---------- personal records ----------
+
+export interface BestSet {
+  exercise: string;
+  weight_lb: number;
+  reps: number | null;
+  local_date: string;
+}
+
+/**
+ * Heaviest COMPLETED set ever, per exercise.
+ *
+ * Deliberately separate from `getSetsForExercise`, which windows to the last
+ * few sessions — a lifetime best is exactly the thing a recent window cannot
+ * see. `completed = 1` matters: a failed attempt at 235 is not a 235.
+ * Ties on load break toward more reps, matching `shapeSession`'s top_set rule
+ * so "best" means the same thing in both places.
+ */
+export async function getBestSets(ctx: Ctx, exercises: string[]): Promise<BestSet[]> {
+  if (exercises.length === 0) return [];
+  const holes = exercises.map(() => '?').join(',');
+  const res = await ctx.db
+    .prepare(
+      `SELECT s.exercise, s.weight_lb, s.reps, w.local_date
+         FROM sets s JOIN workouts w ON w.id = s.workout_id
+        WHERE w.user_id = ? AND w.deleted_at IS NULL
+          AND s.completed = 1 AND s.weight_lb IS NOT NULL
+          AND s.exercise IN (${holes})
+        ORDER BY s.exercise ASC, s.weight_lb DESC, s.reps DESC, w.local_date ASC`,
+    )
+    .bind(ctx.userId, ...exercises)
+    .all<BestSet>();
+
+  // First row per exercise wins, given the ORDER BY. Earliest date on a tie,
+  // so a best is dated to when it was FIRST hit rather than most recently
+  // repeated — "first time I've hit 225" is the sentence being supported.
+  const best = new Map<string, BestSet>();
+  for (const r of res.results ?? []) {
+    if (!best.has(r.exercise)) best.set(r.exercise, r);
+  }
+  return [...best.values()];
+}

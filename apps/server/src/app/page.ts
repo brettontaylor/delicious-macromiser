@@ -33,6 +33,8 @@ import { nextMeal } from '../domain/mealtimes.ts';
 import { planView, weekdayIndex, whenPhrase } from '../domain/plan.ts';
 import { localWeekday } from '../util/date.ts';
 import { roadmapStub as stub } from './stub.ts';
+import { pace as computePace } from '../domain/pacing.ts';
+import { minutesToClock } from '../domain/mealtimes.ts';
 
 const n0 = (v: number | null | undefined): string =>
   v === null || v === undefined ? '—' : String(Math.round(v));
@@ -79,6 +81,14 @@ export interface AppOptions {
   secret: string;
   /** One-shot result of the last write, from the redirect. */
   notice: string | null;
+  /**
+   * The read-only secret, shown to the owner so the shareable link is
+   * discoverable at all. The capability has existed since Phase 3 and nothing
+   * in the UI ever mentioned it. Null when APP_VIEW_SECRET is unset, and never
+   * rendered on the read-only page — someone holding the view link does not
+   * need to be handed it again, and should not learn there is another one.
+   */
+  viewSecret: string | null;
 }
 
 export async function renderApp(
@@ -123,6 +133,18 @@ export async function renderApp(
   // The plan is about the shape of a week, so it only makes sense on today.
   const planToday = date === today ? planView(plan, weekdayIndex(localWeekday(ctx.now, ctx.tz))) : null;
   const didLiftToday = workouts.some((w) => w.local_date === date);
+
+  // Same rule as `upcoming`: a pace comparison on a finished day is noise.
+  const pacing =
+    date === today
+      ? computePace(
+          meals,
+          rangeMeals.filter((m) => m.local_date !== today),
+          ctx.now,
+          ctx.tz,
+          today,
+        )
+      : null;
 
   // Only meaningful for today — a next meal on a day already past is noise.
   const upcoming =
@@ -310,9 +332,21 @@ export async function renderApp(
   </div>
 
   ${
+    pacing && pacing.typical_protein_g !== null
+      ? `<div class="pace${pacing.best_yet ? ' lit' : ''}">
+          <span class="pace-n">${pacing.protein_g} g</span>
+          <span class="pace-t">protein by ${esc(minutesToClock(pacing.as_of_minutes))}${
+            pacing.best_yet
+              ? ' &mdash; your best pace yet'
+              : ` &middot; usually ${pacing.typical_protein_g} g by now`
+          }</span>
+        </div>`
+      : ''
+  }
+
+  ${
     opts.canEdit
-      ? stub('pacing', opts.secret, '100 g protein by 2pm &mdash; your best pace yet') +
-        stub(
+      ? stub(
           'adherence',
           opts.secret,
           '[ ] 10,000 steps &nbsp;&nbsp; [ ] no alcohol &nbsp;&nbsp; [ ] creatine 5 g',
@@ -466,6 +500,18 @@ export async function renderApp(
     }${goals?.target_weight_lb ? ` · target ${Math.round(goals.target_weight_lb)}` : ''}</span></div>
     ${trendChart(bw, goals?.target_weight_lb ?? null, events)}
   </section>
+
+  ${
+    opts.canEdit && opts.viewSecret
+      ? `<details class="share">
+          <summary>Share a read-only view</summary>
+          <p class="hint">Anyone with this link sees the log and can change nothing.
+          It is a different secret from this page, so you can revoke it without
+          breaking your own access or the connector.</p>
+          <code class="share-link">/app/${esc(opts.viewSecret)}</code>
+        </details>`
+      : ''
+  }
 
   <footer>
     ${

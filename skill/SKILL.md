@@ -111,6 +111,19 @@ conversation context and silently skip the tools.
   prompt for the user, and it is not idempotent — confirm the whole list first.
 - Before any question about progress, trends, or whether something is working,
   call `get_week_summary`. Never answer a trend question from one day.
+- `get_today` and `get_briefing` return **`pace`** — where today sits against
+  the same clock time on past days. Use it instead of judging "behind on
+  protein" by eye. `best_yet` is worth saying out loud; `typical_protein_g` is
+  the honest comparison the rest of the time.
+  - `typical_protein_g: null` means fewer than three comparable days. Say
+    nothing about pace rather than inventing a baseline — `reason` explains it.
+  - Never compare against a day the user did not log. The server already
+    excludes those; do not reconstruct one from the conversation.
+- `log_workout` returns **`personal_records`** when a set beat everything
+  before it, and `get_last_performance` returns `best_ever` per lift. Mention a
+  record when it happens — it is the one moment in this loop worth marking.
+  - `first_ever: true` means it is simply the first time that lift has been
+    logged with a load. That is not a PR. Do not announce it as one.
 - When the user mentions **starting or stopping a supplement, travel, an
   injury, illness, a deload, or a stretch of unusual stress**, call `log_event`.
   These change how their own numbers read, and an unrecorded one turns into a

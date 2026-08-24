@@ -149,9 +149,10 @@ finished product, not a construction site.
 │                                            │
 │   Protein        Carbs          Fat        │
 │   191/170g       138/235g       95/75g     │
-│ ┌ · · · · · · · · · · · · · · · · · · · ·┐ │  ← E6 stub  (pacing)
-│ ·  100g protein by 2pm — best pace yet  ·  │     meals.logged_at, already stored
-│ └ · · · · · · · · · · · · · · · · · · · ·┘ │
+│ ┌────────────────────────────────────────┐ │  ← E6 SHIPPED 2026-08-24
+│ │ 90 g  protein by 2:00pm —              │ │  .pace.lit (accent when best yet)
+│ │       your best pace yet               │ │  else "usually 35 g by now"
+│ └────────────────────────────────────────┘ │
 │                                            │
 │ ┌ · · · · · · · · · · · · · · · · · · · ·┐ │  ← E5 stub  (daily adherence)
 │ ·  Today's commitments         Planned  ·  │

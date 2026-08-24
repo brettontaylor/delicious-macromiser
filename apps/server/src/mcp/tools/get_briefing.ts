@@ -14,6 +14,7 @@ import {
 import { sumMeals, remainingVsGoals } from '../../domain/totals.ts';
 import { planView, weekdayIndex, WEEKDAY_NAMES } from '../../domain/plan.ts';
 import { activeOn, cloudedReadings } from '../../domain/events.ts';
+import { pace } from '../../domain/pacing.ts';
 import { localDate, localWeekday, localTime, shiftDate, daysBetween } from '../../util/date.ts';
 import type { ToolArgs } from './index.ts';
 
@@ -34,7 +35,7 @@ export async function getBriefing(ctx: Ctx, _args: ToolArgs): Promise<unknown> {
   const today = localDate(ctx.now, ctx.tz);
   const weekAgo = shiftDate(today, -6);
 
-  const [meals, goals, lastWorkout, portions, pending, plan, bw, sessions, weekMeals, events] =
+  const [meals, goals, lastWorkout, portions, pending, plan, bw, sessions, weekMeals, events, monthMeals] =
     await Promise.all([
       getMealsForDate(ctx, today),
       getGoalsAsOf(ctx, today),
@@ -46,6 +47,7 @@ export async function getBriefing(ctx: Ctx, _args: ToolArgs): Promise<unknown> {
       recentWorkoutIds(ctx, 5),
       getMealsForRange(ctx, weekAgo, today),
       getEventsInRange(ctx, shiftDate(today, -180), today),
+      getMealsForRange(ctx, shiftDate(today, -29), shiftDate(today, -1)),
     ]);
 
   const totals = sumMeals(meals);
@@ -89,6 +91,10 @@ export async function getBriefing(ctx: Ctx, _args: ToolArgs): Promise<unknown> {
       totals,
       remaining: remainingVsGoals(totals, goals),
       goals_set: goals !== null,
+      // Today against the same hour on past days. The sentence this exists for
+      // is "100 g of protein by 2pm — your best pace yet", which needs a
+      // comparison, not a total.
+      pace: pace(meals, monthMeals, ctx.now, ctx.tz, today),
     },
 
     // Above zero means the user recorded something in the app nobody has

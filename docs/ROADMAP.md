@@ -317,7 +317,7 @@ ring.
 | # | Epic | Stories | Size | Why here |
 |---|---|---|---|---|
 | ~~1~~ | **Events & annotations** — ✅ **shipped 2026-08-24** | S-15, S-20, S-21, S-22 | done | See below. |
-| 2 | **Pacing & milestones** | S-12, S-23, S-25 | 1 evening | `meals.logged_at` is already stored and `get_today` does not return it. "100 g of protein by 2pm — best pace yet" is free. Also surfaces best-ever per lift, and the share link, which exists and has no affordance in the UI. |
+| ~~2~~ | **Pacing & milestones** — ✅ **shipped 2026-08-24** | S-12, S-23, S-25 | done | See below. |
 | 3 | **Prescribed session & block** | S-5 … S-8, S-18, S-19, S-24, S-31 | The epic | [plans/training-block.md](plans/training-block.md). Two entities: a **program** (the standing block) and a **prescription** (one dated session with real loads). The comparison between prescription and log is adherence, and nothing else in this space has it. |
 | 4 | **The weekly budget** | S-11, S-16, S-30 | Medium | Weekly kcal target beside the daily one, week-to-date pacing, and a goal horizon so "week 6 of 16" is answerable. The framing that survives a bad Friday. |
 | 5 | **Supplements & standing rules** | S-14, S-17, S-19 | Medium | A stack the user defines, plus one daily checkbox per commitment. Absorbs "walk 10,000 steps" and "no alcohol" — already written in `training_plan.notes` and never checked off — without needing a steps integration. |
@@ -370,6 +370,36 @@ The Skill learned the rule that makes it worth anything: never read a weight
 trend without checking `clouded_readings`, lead with the reason rather than the
 number, switch to waist for the duration, and never recommend a calorie cut on
 a clouded trend.
+
+---
+
+## Pacing, milestones and the share link — ✅ done 2026-08-24
+
+Nothing new stored. Everything here was already in the tables and simply had no
+way out.
+
+- [x] `src/domain/pacing.ts` — today's protein against the **same clock time**
+      on past days. `get_today` and `get_briefing` return `pace`; the homepage
+      renders "90 g protein by 2:00pm — your best pace yet".
+- [x] **`meals.logged_at` is now returned by `get_today`.** It has been in the
+      schema since `0001_init.sql` and no tool ever exposed it, so the model
+      could only ever see a finished daily total.
+- [x] Only same-day-logged meals count, matching `mealtimes.ts`. A backfilled
+      row carries the time it was *written* — importing three weeks at 9pm on a
+      Sunday would otherwise read as three weeks of 9pm dinners. Verified: three
+      imported days still yield `days_compared: 0`.
+- [x] A day that was logged but empty by the cutoff counts as a **real zero**.
+      Dropping it would flatter today by comparing only against good days.
+- [x] Below three comparable days it returns null with a `reason` rather than
+      inventing a baseline. Ties are not a personal best.
+- [x] `getBestSets` — heaviest **completed** set ever per lift, dated to when it
+      was first hit. `log_workout` returns `personal_records`;
+      `get_last_performance` returns `best_ever`. A failed attempt at 235 is not
+      a 235, and a first-ever logged load is not a PR — both are tested.
+- [x] **The share link finally has an affordance.** `APP_VIEW_SECRET` has
+      existed since Phase 3 and nothing in the UI mentioned it. Shown only to
+      the edit capability, with what it does and does not grant.
+- [x] 12 unit tests plus `npm run verify:pacing` — 32 end-to-end assertions.
 
 ---
 

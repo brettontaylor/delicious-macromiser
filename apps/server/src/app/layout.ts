@@ -113,6 +113,14 @@ h2{font-family:var(--display);font-size:17px;font-weight:600;margin:0}
 .t-notes{margin:0;font-size:14px;line-height:1.45}
 .t-next{margin:0;font-family:var(--mono);font-size:12px;color:var(--muted)}
 
+/* pace — today against the same hour on other days */
+.pace{display:flex;align-items:baseline;gap:8px;border:1px solid var(--line);
+  border-radius:10px;padding:10px 13px;background:var(--surface)}
+.pace.lit{border-color:var(--ink);background:var(--accent);color:#111}
+.pace-n{font-family:var(--display);font-size:19px;font-weight:600;line-height:1}
+.pace-t{font-size:13px}
+.pace:not(.lit) .pace-t{color:var(--muted)}
+
 /* next meal */
 .upnext{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 10px;
   border:1px solid var(--line);border-radius:10px;padding:11px 13px;background:var(--surface)}
@@ -192,6 +200,15 @@ details summary:focus-visible{outline:2px solid var(--ink);outline-offset:3px;bo
 .stub-tag{margin-left:auto;font-family:var(--mono);font-size:9px;letter-spacing:.1em;
   text-transform:uppercase;border:1px solid var(--line-firm);border-radius:9999px;padding:2px 7px}
 .stub-preview{font-family:var(--mono);font-size:11.5px;line-height:1.5;opacity:.75}
+
+/* share link */
+.share{border:1px dashed var(--line-firm);border-radius:10px;padding:11px 13px}
+.share summary{font-size:13px;color:var(--muted);cursor:pointer;list-style:none;flex-direction:row}
+.share summary::after{content:none}
+.share summary::-webkit-details-marker{display:none}
+.share[open] summary{color:var(--ink);margin-bottom:8px}
+.share-link{display:block;font-family:var(--mono);font-size:11px;word-break:break-all;
+  background:var(--chrome);color:var(--ink);padding:7px 9px;border-radius:4px;margin-top:8px}
 
 footer{border-top:1px solid var(--line);padding-top:16px;font-size:12px;color:var(--muted)}
 footer code{font-family:var(--mono);background:var(--chrome);color:var(--ink);padding:1px 5px;border-radius:3px}`;
