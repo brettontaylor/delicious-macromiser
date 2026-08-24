@@ -17,6 +17,7 @@ import { renderApp } from './app/page.ts';
 import { runBackup, scheduledBackup } from './backup.ts';
 import { handleAppWrite, handleAppCapture } from './app/write.ts';
 import { renderRecipes } from './app/recipes.ts';
+import { renderRoadmap } from './app/roadmap.ts';
 import type { Ctx } from './db/queries.ts';
 
 export interface Env {
@@ -114,7 +115,13 @@ export default {
       if (isRead && action === '/recipes') {
         // Read-only for both capabilities: the book and the pantry are not
         // sensitive the way the food log is.
-        return renderRecipes(ctx, given);
+        return renderRecipes(ctx, given, canEdit);
+      }
+
+      if (isRead && action === '/roadmap') {
+        // Bundled reference data, no D1 read and nothing personal — it is the
+        // same plan the public repo already carries.
+        return renderRoadmap(given);
       }
 
       if (isRead) {

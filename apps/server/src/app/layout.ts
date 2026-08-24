@@ -38,6 +38,7 @@ body{margin:0;background:var(--ground);color:var(--ink);font-family:var(--ui);li
 .brand{font-family:var(--display);font-weight:600;font-size:17px;letter-spacing:.01em}
 .navlink{margin-left:auto;font-size:13px;color:var(--ink);text-decoration:none;
   border-bottom:1px solid var(--line-firm);padding-bottom:1px}
+.navlink + .navlink{margin-left:0}
 .navlink:focus-visible{outline:2px solid var(--ink);outline-offset:3px}
 .ro{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;
   color:var(--muted);border:1px solid var(--line-firm);border-radius:9999px;padding:3px 9px}
@@ -166,6 +167,23 @@ details summary:focus-visible{outline:2px solid var(--ink);outline-offset:3px;bo
   border:1px solid var(--line-firm);border-radius:9999px;padding:5px 11px;white-space:nowrap}
 .day[aria-current="page"]{background:var(--ink);color:var(--ground);border-color:var(--ink)}
 .day:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+
+/* back link — shared the moment a second page needed it */
+.back{font-size:13px;color:var(--ink);text-decoration:none}
+.back:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+
+/* roadmap placeholders.
+   A planned feature is drawn in the place it will occupy, dashed and muted, and
+   links to its row on /roadmap. Shown only on the editable capability — a link
+   you send someone should look like a finished product, not a building site. */
+.stub{display:flex;flex-direction:column;gap:6px;border:1px dashed var(--line-firm);
+  border-radius:10px;padding:11px 13px;color:var(--muted);text-decoration:none}
+.stub:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+.stub-top{display:flex;align-items:baseline;gap:8px}
+.stub-title{font-family:var(--display);font-size:15px;font-weight:600;color:var(--muted)}
+.stub-tag{margin-left:auto;font-family:var(--mono);font-size:9px;letter-spacing:.1em;
+  text-transform:uppercase;border:1px solid var(--line-firm);border-radius:9999px;padding:2px 7px}
+.stub-preview{font-family:var(--mono);font-size:11.5px;line-height:1.5;opacity:.75}
 
 footer{border-top:1px solid var(--line);padding-top:16px;font-size:12px;color:var(--muted)}
 footer code{font-family:var(--mono);background:var(--chrome);color:var(--ink);padding:1px 5px;border-radius:3px}`;

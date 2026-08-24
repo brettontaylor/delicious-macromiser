@@ -17,8 +17,13 @@ import { RECIPES } from '../domain/recipes.ts';
 import { matchRecipe } from '../domain/pantry.ts';
 import { localDate } from '../util/date.ts';
 import { PAGE_CSS, esc, shell } from './layout.ts';
+import { roadmapStub } from './stub.ts';
 
-export async function renderRecipes(ctx: Ctx, secret: string): Promise<Response> {
+export async function renderRecipes(
+  ctx: Ctx,
+  secret: string,
+  canEdit: boolean,
+): Promise<Response> {
   const today = localDate(ctx.now, ctx.tz);
   const [meals, goals, pantry] = await Promise.all([
     getMealsForDate(ctx, today),
@@ -92,6 +97,16 @@ export async function renderRecipes(ctx: Ctx, secret: string): Promise<Response>
     )
     .join('')}
 
+  ${
+    canEdit
+      ? roadmapStub(
+          'shopping-list',
+          secret,
+          'Gochujang &middot; Asian pear &middot; farro &mdash; everything this week needs',
+        )
+      : ''
+  }
+
   <footer>
     Per-serving figures come from each card's own ingredient list. What is
     actually cookable is your call — a missing herb is not a missing protein.
@@ -101,8 +116,6 @@ export async function renderRecipes(ctx: Ctx, secret: string): Promise<Response>
 }
 
 const RECIPE_CSS = `
-.back{font-size:13px;color:var(--ink);text-decoration:none}
-.back:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
 .recipe{gap:10px}
 .r-head{display:flex;align-items:baseline;gap:8px}
 .r-title{font-family:var(--display);font-size:17px;font-weight:600}

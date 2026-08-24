@@ -6,7 +6,7 @@ that is driven by real data rather than speculation.
 **Status (2026-08-23):** Phases 0-2 built and **deployed**. Both D1 instances
 created, prod migrated (schema only), Worker live at
 `macromiser-prod.macromiser.workers.dev`, 51/51 smoke checks passing against
-production, 27 unit tests green. See [DEV.md](DEV.md) to run or deploy it.
+production, 66 unit tests green. See [DEV.md](DEV.md) to run or deploy it.
 
 What remains in Phases 0-2 is claude.ai-side only: add the custom connector,
 confirm a tool call from the phone, install the Skill.
@@ -284,6 +284,59 @@ lists rather than an inventory.
 
 ---
 
+## Re-prioritized 2026-08-24 — what the real transcript changed
+
+A year-old coaching conversation
+(`Claude-Chat__core-and-belly-fat-progress-plateau__8.15.2026.txt`) was read
+back against the build and turned into 31 user stories in
+[plans/user-stories.md](plans/user-stories.md). Three things came out of it that
+this roadmap did not have.
+
+**One: a shipped feature carries a latent defect.** The transcript has the model
+telling the user to "note it in macromiser so future-you knows to disregard the
+first three weeks of scale data" — creatine adds 2–4.5 lb of water while the
+diet is working. There is no events table, so the Phase 3 trend chart will show
+a rising 7-day average during a deficit with nothing on screen to explain it.
+That is not a feature request.
+
+**Two: "plan storage" was filed as an optional Phase 5 extension.** It is the
+largest gap in the product. The transcript's most valuable artifact — a two-week
+A/B/C block with target loads and a written progression rule — has nowhere to
+live, which is exactly the failure [PRODUCT.md](PRODUCT.md) §1 exists to kill.
+Promoted, and planned in [plans/training-block.md](plans/training-block.md).
+
+**Three: the current problem is adherence, not capability.** Live log at time of
+writing — 4 of 7 days logged, protein adherence 50%, zero weigh-ins in a week.
+The transcript shows the fix, and the app does not implement it: the coach
+teaches a *weekly* budget ("budget the week, not the meal — that's the only
+version of this that survives your business") and the homepage renders a daily
+ring.
+
+### The next six, in order
+
+| # | Epic | Stories | Size | Why here |
+|---|---|---|---|---|
+| 1 | **Events & annotations** | S-15, S-20, S-21, S-22, S-30 | 1 evening | Repairs the trend chart. Creatine, travel, injury and deload each become a dated marker with an optional end, so a window can be read differently or excluded. The model asked for this by name. |
+| 2 | **Pacing & milestones** | S-12, S-23, S-25 | 1 evening | `meals.logged_at` is already stored and `get_today` does not return it. "100 g of protein by 2pm — best pace yet" is free. Also surfaces best-ever per lift, and the share link, which exists and has no affordance in the UI. |
+| 3 | **Prescribed session & block** | S-5 … S-8, S-18, S-19, S-24, S-31 | The epic | [plans/training-block.md](plans/training-block.md). Two entities: a **program** (the standing block) and a **prescription** (one dated session with real loads). The comparison between prescription and log is adherence, and nothing else in this space has it. |
+| 4 | **The weekly budget** | S-11, S-16, S-30 | Medium | Weekly kcal target beside the daily one, week-to-date pacing, and a goal horizon so "week 6 of 16" is answerable. The framing that survives a bad Friday. |
+| 5 | **Supplements & standing rules** | S-14, S-17, S-19 | Medium | A stack the user defines, plus one daily checkbox per commitment. Absorbs "walk 10,000 steps" and "no alcohol" — already written in `training_plan.notes` and never checked off — without needing a steps integration. |
+| 6 | **Athlete profile & onboarding** | S-1 … S-4, M-1 | Medium | Today the answer to "who is this person" lives in Claude's private memory: not portable, not ours, and invisible to a second client. Worth most on user #2. |
+
+> **Decided 2026-08-24 — this order stands.** #4 had an arguable claim on going
+> first, because the live log shows an adherence problem rather than a capability
+> one. Revisit if logging adherence has not moved by the time #3 starts. Recorded
+> as D-1 in [plans/training-block.md](plans/training-block.md) §8.
+
+**Deliberately still deferred:** steps, sleep and stress as tracked series
+(S-28). Self-reported 1–5 scores are low-signal; the honest answer is Apple
+Health / Whoop, which is OAuth-gated and correctly sits in Phase 5.
+
+Every item above renders as a greyed placeholder where it will live, plus a row
+on `/app/<secret>/roadmap`. Page-by-page wireframes: [UI-MAP.md](UI-MAP.md).
+
+---
+
 ## Phase 4 — Multi-user (2–3 weekends)
 
 Only start this when a second person actually wants in.
@@ -314,10 +367,10 @@ Only if Phases 1–3 have survived three months of daily use.
 
 | Extension | Value | Cost |
 |---|---|---|
-| Photo meal logging | High — near-zero behavior change | Low; the model does the work |
+| ~~Photo meal logging~~ | — | **Shipped 2026-08-24** (US-1 Phase 2), ahead of this table |
 | Barcode via Open Food Facts | Medium | Low |
-| Whoop / Apple Health import | Medium — real TDEE instead of estimates | High; OAuth per vendor |
-| Plan storage (programmed future sessions) | High for adherence | Medium |
+| Whoop / Apple Health import | **High** — and the only honest answer to steps, sleep and stress (S-28) | High; OAuth per vendor |
+| ~~Plan storage (programmed future sessions)~~ | — | **Promoted** out of "optional" — it is the largest gap in the product. See "Re-prioritized" above and [plans/training-block.md](plans/training-block.md) |
 | Claude Skill published to directory | Distribution | Medium |
 | Connector directory submission | Distribution | High — requires Team/Enterprise org, screenshots, populated test account, review |
 

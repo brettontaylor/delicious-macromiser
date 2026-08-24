@@ -31,6 +31,7 @@ import { PAGE_CSS, esc, shell } from './layout.ts';
 import { nextMeal } from '../domain/mealtimes.ts';
 import { planView, weekdayIndex, whenPhrase } from '../domain/plan.ts';
 import { localWeekday } from '../util/date.ts';
+import { roadmapStub as stub } from './stub.ts';
 
 const n0 = (v: number | null | undefined): string =>
   v === null || v === undefined ? '—' : String(Math.round(v));
@@ -162,6 +163,7 @@ export async function renderApp(
   <div class="bar">
     <span class="brand">Macromiser</span>
     <a class="navlink" href="/app/${esc(opts.secret)}/recipes">Recipes</a>
+    <a class="navlink" href="/app/${esc(opts.secret)}/roadmap">Roadmap</a>
     <span class="ro">${opts.canEdit ? 'Editable' : 'Read only'}</span>
   </div>
 
@@ -226,6 +228,16 @@ export async function renderApp(
       : ''
   }
 
+  ${
+    opts.canEdit
+      ? stub(
+          'session',
+          opts.secret,
+          'Back squat 4&times;6 @ 185 &middot; RDL 3&times;8 @ 135 &middot; Bench 3&times;8 @ 145',
+        )
+      : ''
+  }
+
   <div class="gauge">
     <svg viewBox="0 0 320 176" role="img" aria-label="Calories consumed against target">
       <path class="arc-t" d="M 24 160 A 136 136 0 0 1 296 160" fill="none" stroke-width="14" stroke-linecap="round"/>
@@ -246,6 +258,16 @@ export async function renderApp(
         : ''
     }
   </div>
+
+  ${
+    opts.canEdit
+      ? stub(
+          'weekly-budget',
+          opts.secret,
+          'Week 11,240 / 16,100 kcal &middot; 3 days left &middot; Friday is spoken for',
+        )
+      : ''
+  }
 
   ${
     upcoming?.next
@@ -282,6 +304,17 @@ export async function renderApp(
       )
       .join('')}
   </div>
+
+  ${
+    opts.canEdit
+      ? stub('pacing', opts.secret, '100 g protein by 2pm &mdash; your best pace yet') +
+        stub(
+          'adherence',
+          opts.secret,
+          '[ ] 10,000 steps &nbsp;&nbsp; [ ] no alcohol &nbsp;&nbsp; [ ] creatine 5 g',
+        )
+      : ''
+  }
 
   ${
     opts.canEdit
@@ -428,6 +461,15 @@ export async function renderApp(
       latestWeight ? n0(latestWeight.weight_lb) + ' lb' : 'no readings'
     }${goals?.target_weight_lb ? ` · target ${Math.round(goals.target_weight_lb)}` : ''}</span></div>
     ${trendChart(bw, goals?.target_weight_lb ?? null)}
+    ${
+      opts.canEdit
+        ? stub(
+            'events',
+            opts.secret,
+            'Aug 24 &mdash; creatine started &middot; disregard three weeks of scale',
+          )
+        : ''
+    }
   </section>
 
   <footer>
