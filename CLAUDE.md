@@ -121,6 +121,13 @@ and `kind` are all both identifiers and SQL column names here.
 |---|---|
 | `/start-session` | Briefing: git, prod health, **and the live log** — pending captures, whether today is logged, whether a plan exists |
 | `/save-session` | Full check suite, prod backup, verify it actually shipped, write the state-of-record, commit, confirm CI |
+| `/ship` | Deploy to production: checks → push → **backup** → migrate → deploy → prove it with a real tool call |
+
+> **Pushing deploys nothing here.** CI has no deploy job by design — the prod
+> Worker holds a live log. `/ship` exists because a workflow that stopped at
+> `git push` would report success while production stayed on the old build,
+> which has already happened once. Ported from D-I Wine and inverted: there,
+> Railway watches `main` and push *is* the finish line.
 
 `/save-session` appends to `docs/GOTCHAS.md`. If something cost more than ten
 minutes to work out, it goes there — that ledger is the difference between

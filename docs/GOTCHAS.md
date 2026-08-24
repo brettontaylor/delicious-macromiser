@@ -9,6 +9,25 @@ say what the symptom looked like, because that is how you will recognise it.
 
 ---
 
+## Deploying
+
+**`git push` deploys nothing.** CI has no deploy job on purpose. On 2026-08-24
+seven commits were pushed and CI went green while production carried on serving
+a build from the previous night — 22 tools, migrations stopping at `0005`. Use
+`/ship`, and never call something live without having called it.
+
+**`/health` cannot tell you which build is running.** It returns
+`{"ok":true,"version":"0.1.0"}` on every build, because the version is hardcoded
+in `SERVER_INFO`. To prove a deploy landed, call a tool and look for a field only
+the new code returns — `pace` on `get_today` was the tell this time.
+
+**Back up with `wrangler d1 export`, not the `/backup` endpoint.** The endpoint
+needs `MCP_PATH_SECRET`; the CLI needs only your wrangler login, so it works
+from any session. Write it **outside the repo** — the dump contains meals,
+workouts and bodyweight, and the repo is public.
+
+---
+
 ## Local development
 
 **The GitNexus post-commit hook rewrites BOTH `AGENTS.md` and `CLAUDE.md`.**
