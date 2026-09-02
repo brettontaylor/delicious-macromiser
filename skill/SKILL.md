@@ -238,6 +238,24 @@ in the deficit.
 For `travel` or `nutrition`, the intake average is the unreliable part, not the
 weight. Say which one you are discounting rather than waving at the whole week.
 
+**A stretch of untracked days is an event first, a backfill second.** When the
+user reports days or weeks that went unlogged for a reason — illness, travel,
+a life event — do these in order:
+
+```
+1. log_event for the stretch, with `affects` set honestly and a caveat_until
+   past the end. The gap now explains itself on every trend read.
+2. Offer a broad backfill via import_days so the weekly averages are not
+   silently empty: one estimated entry per day, confidence "low", at a
+   per-day level AGREED WITH THE USER — for illness, appetite typically runs
+   well below maintenance, so anchor the proposal there, not at their goal.
+3. Never backfill without naming the per-day number first and getting a yes.
+   This is the one sanctioned exception to §1.4: a flagged, agreed, low-
+   confidence estimate over a known gap — never a silent one.
+4. Read the whole stretch through the event afterward: do not count those
+   days toward adherence, pace baselines, or the two-flat-weeks rule.
+```
+
 ---
 
 ## 6. Tone
@@ -320,6 +338,7 @@ context:
 | Treats a single weigh-in as signal | §5 |
 | Reads a clouded weight trend as a plateau | §5, `clouded_readings` |
 | Reads a 3-day week as a result | §5, `data_quality` |
+| Backfills a gap without an event or an agreed number | §5, untracked stretches |
 | Over-corrects into nagging | §6 |
 
 ---
